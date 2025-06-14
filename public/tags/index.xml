@@ -2,24 +2,24 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Tags on Terminal</title>
-    <link>http://localhost:1313/tags/</link>
+    <link>//localhost:1313/tags/</link>
     <description>Recent content in Tags on Terminal</description>
     <generator>Hugo</generator>
     <language>en</language>
     <lastBuildDate>Sat, 14 Jun 2025 00:00:00 +0000</lastBuildDate>
-    <atom:link href="http://localhost:1313/tags/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="//localhost:1313/tags/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Ansible</title>
-      <link>http://localhost:1313/tags/ansible/</link>
+      <link>//localhost:1313/tags/ansible/</link>
       <pubDate>Sat, 14 Jun 2025 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/tags/ansible/</guid>
+      <guid>//localhost:1313/tags/ansible/</guid>
       <description></description>
     </item>
     <item>
       <title>Homelab</title>
-      <link>http://localhost:1313/tags/homelab/</link>
+      <link>//localhost:1313/tags/homelab/</link>
       <pubDate>Sat, 14 Jun 2025 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/tags/homelab/</guid>
+      <guid>//localhost:1313/tags/homelab/</guid>
       <description></description>
     </item>
   </channel>

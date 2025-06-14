@@ -2,24 +2,24 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Ansible on Terminal</title>
-    <link>http://localhost:1313/tags/ansible/</link>
+    <link>//localhost:1313/tags/ansible/</link>
     <description>Recent content in Ansible on Terminal</description>
     <generator>Hugo</generator>
     <language>en</language>
     <lastBuildDate>Sat, 14 Jun 2025 00:00:00 +0000</lastBuildDate>
-    <atom:link href="http://localhost:1313/tags/ansible/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="//localhost:1313/tags/ansible/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Ansible</title>
-      <link>http://localhost:1313/posts/ansible/</link>
+      <link>//localhost:1313/posts/ansible/</link>
       <pubDate>Sat, 14 Jun 2025 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/posts/ansible/</guid>
+      <guid>//localhost:1313/posts/ansible/</guid>
       <description>&lt;p&gt;One of my favourite tools in my homelab setup is ansible. I love it. Upon discovering it, my setup has changed rapidly after years of much stagnancy. For example:&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;2014-2020: I deployed containers on a Synology NAS (DS415+) and called it a day.&lt;/li&gt;&#xA;&lt;li&gt;2020-2023: I relied upon UnRaid&amp;rsquo;s community applications to deploy containers.&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;p&gt;During these years, things were working fine, and it is when I discovered the main applications I depend on, but I wanted more. In 2023, I installed the UnRaid Compose plug-in, and moved everything to Compose files, which culminated in me moving all my Compose files to a Debian VM on UnRaid. But there was still something missing. I still had to:&lt;/p&gt;</description>
     </item>
     <item>
       <title>Ansible Lives!</title>
-      <link>http://localhost:1313/posts/ansible-lives/</link>
+      <link>//localhost:1313/posts/ansible-lives/</link>
       <pubDate>Sat, 14 Jun 2025 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/posts/ansible-lives/</guid>
+      <guid>//localhost:1313/posts/ansible-lives/</guid>
       <description>&lt;p&gt;A weird thing I&amp;rsquo;ve noticed with my ansible journey are the number of people who either think that ansible is dying/dead. It simply is not so. Some of these &amp;lsquo;doomsayers&amp;rsquo; don&amp;rsquo;t approach ansible with a mindset of what can it do to help them achieve jobs and tasks, they approach it with whether learning it will give them the skill-set to fast-track their entry into a job, career, industry. These people will then jump onto Kubernetes and other solutions that are &amp;lsquo;all the rage&amp;rsquo; these days. But it&amp;rsquo;s important to remember:&lt;/p&gt;</description>
     </item>
   </channel>
