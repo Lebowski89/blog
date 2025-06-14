@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Terminal</title>
-    <link>http://localhost:1313/</link>
-    <description>Recent content on Terminal</description>
+    <title>Homelab on Terminal</title>
+    <link>http://localhost:1313/tags/homelab/</link>
+    <description>Recent content in Homelab on Terminal</description>
     <generator>Hugo</generator>
     <language>en</language>
     <lastBuildDate>Sat, 14 Jun 2025 00:00:00 +0000</lastBuildDate>
-    <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="http://localhost:1313/tags/homelab/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Ansible</title>
       <link>http://localhost:1313/posts/ansible/</link>
@@ -21,13 +21,6 @@
       <pubDate>Sat, 14 Jun 2025 00:00:00 +0000</pubDate>
       <guid>http://localhost:1313/posts/ansible-lives/</guid>
       <description>&lt;p&gt;A weird thing I&amp;rsquo;ve noticed with my ansible journey are the number of people who either think that ansible is dying/dead. It simply is not so. Some of these &amp;lsquo;doomsayers&amp;rsquo; don&amp;rsquo;t approach ansible with a mindset of what can it do to help them achieve jobs and tasks, they approach it with whether learning it will give them the skill-set to fast-track their entry into a job, career, industry. These people will then jump onto Kubernetes and other solutions that are &amp;lsquo;all the rage&amp;rsquo; these days. But it&amp;rsquo;s important to remember:&lt;/p&gt;</description>
-    </item>
-    <item>
-      <title></title>
-      <link>http://localhost:1313/posts/about/</link>
-      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/posts/about/</guid>
-      <description>&lt;p&gt;Hi,&lt;/p&gt;&#xA;&lt;p&gt;I&amp;rsquo;m just an Aussie with degrees in marine science, who, in my sparetime, loves self-hosting the various services I enjoy and depend on, with a specific focus on media-centric apps (i.e, the ‘Servarr-suite’ (Bazarr, Lidarr, Prowlarr, Radarr, Readarr, Sonarr and Whisparr)), which aid in my other favourite pastime of media consumption (when I&amp;rsquo;m not in War Thunder).&lt;/p&gt;&#xA;&lt;p&gt;The purpose of this blog will be to share various tidbits of information and guides from my experiences, especially those pertaining to my current ansible + docker swarm setup.&lt;/p&gt;</description>
     </item>
   </channel>
 </rss>

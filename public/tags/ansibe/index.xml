@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Ansibe on Terminal</title>
+    <link>http://localhost:1313/tags/ansibe/</link>
+    <description>Recent content in Ansibe on Terminal</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <atom:link href="http://localhost:1313/tags/ansibe/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Ansible</title>
+      <link>http://localhost:1313/posts/ansible/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/posts/ansible/</guid>
+      <description>&lt;p&gt;One of my favourite tools in my homelab setup is ansible. I love it. Upon discovering it, my setup has changed rapidly after years of much stagnancy. For example:&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;2014-2020: I deployed containers on a Synology NAS (DS415+) and called it a day.&lt;/li&gt;&#xA;&lt;li&gt;2020-2023: I relied upon UnRaid&amp;rsquo;s community applications to deploy containers.&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;p&gt;During these years, things were working fine, and it is when I discovered the main applications I depend on, but I wanted more. In 2023, I installed the UnRaid Compose plug-in, and moved everything to Compose files, which culminated in me moving all my Compose files to a Debian VM on UnRaid. But there was still something missing. I still had to:&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

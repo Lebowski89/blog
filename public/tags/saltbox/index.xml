@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Saltbox on Terminal</title>
+    <link>http://localhost:1313/tags/saltbox/</link>
+    <description>Recent content in Saltbox on Terminal</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Fri, 13 Jun 2025 00:00:00 +0000</lastBuildDate>
+    <atom:link href="http://localhost:1313/tags/saltbox/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Learning Ansible: Getting Salty</title>
+      <link>http://localhost:1313/posts/getting-salty/</link>
+      <pubDate>Fri, 13 Jun 2025 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/posts/getting-salty/</guid>
+      <description>&lt;p&gt;When starting out with ansible, it&amp;rsquo;s common to begin with tutorials. Good places to start are those by Jeff Geerling, Learn Linux TV, tech-tubers like Techno Tim, Jim&amp;rsquo;s Garage, and a range of others. For me, these helped - but I&amp;rsquo;m a firm believer in simply getting hands on with ansible and taking a look at how others have approached their plays, tasks, roles, and then trying it out for yourself, adapting it for your needs, and building upon it. Whatever you&amp;rsquo;re setting out to do, chances are someones been down the same path. Ansible Galaxy is a good source for this, but I&amp;rsquo;ve found &lt;a href=&#34;https://docs.saltbox.dev/&#34;&gt;Saltbox&lt;/a&gt; most helpful.&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>
