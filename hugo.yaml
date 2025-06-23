@@ -1,0 +1,65 @@
+
+baseURL: https://drjoyce.blog/
+
+languageCode: en-us
+
+title: Le Tour De Blog
+
+theme: terminal
+
+enableEmoji: true
+
+markup:
+  goldmark:
+    renderer:
+      unsafe: true
+
+params:
+  contentTypeName: posts
+  fullWidthTheme: false
+  centerTheme: true
+  readingTime: true
+  Toc: true
+  TocTitle: Contents
+  logo:
+    logoText: "Le Tour De Blog"
+  favicon: favicon.png
+
+menu:
+  main:
+  - identifier: about
+    name: About
+    url: /about/
+    weight: 1
+  - identifier: goals
+    name: Goals
+    url: /goals/
+    weight: 2
+  - identifier: future
+    name: Future
+    url: /future/
+    weight: 3
+  - identifier: guides
+    name: Guides
+    url: /guides/
+    weight: 4
+  - identifier: pr-guides
+    name: Pull request guides
+    url: /pr-guides/
+    weight: 5
+  - identifier: extensions
+    name: Extensions
+    url: /extensions/
+    weight: 6
+  - identifier: editors
+    name: Editors
+    url: /editors/
+    weight: 7
+  - identifier: projects
+    name: Similar projects
+    url: /projects/
+    weight: 8
+
+caches:
+  images:
+    dir: :cacheDir/images
