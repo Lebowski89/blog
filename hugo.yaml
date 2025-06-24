@@ -1,4 +1,3 @@
-
 baseURL: https://drjoyce.blog/
 
 languageCode: en-us
@@ -7,18 +6,37 @@ title: Le Tour De Blog
 
 theme: terminal
 
+pagination:
+  pagerSize: 5
+
 enableEmoji: true
 
 markup:
+  defaultMarkdownHandler: goldmark
   goldmark:
     renderer:
       unsafe: true
 
 params:
+  autoCover: true
+  centerTheme: true
   contentTypeName: posts
   fullWidthTheme: false
-  centerTheme: true
   readingTime: true
+  showLastUpdated: true
+  showLanguageSelector: false
+  subtitle: A simple, retro theme for Hugo
+  owner: "Lebowski89"
+  keywords: ""
+  menuMore: "Show More Shit"
+  readMore: "Read More Shit"
+  readOtherPosts: "Read Other Shit"
+  newerPosts: "Newer Shit"
+  olderPosts: "Older Shit"
+  missingContentMessage: "Shits fucked..."
+  missingBackButtonLabel: "Back to the Future"
+  minuteReadingTime: "min read"
+  words: "words"
   Toc: true
   TocTitle: Contents
   logo:
