@@ -23,6 +23,8 @@ The rest of this document is dedicated to describing the common tasks I use.
    - Each task has generic variables that will be replaced with relevant ones during the play when the role is included using the `ansible.builtin.include_tasks` module
    - Loops and iterating over hashes is key to reducing the number of required tasks.
 
+
+
 ## Cloudflare DNS
 
 One integral time-saving task when spinning up docker services is to add and remove DNS records using the `community.general.coudflare_dns` module:
@@ -105,6 +107,8 @@ In the above task, the variables from the common task are replaced with the rele
 
 With each loop the variables are replaced without interfering with others.
 
+
+
 ## Files (and Directories)
 
 One of the simplest and most common tasks within each of my roles are those involving the `ansible.builtin.file` module, specifically the creation of directories and touching of files:
@@ -181,6 +185,8 @@ In some cases it's a simple case of 'touching' a file:
     file_mode: '0600'
 ```
 
+
+
 ## File Copy
 
 A simple task to copy files from one directory to another. I typically use this to copy files that docker services require from their role folder to the services appdata directory. I prefer to template files where and when possible, but sometimes it is better to just straight copy:
@@ -227,6 +233,8 @@ A simple task to copy files from one directory to another. I typically use this 
 
 In the above example, I copy the files required for this blogs theme.
 
+
+
 ## Templates
 
 One of the most important tasks, and one of the primary reasons I'm using Ansible, is to set-up the various configs for my VMs and the services in them. For this, I typically template a basic config file from a role directory into the desired system or service folder:
@@ -263,7 +271,7 @@ One of the most important tasks, and one of the primary reasons I'm using Ansibl
 
 **Example config (autobrr_config.toml.j2):**
 
-```yaml
+```toml
 # config.toml
 
 host = '0.0.0.0'
@@ -278,7 +286,7 @@ sessionSecret = '{{ autobrr_session_secret.stdout }}'
 
 **After templating:**
 
-```yaml
+```toml
 # config.toml
 
 host = '0.0.0.0'
@@ -290,6 +298,8 @@ logMaxBackups = '3'
 checkForUpdates = true
 sessionSecret = 'SomeSecret'
 ```
+
+
 
 ## Traefik Labels
 
