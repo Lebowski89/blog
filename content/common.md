@@ -1,0 +1,497 @@
+---
+draft: false
+genres:
+- ansible
+tags:
+- common-tasks
+- ansible
+menus: common
+weight: 1
+title: Common Ansible Tasks
+---
+
+## Introduction
+
+When you begin constructing your Ansible tasks - roles - collections, you quickly realise that there are many tasks that you will use repeatedly with little variance. For example, if you're using Ansible to help set-up and deploy your docker containers, you'll have common tasks that create directories, template configs, set-up DNS and set Traefik labels, among many others. If you're like me, I would simply copy and paste these tasks. Sure, once you do this, Ansible will run through and automate tasks all the same. However, the more tasks that you have to repeat separately in a play, the more bloated and unreadable your playbook becomes and the maintenance upkeep these tasks will require in the long-run.
+
+To handle commonly repeated tasks, I've found it is effective to make a common task file resource, in which you then include during plays as required. In these common task are generic variables that are looped over and replaced with relevant variables as required.
+
+The rest of this document is dedicated to describing the common tasks I use.
+
+### Key points:
+   - The common tasks are included in a resources directory in the Ansible directory
+   - Each task has generic variables that will be replaced with relevant ones during the play when the role is included using the `ansible.builtin.include_tasks` module
+   - Loops and iterating over hashes is key to reducing the number of required tasks.
+
+
+One integral time-saving task when spinning up docker services is to add and remove DNS records using the `community.general.coudflare_dns` module:
+
+```yaml
+- name: Remove existing A DNS record
+  when: cloudflare_remove_existing == 'true'
+  community.general.cloudflare_dns:
+    api_token: '{{ cloudflare_api }}'
+    zone: '{{ cloudflare_domain }}'
+    state: absent
+    type: '{{ cloudflare_type }}'
+    record: '{{ cloudflare_record }}'
+
+- name: Perform Cloudflare DNS tasks
+  block:
+    - name: Add DNS record
+      community.general.cloudflare_dns:
+        api_token: '{{ cloudflare_api }}'
+        zone: '{{ cloudflare_domain }}'
+        state: present
+        solo: '{{ cloudflare_solo }}'
+        proxied: '{{ cloudflare_proxy }}'
+        type: '{{ cloudflare_type }}'
+        value: '{{ cloudflare_value }}'
+        record: '{{ cloudflare_record }}'
+      register: cloudflare_record_creation_status
+
+    - name: Tasks on success
+      when: cloudflare_record_creation_status is succeeded
+      block:
+        - name: Set 'dns_record_print' variable
+          ansible.builtin.set_fact:
+            cloudflare_record_print: '{{ (cloudflare_record == cloudflare_domain) | ternary(cloudflare_domain, cloudflare_record + "." + cloudflare_domain) }}'
+
+        - name: Display DNS record creation status
+          ansible.builtin.debug:
+            msg: 'DNS A Record for "{{ cloudflare_record_print }}" set to "{{ cloudflare_value }}" was added. Proxy: {{ cloudflare_proxy }}'
+
+```
+
+## Cloudflare DNS
+
+These tasks are designed to add/remove DNS records and to display the record on success. How these tasks run is dependent on the following include_task:
+
+```yaml
+- name: Add Cloudflare DNS records
+  ansible.builtin.include_tasks: '/ansible/resources/cloudflare.yml'
+  vars:
+    cloudflare_domain: '{{ local_domain }}'
+    cloudflare_record: '{{ obsidian_name }}'
+    cloudflare_type: 'A'
+    cloudflare_value: '{{ ipify_public_ip }}'
+    cloudflare_proxy: 'false'
+    cloudflare_solo: 'true'
+    cloudflare_remove_existing: 'true'
+```
+
+In the above task, the variables from the common task are replaced with the relevant values required to create a DNS record for my Obsidian container running on my local server. You can create loops to handle as many services as you require in the include task:
+
+```yaml
+- name: Add 'GitHub Pages' DNS records
+  ansible.builtin.include_tasks: '/ansible/resources/cloudflare.yml'
+  vars:
+    cloudflare_domain: '{{ github_pages_domain }}'
+    cloudflare_record: '@'
+    cloudflare_type: '{{ item.type }}'
+    cloudflare_value: '{{ item.value }}'
+    cloudflare_proxy: 'false'
+    cloudflare_solo: 'false'
+    cloudflare_remove_existing: 'false'
+  loop:
+    - { type: 'A', value: '185.199.108.153' }
+    - { type: 'A', value: '185.199.109.153' }
+    - { type: 'A', value: '185.199.110.153' }
+    - { type: 'A', value: '185.199.111.153' }
+    - { type: 'AAAA', value: '2606:50c0:8000::153' }
+    - { type: 'AAAA', value: '2606:50c0:8001::153' }
+    - { type: 'AAAA', value: '2606:50c0:8002::153' }
+    - { type: 'AAAA', value: '2606:50c0:8003::153' }
+```
+
+With each loop the variables are replaced without interfering with others.
+
+## Files (and Directories)
+
+One of the simplest and most common tasks within each of my roles are those involving the `ansible.builtin.file` module, specifically the creation of directories and touching of files:
+
+```yaml
+- name: Conduct file task
+  ansible.builtin.file:
+    path: '{{ file_path }}'
+    state: '{{ file_state }}'
+    force: '{{ file_force }}'
+    owner: '{{ file_owner }}'
+    group: '{{ file_group }}'
+    mode: '{{ file_mode }}'
+
+- name: Wait for file
+  when: (file_state != 'directory') and (file_state != 'touch')
+  ansible.builtin.wait_for:
+    path: '{{ file_path }}'
+    state: '{{ file_state }}'
+```
+
+The above includes a `wait_for` task to assure the file is present before continuing the play.
+
+**Include tasks:**
+
+```yaml
+- name: Create directories
+  ansible.builtin.include_tasks: '/ansible/resources/file.yml'
+  vars:
+    file_path: '{{ item }}'
+    file_state: 'directory'
+    file_force: 'false'
+    file_owner: '{{ puid }}'
+    file_group: '{{ pgid }}'
+    file_mode: '0755'
+  loop:
+    - '{{ hugo_cache_location }}'
+    - '{{ obsidian_location }}'
+    - '{{ obsidian_location }}/vault'
+    - '{{ obsidian_location }}/vault/posts'
+```
+
+In some cases the desired variables will differ between files and directories:
+
+```yaml
+- name: Create directories
+  ansible.builtin.include_tasks: '/ansible/resources/file.yml'
+  vars:
+    file_path: '{{ item.path }}'
+    file_state: 'directory'
+    file_force: 'false'
+    file_owner: '{{ item.owner }}'
+    file_group: '{{ item.group }}'
+    file_mode: '0755'
+  loop:
+    - { path: '{{ authelia_location }}', owner: '{{ puid }}', group: '{{ pgid }}' }
+    - { path: '{{ authelia_logs_location }}', owner: '{{ puid }}', group: '{{ pgid }}' }
+    - { path: '{{ authelia_redis_location }}', owner: '1001', group: '1001' }
+    - { path: '{{ traefik_location }}', owner: '{{ puid }}', group: '{{ pgid }}' }
+    - { path: '{{ traefik_logs_location }}', owner: '{{ puid }}', group: '{{ pgid }}' }
+```
+
+In some cases it's a simple case of 'touching' a file:
+
+```yaml
+- name: Touch acme.json
+  ansible.builtin.include_tasks: '/ansible/resources/file.yml'
+  vars:
+    file_path: '{{ traefik_location }}/acme.json'
+    file_state: 'touch'
+    file_force: 'false'
+    file_owner: '{{ puid }}'
+    file_group: '{{ pgid }}'
+    file_mode: '0600'
+```
+
+## File Copy
+
+A simple task to copy files from one directory to another. I typically use this to copy files that docker services require from their role folder to the services appdata directory. I prefer to template files where and when possible, but sometimes it is better to just straight copy:
+
+```yaml
+- name: Check if file exists
+  ansible.builtin.stat:
+    path: '{{ copy_destination }}'
+  register: file_copy_stat
+
+- name: Copy file
+  when: not file_copy_stat.stat.exists
+  ansible.builtin.copy:
+    src: '{{ copy_source }}'
+    dest: '{{ copy_destination }}'
+    force: '{{ copy_force }}'
+    owner: '{{ copy_owner }}'
+    group: '{{ copy_pgid }}'
+    mode: '{{ copy_mode }}'
+
+- name: Wait for file to be created
+  ansible.builtin.wait_for:
+    path: '{{ copy_destination }}'
+    state: present
+```
+
+**Include Tasks:**
+
+```yaml
+- name: Copy Hugo Terminal Themes files
+  ansible.builtin.include_tasks: '/ansible/resources/copy.yml'
+  vars:
+    copy_source: '{{ item.source }}'
+    copy_destination: '{{ item.destination }}'
+    copy_force: 'true'
+    copy_owner: '{{ puid }}'
+    copy_group: '{{ pgid }}'
+    copy_mode: '0644'
+  loop:
+    - { source: '{{ role_path }}/files/favicon.png', destination: '/{{ hugo_site_name }}/static/favicon.png' }
+    - { source: '{{ role_path }}/files/og-image.png', destination: '/{{ hugo_site_name }}/static/og-image.png' }
+    - { source: '{{ role_path }}/files/terminal.css', destination: '/{{ hugo_site_name }}/static/terminal.css' }
+```
+
+In the above example, I copy the files required for this blogs theme.
+
+## Templates
+
+One of the most important tasks, and one of the primary reasons I'm using Ansible, is to set-up the various configs for my VMs and the services in them. For this, I typically template a basic config file from a role directory into the desired system or service folder:
+
+```yaml
+- name: Template file
+  ansible.builtin.template:
+    src: '{{ template_source }}'
+    dest: '{{ template_destination }}'
+    force: '{{ template_force }}'
+    owner: '{{ template_owner }}'
+    group: '{{ template_group }}'
+    mode: '{{ template_mode }}'
+
+- name: Wait for file to be created
+  ansible.builtin.wait_for:
+    path: '{{ template_destination }}'
+    state: present
+```
+
+**Include Tasks:**
+
+```yaml
+- name: Conduct template tasks
+  ansible.builtin.include_tasks: '/ansible/resources/template.yml'
+  vars:
+    template_location: '{{ item.template }}'
+    file_location: '{{ item.file }}'
+  loop:
+    - { template: '{{ role_path }}/templates/configs/autobrr_config.toml.j2', file: '{{ autobrr_location }}/config.toml' }
+    - { template: '{{ role_path }}/templates/configs/doplarr_config.edn.j2', file: '{{ doplarr_location }}/config.edn' }
+
+```
+
+**Example config (autobrr_config.toml.j2):**
+
+```yaml
+# config.toml
+
+host = '0.0.0.0'
+port = '{{ autobrr_ports_cont }}'
+logPath = '{{ autobrr_logs_path }}'
+logLevel = '{{ autobrr_logs_level }}'
+logMaxSize = '{{ autobrr_logs_max_size }}'
+logMaxBackups = '{{ autobrr_logs_max_backups }}'
+checkForUpdates = true
+sessionSecret = '{{ autobrr_session_secret.stdout }}'
+```
+
+**After templating:**
+
+```yaml
+# config.toml
+
+host = '0.0.0.0'
+port = '7474'
+logPath = '/log/autobrr.log'
+logLevel = 'DEBUG'
+logMaxSize = '50'
+logMaxBackups = '3'
+checkForUpdates = true
+sessionSecret = 'SomeSecret'
+```
+
+## Traefik Labels
+
+Traefik is my reverse-proxy of choice for my docker services, with much of the config taking place in Traefik docker labels. Previously, I would define the Traefik labels for each service individually in a role defaults file. Depending on the service, I have http, https, api and theme-park labels. It can get quite extensive and much of the labels are the same across services with only variables such as the router name and port differing. 
+
+To reduce the bloat, I make use of a labels template contained in my group_vars, a tasks file to determine which labels are required and the include_tasks task with relevant variables:
+
+**Group_Vars:**
+
+```yaml
+traefik_labels_core:
+  - traefik.enable: "true"
+  - traefik.docker.network: "{{ router_network }}"
+
+traefik_labels_http:
+  - '{ "traefik.http.routers.{{ router_name }}.entrypoints": "{{ router_entrypoint }}" }'
+  - '{ "traefik.http.routers.{{ router_name }}.rule": "{{ router_rule }}" }'
+  - '{ "traefik.http.routers.{{ router_name }}.middlewares": "{{ router_http_middlewares }}" }'
+  - '{ "traefik.http.routers.{{ router_name }}.priority": "20" }'
+  - '{ "traefik.http.routers.{{ router_name }}.service": "{{ router_name }}-svc" }'
+  - '{ "traefik.http.services.{{ router_name }}-svc.loadbalancer.server.port": "{{ router_port }}" }'
+
+traefik_labels_https:
+  - '{ "traefik.http.routers.{{ router_name }}-secure.entrypoints": "{{ router_secure_entrypoint }}" }'
+  - '{ "traefik.http.routers.{{ router_name }}-secure.rule": "{{ router_rule }}" }'
+  - '{ "traefik.http.routers.{{ router_name }}-secure.middlewares": "{{ router_https_middlewares }}" }'
+  - '{ "traefik.http.routers.{{ router_name }}-secure.priority": "20" }'
+  - '{ "traefik.http.routers.{{ router_name }}-secure.service": "{{ router_name }}-secure-svc" }'
+  - '{ "traefik.http.routers.{{ router_name }}-secure.tls.certresolver": "{{ router_tls_certresolver }}" }'
+  - '{ "traefik.http.routers.{{ router_name }}-secure.tls.options": "{{ router_tls_options }}" }'
+  - '{ "traefik.http.services.{{ router_name }}-secure-svc.loadbalancer.server.port": "{{ router_port }}" }'
+
+traefik_labels_http_api:
+  - '{ "traefik.http.routers.{{ router_name }}-api.entrypoints": "{{ router_entrypoint }}" }'
+  - '{ "traefik.http.routers.{{ router_name }}-api.rule": "{{ router_api_rule }}" }'
+  - '{ "traefik.http.routers.{{ router_name }}-api.middlewares": "{{ traefik_http_middlewares }}" }'
+  - '{ "traefik.http.routers.{{ router_name }}-api.priority": "30" }'
+  - '{ "traefik.http.routers.{{ router_name }}-api.service": "{{ router_name }}-svc" }'
+
+traefik_labels_https_api:
+  - '{ "traefik.http.routers.{{ router_name }}-api-secure.entrypoints": "{{ router_secure_entrypoint }}" }'
+  - '{ "traefik.http.routers.{{ router_name }}-api-secure.rule": "{{ router_api_rule }}" }'
+  - '{ "traefik.http.routers.{{ router_name }}-api-secure.middlewares": "{{ traefik_https_middlewares }}" }'
+  - '{ "traefik.http.routers.{{ router_name }}-api-secure.priority": "30" }'
+  - '{ "traefik.http.routers.{{ router_name }}-api-secure.service": "{{ router_name }}-secure-svc" }'
+  - '{ "traefik.http.routers.{{ router_name }}-api-secure.tls.certresolver": "{{ router_tls_certresolver }}" }'
+  - '{ "traefik.http.routers.{{ router_name }}-api-secure.tls.options": "{{ router_tls_options }}" }'
+
+traefik_labels_themepark:
+  - '{ "traefik.http.middlewares.themepark-{{ router_name }}.plugin.themepark.app": "{{ router_themepark_app }}" }'
+  - '{ "traefik.http.middlewares.themepark-{{ router_name }}.plugin.themepark.theme": "{{ router_themepark_theme }}" }'
+```
+
+**Resources task:**
+
+```yaml
+################################
+# CHECKS
+################################
+
+- name: Set api fact
+  ansible.builtin.set_fact:
+    router_api_is_enabled: '{{ (router_api is defined) and
+                               (router_api is not none) and
+                               (router_api | trim | length > 0) }}'
+
+- name: Set themepark fact
+  ansible.builtin.set_fact:
+    router_themepark_is_enabled: '{{ (router_themepark_app is defined) and
+                                     (router_themepark_app is not none) and
+                                     (router_themepark_app | trim | length > 0) }}'
+
+################################
+# RULES
+################################
+
+- name: Set router rule
+  ansible.builtin.set_fact:
+    router_rule: '{{ "Host(`" + router_name + "." + router_domain + "`)" }}'
+
+- name: Set router api rule
+  when: router_api_is_enabled
+  ansible.builtin.set_fact:
+    router_api_rule: '{{ "Host(`" + router_name + "." + router_domain + "`) && (" + router_api + ")" }}'
+
+################################
+# LABELS
+################################
+
+- name: Set basic traefik labels
+  when:
+    - not router_themepark_is_enabled
+    - not router_api_is_enabled
+  ansible.builtin.set_fact:
+    '{{ router_variable }}': '{{ traefik_labels_core
+                                 | combine(traefik_labels_http)
+                                 | combine(traefik_labels_https) }}'
+
+- name: Set api traefik labels
+  when:
+    - not router_themepark_is_enabled
+    - router_api_is_enabled
+  ansible.builtin.set_fact:
+    '{{ router_variable }}': '{{ traefik_labels_core
+                                 | combine(traefik_labels_http)
+                                 | combine(traefik_labels_https)
+                                 | combine(traefik_labels_http_api) 
+                                 | combine(traefik_labels_https_api) }}'
+
+- name: Set api-only traefik labels
+  when:
+    - not router_themepark_is_enabled
+    - router_api_is_enabled
+    - router_variable is search('_api_labels')
+  ansible.builtin.set_fact:
+    '{{ router_variable }}': '{{ traefik_labels_core
+                                 | combine(traefik_labels_http_api) 
+                                 | combine(traefik_labels_https_api) }}'
+
+- name: Set themepark traefik labels
+  when:
+    - router_themepark_is_enabled
+    - not router_api_is_enabled
+  ansible.builtin.set_fact:
+    '{{ router_variable }}': '{{ traefik_labels_core
+                                 | combine(traefik_labels_http)
+                                 | combine(traefik_labels_https)
+                                 | combine(traefik_labels_themepark) }}'
+
+- name: Set full traefik labels
+  when:
+    - router_themepark_is_enabled
+    - router_api_is_enabled
+  ansible.builtin.set_fact:
+    '{{ router_variable }}': '{{ traefik_labels_core
+                                 | combine(traefik_labels_http)
+                                 | combine(traefik_labels_https)
+                                 | combine(traefik_labels_http_api) 
+                                 | combine(traefik_labels_https_api)
+                                 | combine(traefik_labels_themepark) }}'
+```
+
+The above task file combines the relevant labels into a single variable that is provided to the docker compose file, based on what is inputted in the following include_tasks file:
+
+```yaml
+- name: Set traefik Labels
+  ansible.builtin.include_tasks: /ansible/resources/labels.yml
+  vars:
+    router_variable: '{{ item.var }}'
+    router_network: '{{ network_overlay }}'
+    router_name: '{{ item.name }}'
+    router_port: '{{ item.port }}'
+    router_api: '{{ item.api }}'
+    router_domain: '{{ local_domain }}'
+    router_entrypoint: 'http'  ## web if saltbox
+    router_secure_entrypoint: 'https'  ## websecure if saltbox
+    router_tls_certresolver: 'dns-cloudflare'  ## cfdns if saltbox
+    router_tls_options: 'tls-opts@file'  ## securetls@file if saltbox
+    router_themepark_app: '{{ item.tp_app }}'
+    router_themepark_theme: 'hotpink'
+    router_http_middlewares: '{{ traefik_http_middlewares + item.sso + item.tp }}'
+    router_https_middlewares: '{{ traefik_https_middlewares + item.sso + item.tp }}'
+  loop:
+    ## bazarr
+    - { var: 'bazarr_labels', 
+        name: '{{ bazarr_name }}', 
+        port: '{{ bazarr_ports_cont }}', 
+        api: 'PathPrefix(`/api`)', 
+        sso: ',authelia@swarm', 
+        tp: ',themepark-bazarr', 
+        tp_app: 'bazarr' }
+    ## lidarr
+    - { var: 'lidarr_labels', 
+        name: '{{ lidarr_name }}', 
+        port: '{{ lidarr_ports_cont }}', 
+        api: 'PathPrefix(`/api`) || PathPrefix(`/feed`) || PathPrefix(`/ping`)', 
+        sso: ',authelia@swarm', 
+        tp: ',themepark-lidarr', 
+        tp_app: 'lidarr' }
+```
+
+In the above example, both services receive full Traefik labels, including being protected by the SSO provider I have set-up (Authelia), API labels, and Theme-Park. Simply leaving the API and/or Themepark variables empty will remove these labels, i.e:
+
+```yaml
+- name: Set Obsidian traefik Labels
+  ansible.builtin.include_tasks: /ansible/resources/labels.yml
+  vars:
+    router_variable: 'obsidian_labels'
+    router_network: '{{ network_overlay }}'
+    router_name: '{{ obsidian_name }}'
+    router_port: '{{ obsidian_ports_http_cont }}'
+    router_api: ''
+    router_domain: '{{ local_domain }}'
+    router_entrypoint: 'http'  ## web if saltbox
+    router_secure_entrypoint: 'https'  ## websecure if saltbox
+    router_tls_certresolver: 'dns-cloudflare'  ## cfdns if saltbox
+    router_tls_options: 'tls-opts@file'  ## securetls@file if saltbox
+    router_themepark_app: ''
+    router_themepark_theme: 'hotpink'
+    router_http_middlewares: '{{ traefik_http_middlewares + ",authelia@swarm" }}'
+    router_https_middlewares: '{{ traefik_https_middlewares + ",authelia@swarm" }}'
+```
+
+Moving Traefik labels to this eliminated unnecessary defaults files.
