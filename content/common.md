@@ -23,6 +23,7 @@ The rest of this document is dedicated to describing the common tasks I use.
    - Each task has generic variables that will be replaced with relevant ones during the play when the role is included using the `ansible.builtin.include_tasks` module
    - Loops and iterating over hashes is key to reducing the number of required tasks.
 
+## Cloudflare DNS
 
 One integral time-saving task when spinning up docker services is to add and remove DNS records using the `community.general.coudflare_dns` module:
 
@@ -62,8 +63,6 @@ One integral time-saving task when spinning up docker services is to add and rem
             msg: 'DNS A Record for "{{ cloudflare_record_print }}" set to "{{ cloudflare_value }}" was added. Proxy: {{ cloudflare_proxy }}'
 
 ```
-
-## Cloudflare DNS
 
 These tasks are designed to add/remove DNS records and to display the record on success. How these tasks run is dependent on the following include_task:
 
