@@ -1,3 +1,13 @@
+---
+draft: false
+genres:
+- ansible
+tags:
+- common-tasks
+- ansible
+title: File Copy
+---
+
 ## Common Tasks: File Copy
 
 A simple task to copy files from one directory to another. I typically use this to copy files that docker services require from their role folder to the services appdata directory. I prefer to template files where and when possible, but sometimes it is better to just straight copy:

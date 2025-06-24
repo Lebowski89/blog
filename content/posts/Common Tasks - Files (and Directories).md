@@ -1,3 +1,13 @@
+---
+draft: false
+genres:
+- ansible
+tags:
+- common-tasks
+- ansible
+title: Files (and Directories)
+---
+
 ## Common Tasks: Files (and Directories)
 
 One of the simplest and most common tasks within each of my roles are those involving the `ansible.builtin.file` module, specifically the creation of directories and touching of files:

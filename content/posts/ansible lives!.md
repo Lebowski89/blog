@@ -1,3 +1,11 @@
+---
+draft: false
+genres:
+- ansible
+tags:
+- ansible
+title: Ansible Lives!
+---
 
 A weird thing I've noticed with my ansible journey are the number of people who either think that ansible is dying/dead. It simply is not so. Some of these 'doomsayers' don't approach ansible with a mindset of what can it do to help them achieve jobs and tasks, they approach it with whether learning it will give them the skill-set to fast-track their entry into a job, career, industry. These people will then jump onto Kubernetes and other solutions that are 'all the rage' these days. But it's important to remember:
 

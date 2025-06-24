@@ -1,3 +1,14 @@
+---
+draft: false
+genres:
+- ansible
+tags:
+- common-tasks
+- traefik
+- ansible
+title: Traefik Labels
+---
+
 ## Common Tasks: Traefik Labels
 
 Traefik is my reverse-proxy of choice for my docker services, with much of the config taking place in Traefik docker labels. Previously, I would define the Traefik labels for each service individually in a role defaults file. Depending on the service, I have http, https, api and theme-park labels. It can get quite extensive and much of the labels are the same across services with only variables such as the router name and port differing. 

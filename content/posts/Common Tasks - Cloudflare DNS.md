@@ -1,3 +1,15 @@
+---
+draft: false
+genres:
+- ansible
+tags:
+- common-tasks
+- cloudflare
+- dns
+- ansible
+title: Cloudflare DNS
+---
+
 ## Common Tasks: Cloudflare DNS
 
 One integral time-saving task when spinning up docker services is to add and remove DNS records using the `community.general.coudflare_dns` module:
