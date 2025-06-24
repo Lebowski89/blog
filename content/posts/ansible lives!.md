@@ -4,6 +4,8 @@ genres:
 - ansible
 tags:
 - ansible
+menu: ansible
+weight: 1
 title: Ansible Lives!
 ---
 

@@ -5,10 +5,10 @@ genres:
 tags:
 - common-tasks
 - ansible
-title: Files (and Directories)
+menus: common
+weight: 3
+title: Common Tasks - Files (and Directories)
 ---
-
-## Common Tasks: Files (and Directories)
 
 One of the simplest and most common tasks within each of my roles are those involving the `ansible.builtin.file` module, specifically the creation of directories and touching of files:
 
@@ -29,7 +29,7 @@ One of the simplest and most common tasks within each of my roles are those invo
     state: '{{ file_state }}'
 ```
 
-The above includes a `wait_for` task, to assure the file is present before continuing the play.
+The above includes a `wait_for` task to assure the file is present before continuing the play.
 
 **Include tasks:**
 

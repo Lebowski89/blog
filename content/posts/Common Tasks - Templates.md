@@ -6,10 +6,10 @@ tags:
 - common-tasks
 - templates
 - ansible
-title: Templates
+menus: common
+weight: 5
+title: Common Tasks - Templates
 ---
-
-## Common Tasks - Templates
 
 One of the most important tasks and one of the primary reasons I'm using Ansible is to set-up the various configs for my VMs and the services residing on them. For this, I typically template a basic config file from a role directory into the desired system or service folder:
 

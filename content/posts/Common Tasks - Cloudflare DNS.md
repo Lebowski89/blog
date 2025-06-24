@@ -7,10 +7,10 @@ tags:
 - cloudflare
 - dns
 - ansible
-title: Cloudflare DNS
+menu: common
+weight: 2
+title: Common Tasks - Cloudflare DNS
 ---
-
-## Common Tasks: Cloudflare DNS
 
 One integral time-saving task when spinning up docker services is to add and remove DNS records using the `community.general.coudflare_dns` module:
 
@@ -90,4 +90,4 @@ In the above task, the variables from the common task are replaced with the rele
     - { type: 'AAAA', value: '2606:50c0:8003::153' }
 ```
 
-Each time the task loops the variables are replaced without interfering with each other.
+With each loop the variables are replaced without interfering with others.
