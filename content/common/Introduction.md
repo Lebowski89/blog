@@ -16,6 +16,8 @@ To handle commonly repeated tasks, I've found it is effective to make a common t
 
 The rest of this document is dedicated to describing the common tasks I use.
 
+{{< custom-toc >}}
+
 ## Key points:
    - The common tasks are included in a resources directory in the Ansible directory
    - Each task has generic variables that will be replaced with relevant ones during the play when the role is included using the `ansible.builtin.include_tasks` module

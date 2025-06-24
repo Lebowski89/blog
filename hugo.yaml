@@ -28,11 +28,11 @@ params:
   subtitle: A simple, retro theme for Hugo
   owner: "Lebowski89"
   keywords: ""
-  menuMore: "Show More Shit"
-  readMore: "Read More Shit"
-  readOtherPosts: "Read Other Shit"
-  newerPosts: "Newer Shit"
-  olderPosts: "Older Shit"
+  menuMore: "Show More"
+  readMore: "Read More"
+  readOtherPosts: "Read Other"
+  newerPosts: "Newer"
+  olderPosts: "Older"
   missingContentMessage: "Shits fucked..."
   missingBackButtonLabel: "Back to the Future"
   minuteReadingTime: "min read"
@@ -54,7 +54,7 @@ menu:
     url: /ansible/
     weight: 2
   - identifier: common
-    name: Common-Ansible-Tasks
+    name: Ansible-Common-Tasks
     url: /common/
     weight: 3
 
