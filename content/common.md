@@ -12,9 +12,9 @@ title: Common Ansible Tasks
 
 ## Introduction
 
-When you begin constructing your Ansible tasks - roles - collections, you quickly realise that there are many tasks that you will use repeatedly with little variance. For example, if you're using Ansible to help set-up and deploy your docker containers, you'll have common tasks that create directories, template configs, set-up DNS and set Traefik labels, among many others. If you're like me, I would simply copy and paste these tasks. Sure, once you do this, Ansible will run through and automate tasks all the same. However, the more tasks that you have to repeat separately in a play, the more bloated and unreadable your playbook becomes and the maintenance upkeep these tasks will require in the long-run.
+When you begin constructing your Ansible tasks - roles - collections, you quickly realise that there are many tasks that you will use repeatedly with little variance. For example, if you're using Ansible to help set-up and deploy your docker containers, you'll have common tasks that create directories, configs, DNS and Traefik labels, among many others. If you're like me, I would simply copy and paste these tasks. While Ansible will run through and automate these repeated tasks all the same, the more tasks you have to repeat in a play, the more bloated and unreadable your playbook becomes and the more maintenance upkeep is required.
 
-To handle commonly repeated tasks, I've found it is effective to make a common task file resource, in which you then include during plays as required. In these common task are generic variables that are looped over and replaced with relevant variables as required.
+To handle commonly repeated tasks, I've found it is effective to make a common tasks, in which you include during plays as required. In these tasks are generic variables that are looped over and replaced with relevant variables as required.
 
 The rest of this document is dedicated to describing the common tasks I use.
 
