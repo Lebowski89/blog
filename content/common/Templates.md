@@ -11,8 +11,7 @@ weight: 5
 title: Common Tasks - Templates
 ---
 
-One of the most important tasks and one of the primary reasons I'm using Ansible is to set-up the various configs for my VMs and the services residing on them. For this, I typically template a basic config file from a role directory into the desired system or service folder:
-
+One of the most important tasks, and one of the primary reasons I'm using Ansible, is to set-up the various configs for my VMs and the services in them. For this, I typically template a basic config file from a role directory into the desired system or service folder:
 
 ```yaml
 - name: Template file
@@ -30,7 +29,7 @@ One of the most important tasks and one of the primary reasons I'm using Ansible
     state: present
 ```
 
-**Include Tasks:
+**Include Tasks:**
 
 ```yaml
 - name: Conduct template tasks
@@ -44,7 +43,7 @@ One of the most important tasks and one of the primary reasons I'm using Ansible
 
 ```
 
-**Example config (autobrr_config.toml.j2):
+**Example config (autobrr_config.toml.j2):**
 
 ```yaml
 # config.toml
@@ -59,7 +58,7 @@ checkForUpdates = true
 sessionSecret = '{{ autobrr_session_secret.stdout }}'
 ```
 
-**After templating:
+**After templating:**
 
 ```yaml
 # config.toml

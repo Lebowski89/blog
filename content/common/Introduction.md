@@ -14,7 +14,7 @@ When you begin constructing your Ansible tasks - roles - collections, you quickl
 
 To handle commonly repeated tasks, I've found it is effective to make a common task file resource, in which you then include during plays as required. In these common task are generic variables that are looped over and replaced with relevant variables as required.
 
-The rest of this document is dedicated to listing and describing the common tasks I use.
+The rest of this document is dedicated to describing the common tasks I use.
 
 ## Key points:
    - The common tasks are included in a resources directory in the Ansible directory

@@ -52,4 +52,4 @@ A simple task to copy files from one directory to another. I typically use this 
     - { source: '{{ role_path }}/files/terminal.css', destination: '/{{ hugo_site_name }}/static/terminal.css' }
 ```
 
-In the above example, I copy the files required for this blogs theme to the relevant folder.
+In the above example, I copy the files required for this blogs theme.

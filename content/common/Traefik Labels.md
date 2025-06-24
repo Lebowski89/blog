@@ -15,7 +15,7 @@ Traefik is my reverse-proxy of choice for my docker services, with much of the c
 
 To reduce the bloat, I make use of a labels template contained in my group_vars, a tasks file to determine which labels are required and the include_tasks task with relevant variables:
 
-*Group_Vars:*
+**Group_Vars:**
 
 ```yaml
 traefik_labels_core:
@@ -61,7 +61,7 @@ traefik_labels_themepark:
   - '{ "traefik.http.middlewares.themepark-{{ router_name }}.plugin.themepark.theme": "{{ router_themepark_theme }}" }'
 ```
 
-*Resources task:*
+**Resources task:**
 
 ```yaml
 ################################
@@ -150,7 +150,7 @@ traefik_labels_themepark:
                                  | combine(traefik_labels_themepark) }}'
 ```
 
-The above task file combines the relevant labels into a single variable, that is provided to the docker compose file, based on what is inputted into the include_tasks file:
+The above task file combines the relevant labels into a single variable that is provided to the docker compose file, based on what is inputted in the following include_tasks file:
 
 ```yaml
 - name: Set traefik Labels
@@ -189,7 +189,7 @@ The above task file combines the relevant labels into a single variable, that is
         tp_app: 'lidarr' }
 ```
 
-In the above example, both Bazarr and Lidarr will receive full Traefik labels, including being protected by the SSO provider I have set-up (Authelia), API labels, and Theme-Park. Simply leaving the API and/or Themepark variables empty will remove these labels, i.e:
+In the above example, both services receive full Traefik labels, including being protected by the SSO provider I have set-up (Authelia), API labels, and Theme-Park. Simply leaving the API and/or Themepark variables empty will remove these labels, i.e:
 
 ```yaml
 - name: Set Obsidian traefik Labels
@@ -211,4 +211,4 @@ In the above example, both Bazarr and Lidarr will receive full Traefik labels, i
     router_https_middlewares: '{{ traefik_https_middlewares + ",authelia@swarm" }}'
 ```
 
-Moving Traefik labels to this method has allowed me to eliminate unnecessary defaults files.
+Moving Traefik labels to this eliminated unnecessary defaults files.
