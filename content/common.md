@@ -27,7 +27,9 @@ The rest of this document is dedicated to describing the common tasks I use.
 
 ## Cloudflare DNS
 
-One integral time-saving task when spinning up docker services is to add and remove DNS records using the `community.general.coudflare_dns` module:
+One integral time-saving task when spinning up docker services is to add and/or remove DNS records.
+
+### Common Task
 
 ```yaml
 - name: Remove existing A DNS record
@@ -66,7 +68,9 @@ One integral time-saving task when spinning up docker services is to add and rem
 
 ```
 
-These tasks are designed to add/remove DNS records and to display the record on success. How these tasks run is dependent on the following include_task:
+These tasks are designed to add/remove DNS records and to display the record on success.
+
+### include_task:
 
 ```yaml
 - name: Add Cloudflare DNS records
@@ -81,7 +85,7 @@ These tasks are designed to add/remove DNS records and to display the record on 
     cloudflare_remove_existing: 'true'
 ```
 
-In the above task, the variables from the common task are replaced with the relevant values required to create a DNS record for my Obsidian container running on my local server. You can create loops to handle as many services as you require in the include task:
+In the include task, variables from the common task are replaced with relevant values required to create a DNS record for my Obsidian container running on my local server. You can create loops to handle as many services as you require in the include task:
 
 ```yaml
 - name: Add 'GitHub Pages' DNS records
@@ -111,7 +115,9 @@ With each loop the variables are replaced without interfering with others.
 
 ## Files (and Directories)
 
-One of the simplest and most common tasks within each of my roles are those involving the `ansible.builtin.file` module, specifically the creation of directories and touching of files:
+One of the simplest and most common tasks within each of my roles are those involving the `ansible.builtin.file` module, specifically the creation of directories and touching of files.
+
+### Common Task
 
 ```yaml
 - name: Conduct file task
@@ -132,7 +138,7 @@ One of the simplest and most common tasks within each of my roles are those invo
 
 The above includes a `wait_for` task to assure the file is present before continuing the play.
 
-**Include tasks:**
+### include_task:
 
 ```yaml
 - name: Create directories
@@ -189,7 +195,9 @@ In some cases it's a simple case of 'touching' a file:
 
 ## File Copy
 
-A simple task to copy files from one directory to another. I typically use this to copy files that docker services require from their role folder to the services appdata directory. I prefer to template files where and when possible, but sometimes it is better to just straight copy:
+A simple task to copy files from one directory to another. I typically use this to copy files that docker services require from their role folder to the services appdata directory (though, I prefer to template files where and when possible).
+
+### Common Task
 
 ```yaml
 - name: Check if file exists
@@ -213,7 +221,7 @@ A simple task to copy files from one directory to another. I typically use this 
     state: present
 ```
 
-**Include Tasks:**
+### include_task:
 
 ```yaml
 - name: Copy Hugo Terminal Themes files
@@ -237,7 +245,9 @@ In the above example, I copy the files required for this blogs theme.
 
 ## Templates
 
-One of the most important tasks, and one of the primary reasons I'm using Ansible, is to set-up the various configs for my VMs and the services in them. For this, I typically template a basic config file from a role directory into the desired system or service folder:
+One of the most important tasks, and one of the primary reasons I'm using Ansible, is to set-up the various configs for my VMs and the services in them. For this, I typically template a config file from a role directory into a desired folder.
+
+### Common Task
 
 ```yaml
 - name: Template file
@@ -255,7 +265,7 @@ One of the most important tasks, and one of the primary reasons I'm using Ansibl
     state: present
 ```
 
-**Include Tasks:**
+### include_task:
 
 ```yaml
 - name: Conduct template tasks
@@ -305,9 +315,12 @@ sessionSecret = 'SomeSecret'
 
 Traefik is my reverse-proxy of choice for my docker services, with much of the config taking place in Traefik docker labels. Previously, I would define the Traefik labels for each service individually in a role defaults file. Depending on the service, I have http, https, api and theme-park labels. It can get quite extensive and much of the labels are the same across services with only variables such as the router name and port differing. 
 
-To reduce the bloat, I make use of a labels template contained in my group_vars, a tasks file to determine which labels are required and the include_tasks task with relevant variables:
+To reduce the bloat, I make use of:
+   1. A labels template contained in my group_vars
+   2. A common tasks file to determine required labels
+   3. Include_tasks task with relevant variables.
 
-**Group_Vars:**
+### Group_Vars
 
 ```yaml
 traefik_labels_core:
@@ -353,7 +366,7 @@ traefik_labels_themepark:
   - '{ "traefik.http.middlewares.themepark-{{ router_name }}.plugin.themepark.theme": "{{ router_themepark_theme }}" }'
 ```
 
-**Resources task:**
+### Common Tasks
 
 ```yaml
 ################################
@@ -442,7 +455,9 @@ traefik_labels_themepark:
                                  | combine(traefik_labels_themepark) }}'
 ```
 
-The above task file combines the relevant labels into a single variable that is provided to the docker compose file, based on what is inputted in the following include_tasks file:
+The above task file combines the relevant labels into a single variable that is provided to the docker compose file.
+
+### include_task:
 
 ```yaml
 - name: Set traefik Labels
