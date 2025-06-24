@@ -5,12 +5,18 @@ genres:
 tags:
 - common-tasks
 - ansible
+- cloudflare
+- traefik
 menus: common
 weight: 1
-title: Common Ansible Tasks
+title: Ansible Common Tasks
 ---
 
+***
+
 ## Introduction
+
+***
 
 When you begin constructing your Ansible tasks - roles - collections, you quickly realise that there are many tasks that you will use repeatedly with little variance. For example, if you're using Ansible to help set-up and deploy your docker containers, you'll have common tasks that create directories, configs, DNS and Traefik labels, among many others. If you're like me, I would simply copy and paste these tasks. While Ansible will run through and automate these repeated tasks all the same, the more tasks you have to repeat in a play, the more bloated and unreadable your playbook becomes and the more maintenance upkeep is required.
 
@@ -18,14 +24,17 @@ To handle commonly repeated tasks, I've found it is effective to make a common t
 
 The rest of this document is dedicated to describing the common tasks I use.
 
-### Key points:
+### Key points
    - The common tasks are included in a resources directory in the Ansible directory
    - Each task has generic variables that will be replaced with relevant ones during the play when the role is included using the `ansible.builtin.include_tasks` module
    - Loops and iterating over hashes is key to reducing the number of required tasks.
 
 
+***
 
 ## Cloudflare DNS
+
+***
 
 One integral time-saving task when spinning up docker services is to add and/or remove DNS records.
 
@@ -70,7 +79,7 @@ One integral time-saving task when spinning up docker services is to add and/or 
 
 These tasks are designed to add/remove DNS records and to display the record on success.
 
-### include_task:
+### include_task
 
 ```yaml
 - name: Add Cloudflare DNS records
@@ -111,9 +120,11 @@ In the include task, variables from the common task are replaced with relevant v
 
 With each loop the variables are replaced without interfering with others.
 
-
+***
 
 ## Files (and Directories)
+
+***
 
 One of the simplest and most common tasks within each of my roles are those involving the `ansible.builtin.file` module, specifically the creation of directories and touching of files.
 
@@ -138,7 +149,7 @@ One of the simplest and most common tasks within each of my roles are those invo
 
 The above includes a `wait_for` task to assure the file is present before continuing the play.
 
-### include_task:
+### include_task
 
 ```yaml
 - name: Create directories
@@ -191,9 +202,11 @@ In some cases it's a simple case of 'touching' a file:
     file_mode: '0600'
 ```
 
-
+***
 
 ## File Copy
+
+***
 
 A simple task to copy files from one directory to another. I typically use this to copy files that docker services require from their role folder to the services appdata directory (though, I prefer to template files where and when possible).
 
@@ -221,7 +234,7 @@ A simple task to copy files from one directory to another. I typically use this 
     state: present
 ```
 
-### include_task:
+### include_task
 
 ```yaml
 - name: Copy Hugo Terminal Themes files
@@ -241,9 +254,11 @@ A simple task to copy files from one directory to another. I typically use this 
 
 In the above example, I copy the files required for this blogs theme.
 
-
+***
 
 ## Templates
+
+***
 
 One of the most important tasks, and one of the primary reasons I'm using Ansible, is to set-up the various configs for my VMs and the services in them. For this, I typically template a config file from a role directory into a desired folder.
 
@@ -265,7 +280,7 @@ One of the most important tasks, and one of the primary reasons I'm using Ansibl
     state: present
 ```
 
-### include_task:
+### include_task
 
 ```yaml
 - name: Conduct template tasks
@@ -309,9 +324,11 @@ checkForUpdates = true
 sessionSecret = 'SomeSecret'
 ```
 
-
+***
 
 ## Traefik Labels
+
+***
 
 Traefik is my reverse-proxy of choice for my docker services, with much of the config taking place in Traefik docker labels. Previously, I would define the Traefik labels for each service individually in a role defaults file. Depending on the service, I have http, https, api and theme-park labels. It can get quite extensive and much of the labels are the same across services with only variables such as the router name and port differing. 
 
@@ -457,7 +474,7 @@ traefik_labels_themepark:
 
 The above task file combines the relevant labels into a single variable that is provided to the docker compose file.
 
-### include_task:
+### include_task
 
 ```yaml
 - name: Set traefik Labels
