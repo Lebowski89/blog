@@ -9,10 +9,15 @@ weight: 1
 title: Welcome to my Blog
 ---
 
-This blog is dedicated to Ansible, and I will use this to discuss my set-up, and hopefully provide some useful tips and information from my experiences using Ansible to set-up and deploy my Docker containers and Swarm services.
+This blog is dedicated to Ansible, and I will use this to discuss my set-up and provide some useful tips and information from my experiences using it to set-up and deploy Docker containers and Swarm services.
 
-My motivation behind this blog is that since I started using Ansible, I have grown to love it and am quite addicted to it, but it can be quite daunting for newcomers, and it is one thing to automate a task and another to do it efficiently and effectively. It can be easy to fall into a rabbit hole of troubleshooting, frustration, and even... dispair. So with that said, see the menus above for my topics on Ansible. It will grow over time when I have time.
+**The Why?**
 
+  - Since I started using Ansible, I have grown to love it and am quite addicted to it, but it can be quite daunting for newcomers
+  - It is one thing to automate a task and another to do it efficiently and effectively
+  - It can be easy to fall into a rabbit hole of troubleshooting, frustration, and even... dispair. 
+  
+So with that said, see the Ansible topics in the menus above. It will grow over time when I have time.
 
 **Disclaimers:**
 
