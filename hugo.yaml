@@ -57,6 +57,10 @@ menu:
     name: Ansible-Common-Tasks
     url: /common/
     weight: 3
+  - identifier: misc
+    name: Ansible-Misc
+    url: /misc/
+    weight: 3
 
 caches:
   images:

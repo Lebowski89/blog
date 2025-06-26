@@ -9,7 +9,7 @@ tags:
 - traefik
 menus: common
 weight: 1
-title: Ansible Common Tasks
+title: Handling common tasks within Ansible
 ---
 
 ***
