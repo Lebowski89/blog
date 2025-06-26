@@ -19,3 +19,5 @@ A weird thing I've noticed with my ansible journey are the number of people who 
 3. ansible will give you what you give it - as in, if you spend the time to construct well-built roles that do what you need them to do, while having a clear goal of what you're setting out to do, ansible will save you much time and frustration.
 
 For me, I'm just a home-labber hobbyist using ansible as a tool to set up my local servers and docker swarm stacks. I enjoy ansible, I enjoy docker swarm, I use proxmox with only VMs and no LXC. It's what I like, it's what spins up all my desired containers/services.
+
+<script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="lebowski89" data-description="Support me on Buy me a coffee!" data-message="Coffee" data-color="#5F7FFF" data-position="Right" data-x_margin="18" data-y_margin="18"></script>

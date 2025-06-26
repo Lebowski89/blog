@@ -21,9 +21,6 @@ My motivation behind this blog is that since I started using Ansible, I have gro
   - This blog is written as much for me as it is for anyone else, in a sense, much of it is about me providing a rationale of what I am doing, and why I am doing it, with a touch of tips, opinions, rants, and whatever else has come to my mind.
   - My setup and how I use tools like ansible is simply how I choose to approach it. Yours may differ, and that’s okay.
 
-
+<div align=center>
 <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="lebowski89" data-color="#FFDD00" data-emoji=""  data-font="Lato" data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff" ></script>
-
-
-<script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="lebowski89" data-description="Support me on Buy me a coffee!" data-message="Coffeeeeee" data-color="#5F7FFF" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
-
+</div>

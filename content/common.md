@@ -536,3 +536,5 @@ In the above example, both services receive full Traefik labels, including being
 ```
 
 Moving Traefik labels to this eliminated unnecessary defaults files.
+
+<script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="lebowski89" data-description="Support me on Buy me a coffee!" data-message="Coffee" data-color="#5F7FFF" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
