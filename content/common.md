@@ -27,7 +27,7 @@ The rest of this document is dedicated to describing the common tasks I use.
 ### Key points
    - The common tasks are included in a resources directory in the Ansible directory
    - Each task has generic variables that will be replaced with relevant ones during the play when the role is included using the `ansible.builtin.include_tasks` module
-   - Loops and iterating over hashes is key to reducing the number of required tasks.
+   - Loops and iterating over hashes are key to reducing the number of required tasks.
 
 
 ***
@@ -36,7 +36,7 @@ The rest of this document is dedicated to describing the common tasks I use.
 
 ***
 
-One integral time-saving task when spinning up docker services is to add and/or remove DNS records.
+One integral time-saving task when spinning up docker services is to automate DNS records.
 
 ### Common Task
 
@@ -77,7 +77,7 @@ One integral time-saving task when spinning up docker services is to add and/or 
 
 ```
 
-These tasks are designed to add/remove DNS records and to display the record on success.
+These will add/remove DNS records and display the DNS record on success.
 
 ### include_task
 
@@ -94,7 +94,7 @@ These tasks are designed to add/remove DNS records and to display the record on 
     cloudflare_remove_existing: 'true'
 ```
 
-In the include task, variables from the common task are replaced with relevant values required to create a DNS record for my Obsidian container running on my local server. You can create loops to handle as many services as you require in the include task:
+In the above example, variables from the common task are replaced with relevant values required to create a DNS record for my Obsidian container running on my local server. You can create loops to handle as many services as you require:
 
 ```yaml
 - name: Add 'GitHub Pages' DNS records
@@ -334,7 +334,7 @@ Traefik is my reverse-proxy of choice for my docker services, with much of the c
 
 To reduce the bloat, I make use of:
    1. A labels template contained in my group_vars
-   2. A common tasks file to determine required labels
+   2. A common task file to determine required labels
    3. Include_tasks task with relevant variables.
 
 ### Group_Vars
@@ -383,7 +383,7 @@ traefik_labels_themepark:
   - '{ "traefik.http.middlewares.themepark-{{ router_name }}.plugin.themepark.theme": "{{ router_themepark_theme }}" }'
 ```
 
-### Common Tasks
+### Common Task
 
 ```yaml
 ################################
@@ -513,7 +513,7 @@ The above task file combines the relevant labels into a single variable that is 
         tp_app: 'lidarr' }
 ```
 
-In the above example, both services receive full Traefik labels, including being protected by the SSO provider I have set-up (Authelia), API labels, and Theme-Park. Simply leaving the API and/or Themepark variables empty will remove these labels, i.e:
+In the above example, both services receive full Traefik labels, including being protected by my SSO provider (Authelia), API labels and Theme-Park. Simply leaving the API and/or Themepark vars empty will remove these labels, i.e:
 
 ```yaml
 - name: Set Obsidian traefik Labels

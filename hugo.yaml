@@ -49,9 +49,9 @@ menu:
     name: About
     url: /about/
     weight: 1
-  - identifier: ansible
-    name: Ansible
-    url: /ansible/
+  - identifier: playbook
+    name: Ansible-Playbook
+    url: /playbook/
     weight: 2
   - identifier: common
     name: Ansible-Common-Tasks
