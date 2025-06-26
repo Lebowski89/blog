@@ -23,7 +23,7 @@ The automating of tasks with Ansible begins and ends with tasks defined in a pla
    - Defining tasks across multiple playbooks
    - Using a single playbook to include roles that contain various organised tasks
 
-For me, I prefer the latter option. I have a single `playbook.yml`, and various roles containing tasks to automate the deployment of my docker services. However, there is no right way of doing things, and it's simply a case of how many tasks you're dealing with, what sort of tasks, and simply how you prefer to do things.
+For me, I prefer the latter option. I have a single `playbook.yml`, and various roles containing tasks to automate the deployment of my docker services. However, there is no right way of doing things, and it's simply a case of how many tasks you're dealing with, what sort of tasks, and how you prefer to do things.
 
 My `playbook.yml` is structured to include the following:
    - Hosts
@@ -58,7 +58,7 @@ This section defines the hosts you want the playbook to run against:
 
 ```
 
-As I'm working with multiple hosts, I have them in a group named 'skynet' with this group defined in a `hosts.ini` file in the same directory as the `playbook.yml`:
+As I'm working with multiple hosts, I have them in a group named 'skynet' defined in a `hosts.ini` file in the same directory as the `playbook.yml`:
 
 ```ini
  [skynet]
@@ -115,9 +115,9 @@ Pre-tasks, as the name suggests, always run first during a play. I reserve these
 
 ```
 
-In the above, I get package, timezone, and public IP information for each host. These are important when installing packages, setting docker env values, and dealing with DNS tasks.
+Above, I get package, timezone, and public IP information for each host, which is useful when installing packages, setting docker env values, and dealing with DNS tasks.
 
-For example, the below task relies on information gathered by the 'Gather packages' task:
+For example, this task relies on information gathered by the `Gather packages` task:
 
 ```yaml
 - name: Include Docker install tasks
@@ -216,6 +216,8 @@ The tasks section is the bulk of my playbook, and is simply used to include my v
 # BLOG
 ################################
 
+  ## Services: `Hugo` `Obsidian`
+  
     - name: Deploy blog stack
       when: inventory_hostname == 'localhost'
       ansible.builtin.include_role:
@@ -252,6 +254,8 @@ The tasks section is the bulk of my playbook, and is simply used to include my v
 # POSTGRES
 ################################
 
+  ## Services: `Adminer` `Postgres`
+
     - name: Deploy postgres stack
       when: inventory_hostname == 'localhost'
       ansible.builtin.include_role:
@@ -264,7 +268,7 @@ The tasks section is the bulk of my playbook, and is simply used to include my v
 # ARRS
 ################################
 
-  ## Bazarr, Lidarr, 
+  ## Services: `Bazarr` `Lidarr` `Prowlarr` `Radarr/Radarr-4K` `Readarr` `Sonarr/Sonarr-4K` `Whisparr/Whisparr-V3`
 
     - name: Deploy arrs stack
       when: inventory_hostname == 'localhost'
@@ -278,7 +282,7 @@ The tasks section is the bulk of my playbook, and is simply used to include my v
 # COMPANIONS
 ################################
 
-  ## Services: AutoBrr, Doplarr, Jellyseerr, Ombi, Recyclarr, TheLounge, ZNC
+  ## Services: `AutoBrr` `Doplarr` `Jellyseerr` `Ombi` `Recyclarr` `TheLounge` `ZNC`
 
     - name: Deploy companions stack
       when: inventory_hostname == 'localhost'
@@ -292,7 +296,7 @@ The tasks section is the bulk of my playbook, and is simply used to include my v
 # USENET
 ################################
 
-  ## Services: Sabnzbd, NZBHydra2
+  ## Services: `Sabnzbd` `NZBHydra2`
 
     - name: Deploy usenet stack
       when: inventory_hostname == 'localhost'
@@ -306,6 +310,8 @@ The tasks section is the bulk of my playbook, and is simply used to include my v
 # METRICS
 ################################
 
+  ## Services: `Exportarr` `Grafana` `Loki` `Plex-Exporter` `Promtail` `Prometheus` `qBit-Exporter` `Scraparr`
+
     - name: Deploy metrics stack
       when: inventory_hostname == 'localhost'
       ansible.builtin.include_role:
@@ -317,6 +323,8 @@ The tasks section is the bulk of my playbook, and is simply used to include my v
 ################################
 # DNS
 ################################
+
+  ## Services: `Adguard Home` `Technitium`
 
     - name: Deploy dns stack
       when: inventory_hostname == 'localhost'
@@ -330,6 +338,8 @@ The tasks section is the bulk of my playbook, and is simply used to include my v
 # TRAEFIK
 ################################
 
+  ## Services: `Authelia` `Redis` `Traefik`
+
     - name: Deploy traefik stack
       when: inventory_hostname == 'localhost'
       ansible.builtin.include_role:
@@ -339,8 +349,24 @@ The tasks section is the bulk of my playbook, and is simply used to include my v
       tags: traefik
 
 ################################
+# TORRENTS
+################################
+
+  ## Services: `Cross-Seed` `qBittorrent` `qBit-Manage` `Seasonpackarr` `Unpackerr`
+
+    - name: Deploy torrents stack
+      when: inventory_hostname == 'saltbox'
+      ansible.builtin.include_role:
+        name: torrents
+        apply:
+          tags: torrents
+      tags: torrents
+
+################################
 # UNIFI
 ################################
+
+  ## Services: `Mongo` `Unifi-Network-Application`
 
     - name: Deploy unifi stack
       when: inventory_hostname == 'localhost'
@@ -354,6 +380,8 @@ The tasks section is the bulk of my playbook, and is simply used to include my v
 # GLUETUN
 ################################
 
+  ## Services: `Gluetun` `JDownloader2` `LibreWolf` `SearXNG`
+
     - name: Deploy gluetun stack
       when: inventory_hostname == 'localhost'
       ansible.builtin.include_role:
@@ -366,6 +394,8 @@ The tasks section is the bulk of my playbook, and is simply used to include my v
 # UNIONFS
 ################################
 
+  ## Services: `Cloudplow` `Mergerfs` `RClone`
+
     - name: Deploy unionfs
       when: inventory_hostname == 'localhost'
       ansible.builtin.include_role:
@@ -377,6 +407,8 @@ The tasks section is the bulk of my playbook, and is simply used to include my v
 ################################
 # UTILITIES
 ################################
+
+  ## Services: `Compose-Craft` `Gantry` `HomePage` `IT/Ombi-Tools` `Portainer` `ThemePark`
 
     - name: Retrieve Plex token
       when: inventory_hostname == 'localhost'
@@ -395,6 +427,8 @@ The tasks section is the bulk of my playbook, and is simply used to include my v
 ################################
 # PLEX
 ################################
+
+  ## Services: `Checkrr` `ImageMaid` `Kometa` `Plex` `PlexTraktSync` `Posterr` `Tautulli` `Wrapperr`
 
     - name: Prepare plex token
       when: inventory_hostname == 'localhost'
@@ -433,7 +467,7 @@ There's nothing really stopping you from having one gigantic playbook, but I pre
 
 Key to the single playbook setup are conditionals, because:
 
-   1) When I run a playbook I typically only want a single role to run (with few exceptions).
+   1) I typically only want a single role to run at a time (with few exceptions).
    2) The tasks and roles I have are typically written for a single host
 
 Thus, each task within the `playbook.yml` will look like the following:
@@ -450,7 +484,7 @@ Thus, each task within the `playbook.yml` will look like the following:
 
 ```
 
-With the two primary conditionals being the hostname to run-on and tags to include:
+With the two primary conditionals being hostnames and tags:
 
 ***
 
@@ -467,9 +501,9 @@ There use of the `when: inventory_hostname == 'plex'` shown above is simply aski
  saltbox ansible_host=redacted ansible_user=redacted
 ```
 
-Defining the hostname here prevents you having to include sensitive information (i.e, tailscale ips and others) in the playbook, and it can be whatever nickname you want it to be.
+Defining the hostname prevents you having to include sensitive information (i.e, tailscale ips) in the playbook, and it can be whatever you want it to be.
 
-In a Docker Swarm setup, the use of hosts is important, as you'll often need one host to deploy the services, but you'll need to do tasks on the worker machine to ready it for the service deployment. For example:
+In a Docker Swarm setup, the use of hosts is important, as you'll often need one host to deploy the services, but will need to do tasks on the worker machine to ready for service deployment. For example:
 
 ```yaml
 ################################
@@ -507,7 +541,7 @@ In a Docker Swarm setup, the use of hosts is important, as you'll often need one
 
 ***
 
-The tags in my `playbook.yml` are what I use to determine what job I want to run, what docker services I want to deploy. There are two main types of tags that need to be included, as seen here:
+The tags in my `playbook.yml` are what I use to determine what jobs to run, and what docker services to deploy. There are two types of tags included, as seen here:
 
 ```yaml
     - name: Deploy plex stack
@@ -519,11 +553,11 @@ The tags in my `playbook.yml` are what I use to determine what job I want to run
       tags: plex
 ```
 
-In this example, the `tags: arrs` calls the role during the play, and the `apply.tags: arrs` applies the tag to the tasks within the role, ensuring these tasks run when the tag is used. 
+Above, the `tags: arrs` calls the role during the play, while the `apply.tags: arrs` applies the tag to all tasks within the role, ensuring these tasks run when the tag is used. 
 
-You can apply as many tags as you require for yourset up, and can also apply `tags: always` for those tasks that always need to run, like in my pre_tasks section.
+You can apply as many tags as you require, and can also apply `tags: always` for those tasks that always need to run, like in my pre_tasks section.
 
-And as seen in the introduction, you simply include your desired tags in your playbook run command:
+As seen in the introduction, you simply include your desired tags in the run command:
 
 ```cli
 
@@ -540,7 +574,7 @@ ansible-playbook play.yml -i hosts.ini --ask-become-pass --ask-vault-pass --tag 
 
 Handlers are tasks that will only run when notified, will run at the end of each play, and will only run once no matter how many times they're notified.
 
-A recent example of where I have made use of Handlers was with the setting up of mounts for autofs:
+A recent example of where I have made use of Handlers was with autofs mounts:
 
 ```yaml
 
@@ -570,7 +604,7 @@ A recent example of where I have made use of Handlers was with the setting up of
 
 ```
 
-In the above these tasks notify the following handlers that are listening for 'redo mounts':
+Above, these tasks notify the following handlers that are listening for `redo mounts`:
 
 
 ```yaml
@@ -600,4 +634,4 @@ In the above these tasks notify the following handlers that are listening for 'r
 
 ```
 
-Depending on how many handlers you have, you can either define them directly in your playbook, have them in a handlers folder, or even define them within individual roles.
+Depending on how many handlers you have, you can either define them directly in your playbook, in a handlers folder, or even within individual roles.
