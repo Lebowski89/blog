@@ -743,21 +743,13 @@ The idea is to keep the main tasks file as streamlined as possible.
 
 ***
 
-## Roles/Templates
+## Roles/Templates/Configs
 
 ***
 
-As the name suggests, the roles templates folder is where I keep all the files that will be templated during the play.
+Most roles will include at least one config file to be templated.
 
-***
-
-### Configs
-
-***
-
-Most roles will include at least one config file to be templated during the play. 
-
-I find templating more powerful than simply copying, as a change in a variable's value will apply to the config template referencing it, negating the need to edit config files individually. 
+I find templating more powerful than copying, as a change in a variable's value will apply to the config template referencing it, reducing the need to manually edit config files. 
 
 **Example:**
 
@@ -786,7 +778,7 @@ I find templating more powerful than simply copying, as a change in a variable's
 
 ***
 
-### Compose
+## Roles/Templates/Compose
 
 ***
 
