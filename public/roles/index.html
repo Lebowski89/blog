@@ -189,7 +189,7 @@ Group_Vars For my set up, group_vars, is structured like the following:
   <h1 class="post-title">
     <a href="http://localhost:1313/roles/">Structuring your Ansible Roles</a>
   </h1>
-  <div class="post-meta"><span class="post-reading-time">10 min read (2055 words)</span></div>
+  <div class="post-meta"><span class="post-reading-time">11 min read (2188 words)</span></div>
 
   
     <span class="post-tags">
@@ -223,12 +223,13 @@ Group_Vars For my set up, group_vars, is structured like the following:
         <li><a href="#directories">Directories</a></li>
         <li><a href="#files">Files</a></li>
         <li><a href="#databases">Databases</a></li>
+        <li><a href="#docker-secrets--networks--volumes">Docker Secrets / Networks / Volumes</a></li>
         <li><a href="#dns">DNS</a></li>
         <li><a href="#traefik">Traefik</a></li>
         <li><a href="#deploy">Deploy</a></li>
-        <li><a href="#sub-tasks">Sub-tasks</a></li>
       </ul>
     </li>
+    <li><a href="#sub-tasks">Sub-tasks</a></li>
     <li><a href="#doplarrs-config-configednj2">Doplarr&rsquo;s config (config.edn.j2)</a></li>
   </ul>
 </nav>
@@ -450,6 +451,48 @@ Group_Vars For my set up, group_vars, is structured like the following:
 <p>Both require an existing mariadb/postgres database instance that is up and accepting connections, with all relevant database login details stored in <code>group_vars/vault</code>. I deploy my databases via docker, but it doesn&rsquo;t matter if you installed via a different method. Also, since these are ansible module tasks, and are not part of your docker network, they rely on machine ip and host port.</p>
 <p>Once the database is created, depending on the services, additional database tasks will be required. These usually revolve around adding your database details to the service config. For me, I prefer defining the database details via the services docker environmental variables, but sometimes this isn&rsquo;t possible. Sometimes I prefer editing the config, which is the case with my arrs stack.</p>
 <hr>
+<h3 id="docker-secrets--networks--volumes">Docker Secrets / Networks / Volumes<a href="#docker-secrets--networks--volumes" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<hr>
+<p>Here I create any required docker secrets, networks and volumes:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Prepare docker secrets</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.docker.docker_secret</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#39;{{ item.name }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">data</span>: <span style="color:#e6db74">&#39;{{ item.secret }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">present</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">loop</span>:
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">name: &#39;unifi_user_secret&#39;, secret</span>: <span style="color:#e6db74">&#39;{{ unifi_db_user }}&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">name: &#39;unifi_pass_secret&#39;, secret</span>: <span style="color:#e6db74">&#39;{{ unifi_db_pass }}&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">name: &#39;unifi_root_pass_secret&#39;, secret</span>: <span style="color:#e6db74">&#39;{{ unifi_db_root_pass }}&#39;</span> }
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Create media volume</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.docker.docker_volume</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">volume_name</span>: <span style="color:#e6db74">&#39;{{ media_volume }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">present</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">recreate</span>: <span style="color:#ae81ff">options-changed</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">driver</span>: <span style="color:#ae81ff">local</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">driver_options</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">type</span>: <span style="color:#ae81ff">nfs</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">o</span>: <span style="color:#e6db74">&#39;addr={{ media_volume_address }},rw,nfsvers=4.2&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">device</span>: <span style="color:#e6db74">&#39;{{ media_volume_device }}&#39;</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Conduct overlay network tasks</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">when</span>: <span style="color:#ae81ff">inventory_hostname == &#39;localhost&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">block</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Register overlay network</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">community.docker.docker_network_info</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#39;{{ network_overlay }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">register</span>: <span style="color:#ae81ff">network_overlay_result</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Create overlay network</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">not network_overlay_result.exists</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">community.docker.docker_network</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#39;{{ network_overlay }}&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">driver</span>: <span style="color:#e6db74">&#39;{{ network_overlay_driver }}&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">attachable</span>: <span style="color:#66d9ef">true</span> 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">ipam_config</span>:
+</span></span><span style="display:flex;"><span>          - <span style="color:#f92672">subnet</span>: <span style="color:#e6db74">&#39;{{ network_overlay_subnet }}&#39;</span>
+</span></span></code></pre></div><hr>
 <h3 id="dns">DNS<a href="#dns" class="hanchor" ariaLabel="Anchor">#</a> </h3>
 <hr>
 <p>In this section, I add cloudflare DNS records via <a href="https://drjoyce.blog/common/#cloudflare-dns">common tasks</a></p>
@@ -506,7 +549,67 @@ Group_Vars For my set up, group_vars, is structured like the following:
 <hr>
 <h3 id="deploy">Deploy<a href="#deploy" class="hanchor" ariaLabel="Anchor">#</a> </h3>
 <hr>
-<p>Removes existing stacks, retrieves common vault variables, includes sub_tasks, and then deploys the stack.</p>
+<p>The final step of tasks is to deploy the required container or stack:</p>
+<p><strong>Deploying a container:</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">create radarr container</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.docker.docker_container</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#39;{{ radarr_name }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">image</span>: <span style="color:#e6db74">&#39;{{ radarr_image_repo }}:{{ radarr_image_tag }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">networks</span>: <span style="color:#e6db74">&#39;{{ network_overlay }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">env</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">PUID</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">PGID</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TZ</span>: <span style="color:#e6db74">&#39;{{ timezone }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TP_SCHEME</span>: <span style="color:#e6db74">&#39;http&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TP_DOMAIN</span>: <span style="color:#e6db74">&#39;{{ themepark_domain }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TP_HOTIO</span>: <span style="color:#e6db74">&#39;true&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TP_THEME</span>: <span style="color:#e6db74">&#39;{{ themepark_theme }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">labels</span>: <span style="color:#e6db74">&#39;{{ radarr_labels }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">ports</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#e6db74">&#39;{{ radarr_ports_host }}:{{ radarr_ports_cont }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">volumes</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#e6db74">&#39;{{ radarr_location }}:/config&#39;</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#e6db74">&#39;{{ themes_location }}/98-themepark-radarr:/etc/cont-init.d/98-themepark&#39;</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#e6db74">&#39;/mnt:/mnt&#39;</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#e6db74">&#39;{{ torrents_volume }}:{{ torrents_volume_mount_path }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">restart_policy</span>: <span style="color:#e6db74">&#39;{{ radarr_restart_policy }}&#39;</span>
+</span></span></code></pre></div><p><strong>Deploying a Compose stack:</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Import gluetun compose file</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.template</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">src</span>: <span style="color:#e6db74">&#39;{{ role_path }}/templates/gluetun-compose.yml.j2&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">dest</span>: <span style="color:#e6db74">&#39;/opt/gluetun-compose.yml&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">force</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">owner</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">group</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">mode</span>: <span style="color:#e6db74">&#39;0664&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Gluetun compose stack up</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.docker.docker_compose_v2</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">project_src</span>: <span style="color:#e6db74">&#39;/opt&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">files</span>: <span style="color:#ae81ff">gluetun-compose.yml</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">present</span>
+</span></span></code></pre></div><p><strong>Deploying a Swarm stack:</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Import arrs-stack file</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.template</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">src</span>: <span style="color:#e6db74">&#39;{{ role_path }}/templates/arrs-stack.yml.j2&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">dest</span>: <span style="color:#ae81ff">/opt/arrs-stack.yml</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">force</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">owner</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">group</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">mode</span>: <span style="color:#e6db74">&#39;0664&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Deploy arrs stack</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.docker.docker_stack</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">present</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">name</span>: <span style="color:#ae81ff">arrs</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">compose</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">/opt/arrs-stack.yml</span>
+</span></span></code></pre></div><hr>
+<h2 id="sub-tasks">Sub-tasks<a href="#sub-tasks" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<hr>
 <p><strong>Example:</strong></p>
 <pre tabindex="0"><code>
 ################################
@@ -546,10 +649,7 @@ Group_Vars For my set up, group_vars, is structured like the following:
     name: arrs
     compose:
       - /opt/compose/arrs-stack.yml
-</code></pre><hr>
-<h3 id="sub-tasks">Sub-tasks<a href="#sub-tasks" class="hanchor" ariaLabel="Anchor">#</a> </h3>
-<hr>
-<p>Sub_tasks prepare a docker swarm service to run, including:</p>
+</code></pre><p>Sub_tasks prepare a docker swarm service to run, including:</p>
 <ul>
 <li>Creating directories</li>
 <li>Creating and preparing config files</li>
@@ -687,78 +787,6 @@ labels: {{ adguard_defaults_labels }}</p>
 <p>networks:
 {{ network_overlay }}:
 external: true</p>
-<pre tabindex="0"><code>
-With the compose files, you can either create and define networks, volumes, secrets within the file, or you can let ansible handle it and then use &#39;external: true&#39;. I prefer the latter and use various docker ansible modules to automate their creation:
-
-  **Networks:**
-</code></pre><ul>
-<li>name: Conduct overlay network tasks
-when: inventory_hostname == &rsquo;localhost&rsquo;
-block:
-<ul>
-<li>
-<p>name: Register overlay network
-community.docker.docker_network_info:
-name: &lsquo;{{ network_overlay }}&rsquo;
-register: network_overlay_result</p>
-</li>
-<li>
-<p>name: Create overlay network
-when: not network_overlay_result.exists
-community.docker.docker_network:
-name: &lsquo;{{ network_overlay }}&rsquo;
-driver: &lsquo;{{ network_overlay_driver }}&rsquo;
-attachable: true
-ipam_config:
-- subnet: &lsquo;{{ network_overlay_subnet }}&rsquo;</p>
-</li>
-</ul>
-</li>
-</ul>
-<pre tabindex="0"><code>
-  **Volumes:**
-</code></pre><ul>
-<li>name: Create media volume
-community.docker.docker_volume:
-volume_name: &lsquo;{{ media_volume }}&rsquo;
-state: present
-recreate: options-changed
-driver: local
-driver_options:
-type: nfs
-o: &lsquo;addr={{ media_volume_address }},rw,nfsvers=4.2&rsquo;
-device: &lsquo;{{ media_volume_device }}&rsquo;</li>
-</ul>
-<pre tabindex="0"><code>
-  **Secrets:**
-</code></pre><ul>
-<li>name: Prepare docker secrets
-block:
-<ul>
-<li>
-<p>name: Unifi db user secret
-community.docker.docker_secret:
-name: unifi_user_secret
-data: &lsquo;{{ unifi_db_user }}&rsquo;
-state: present</p>
-</li>
-<li>
-<p>name: Unifi db password secret
-community.docker.docker_secret:
-name: unifi_pass_secret
-data: &lsquo;{{ unifi_db_pass }}&rsquo;
-state: present</p>
-</li>
-<li>
-<p>name: Unifi db root password secret
-community.docker.docker_secret:
-name: unifi_root_pass_secret
-data: &lsquo;{{ unifi_db_root_pass }}&rsquo;
-state: present</p>
-</li>
-</ul>
-</li>
-</ul>
 <pre tabindex="0"><code></code></pre>
       </div></div>
 

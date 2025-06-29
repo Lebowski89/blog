@@ -319,6 +319,64 @@ Once the database is created, depending on the services, additional database tas
 
 ***
 
+### Docker Secrets / Networks / Volumes
+
+***
+
+Here I create any required docker secrets, networks and volumes:
+
+```yaml
+
+- name: Prepare docker secrets
+  community.docker.docker_secret:
+    name: '{{ item.name }}'
+    data: '{{ item.secret }}'
+    state: present
+  loop:
+    - { name: 'unifi_user_secret', secret: '{{ unifi_db_user }}' }
+    - { name: 'unifi_pass_secret', secret: '{{ unifi_db_pass }}' }
+    - { name: 'unifi_root_pass_secret', secret: '{{ unifi_db_root_pass }}' }
+
+```
+
+```yaml
+
+- name: Create media volume
+  community.docker.docker_volume:
+    volume_name: '{{ media_volume }}'
+    state: present
+    recreate: options-changed
+    driver: local
+    driver_options:
+      type: nfs
+      o: 'addr={{ media_volume_address }},rw,nfsvers=4.2'
+      device: '{{ media_volume_device }}'
+
+```
+
+```yaml
+
+- name: Conduct overlay network tasks
+  when: inventory_hostname == 'localhost'
+  block:
+    - name: Register overlay network
+      community.docker.docker_network_info:
+        name: '{{ network_overlay }}'
+      register: network_overlay_result
+
+    - name: Create overlay network
+      when: not network_overlay_result.exists
+      community.docker.docker_network:
+        name: '{{ network_overlay }}'
+        driver: '{{ network_overlay_driver }}'
+        attachable: true 
+        ipam_config:
+          - subnet: '{{ network_overlay_subnet }}'
+
+```
+
+***
+
 ### DNS
 
 ***
@@ -391,8 +449,95 @@ Here I include [common tasks](https://drjoyce.blog/common/#traefik-labels) to se
 
 ***
 
+The final step of tasks is to deploy the required container or stack:
 
-Removes existing stacks, retrieves common vault variables, includes sub_tasks, and then deploys the stack.
+**Deploying a container:**
+
+```yaml
+
+- name: create radarr container
+  community.docker.docker_container:
+    name: '{{ radarr_name }}'
+    image: '{{ radarr_image_repo }}:{{ radarr_image_tag }}'
+    networks: '{{ network_overlay }}'
+    env:
+      PUID: '{{ puid }}'
+      PGID: '{{ pgid }}'
+      TZ: '{{ timezone }}'
+      TP_SCHEME: 'http'
+      TP_DOMAIN: '{{ themepark_domain }}'
+      TP_HOTIO: 'true'
+      TP_THEME: '{{ themepark_theme }}'
+    labels: '{{ radarr_labels }}'
+    ports:
+      - '{{ radarr_ports_host }}:{{ radarr_ports_cont }}'
+    volumes:
+      - '{{ radarr_location }}:/config'
+      - '{{ themes_location }}/98-themepark-radarr:/etc/cont-init.d/98-themepark'
+      - '/mnt:/mnt'
+      - '{{ torrents_volume }}:{{ torrents_volume_mount_path }}'
+    restart_policy: '{{ radarr_restart_policy }}'
+
+```
+
+**Deploying a Compose stack:**
+
+```yaml
+
+- name: Import gluetun compose file
+  ansible.builtin.template:
+    src: '{{ role_path }}/templates/gluetun-compose.yml.j2'
+    dest: '/opt/gluetun-compose.yml'
+    force: true
+    owner: '{{ puid }}'
+    group: '{{ pgid }}'
+    mode: '0664'
+
+- name: Gluetun compose stack up
+  community.docker.docker_compose_v2:
+    project_src: '/opt'
+    files: gluetun-compose.yml
+    state: present
+
+```
+
+**Deploying a Swarm stack:**
+
+```yaml
+
+- name: Import arrs-stack file
+  ansible.builtin.template:
+    src: '{{ role_path }}/templates/arrs-stack.yml.j2'
+    dest: /opt/arrs-stack.yml
+    force: true
+    owner: '{{ puid }}'
+    group: '{{ pgid }}'
+    mode: '0664'
+
+- name: Deploy arrs stack
+  community.docker.docker_stack:
+    state: present
+    name: arrs
+    compose:
+      - /opt/arrs-stack.yml
+
+```
+
+***
+
+## Sub-tasks
+
+***
+
+
+
+
+
+
+
+
+
+
 
 **Example:**
 
@@ -437,11 +582,7 @@ Removes existing stacks, retrieves common vault variables, includes sub_tasks, a
       - /opt/compose/arrs-stack.yml
 ```
 
-***
 
-### Sub-tasks
-
-***
 
 Sub_tasks prepare a docker swarm service to run, including:
   * Creating directories
@@ -585,62 +726,3 @@ networks:
   {{ network_overlay }}:
     external: true
 ```
-
-With the compose files, you can either create and define networks, volumes, secrets within the file, or you can let ansible handle it and then use 'external: true'. I prefer the latter and use various docker ansible modules to automate their creation:
-
-  **Networks:**
-```
-- name: Conduct overlay network tasks
-  when: inventory_hostname == 'localhost'
-  block:
-    - name: Register overlay network
-      community.docker.docker_network_info:
-        name: '{{ network_overlay }}'
-      register: network_overlay_result
-
-    - name: Create overlay network
-      when: not network_overlay_result.exists
-      community.docker.docker_network:
-        name: '{{ network_overlay }}'
-        driver: '{{ network_overlay_driver }}'
-        attachable: true 
-        ipam_config:
-          - subnet: '{{ network_overlay_subnet }}'
-```
-
-  **Volumes:**
-```
-- name: Create media volume
-  community.docker.docker_volume:
-    volume_name: '{{ media_volume }}'
-    state: present
-    recreate: options-changed
-    driver: local
-    driver_options:
-      type: nfs
-      o: 'addr={{ media_volume_address }},rw,nfsvers=4.2'
-      device: '{{ media_volume_device }}'
-```
-
-  **Secrets:**
-```
-- name: Prepare docker secrets
-  block:
-    - name: Unifi db user secret
-      community.docker.docker_secret:
-        name: unifi_user_secret
-        data: '{{ unifi_db_user }}'
-        state: present
-
-    - name: Unifi db password secret
-      community.docker.docker_secret:
-        name: unifi_pass_secret
-        data: '{{ unifi_db_pass }}'
-        state: present
-
-    - name: Unifi db root password secret
-      community.docker.docker_secret:
-        name: unifi_root_pass_secret
-        data: '{{ unifi_db_root_pass }}'
-        state: present
- ```
