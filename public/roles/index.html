@@ -189,7 +189,7 @@ Group_Vars For my set up, group_vars, is structured like the following:
   <h1 class="post-title">
     <a href="http://localhost:1313/roles/">Structuring your Ansible Roles</a>
   </h1>
-  <div class="post-meta"><span class="post-reading-time">11 min read (2188 words)</span></div>
+  <div class="post-meta"><span class="post-reading-time">13 min read (2760 words)</span></div>
 
   
     <span class="post-tags">
@@ -229,7 +229,7 @@ Group_Vars For my set up, group_vars, is structured like the following:
         <li><a href="#deploy">Deploy</a></li>
       </ul>
     </li>
-    <li><a href="#sub-tasks">Sub-tasks</a></li>
+    <li><a href="#rolessub-tasks">Roles/Sub-tasks</a></li>
     <li><a href="#doplarrs-config-configednj2">Doplarr&rsquo;s config (config.edn.j2)</a></li>
   </ul>
 </nav>
@@ -496,7 +496,7 @@ Group_Vars For my set up, group_vars, is structured like the following:
 <h3 id="dns">DNS<a href="#dns" class="hanchor" ariaLabel="Anchor">#</a> </h3>
 <hr>
 <p>In this section, I add cloudflare DNS records via <a href="https://drjoyce.blog/common/#cloudflare-dns">common tasks</a></p>
-<p>Previously, I would define the cloudflare tasks in role sub_tasks, like so:</p>
+<p>Previously, I would define the cloudflare tasks in the role, like so:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># CLOUDFLARE</span>
@@ -545,7 +545,7 @@ Group_Vars For my set up, group_vars, is structured like the following:
 </span></span></code></pre></div><hr>
 <h3 id="traefik">Traefik<a href="#traefik" class="hanchor" ariaLabel="Anchor">#</a> </h3>
 <hr>
-<p>Here I include <a href="https://drjoyce.blog/common/#traefik-labels">common tasks</a> to set Traefik labels for services.</p>
+<p>Here I use <a href="https://drjoyce.blog/common/#traefik-labels">common tasks</a> to set Traefik labels for services.</p>
 <hr>
 <h3 id="deploy">Deploy<a href="#deploy" class="hanchor" ariaLabel="Anchor">#</a> </h3>
 <hr>
@@ -608,61 +608,213 @@ Group_Vars For my set up, group_vars, is structured like the following:
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">compose</span>:
 </span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">/opt/arrs-stack.yml</span>
 </span></span></code></pre></div><hr>
-<h2 id="sub-tasks">Sub-tasks<a href="#sub-tasks" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<h2 id="rolessub-tasks">Roles/Sub-tasks<a href="#rolessub-tasks" class="hanchor" ariaLabel="Anchor">#</a> </h2>
 <hr>
-<p><strong>Example:</strong></p>
-<pre tabindex="0"><code>
-################################
-# SUB-TASKS
-################################
-
-- name: Include sub-tasks tasks
-  ansible.builtin.include_tasks: sub_tasks/{{ item }}.yml
-  loop:
-    - &#39;rclone&#39;  ## rclone runs first to create the torrents volume
-    - &#39;lidarr&#39;
-    - &#39;prowlarr&#39;
-    - &#39;radarr&#39;
-    - &#39;radarr4k&#39;
-    - &#39;readarr&#39;
-    - &#39;sonarr&#39;
-    - &#39;sonarr4k&#39;
-    - &#39;whisparr&#39;
-    - &#39;bazarr&#39;  ## bazarr relies on arrs API variables - run last
-
-################################
-# DEPLOY
-################################
-
-- name: Import arrs-stack file
-  ansible.builtin.template:
-    src: &#39;{{ role_path }}/templates/arrs-stack.yml.j2&#39;
-    dest: /opt/compose/arrs-stack.yml
-    force: true
-    owner: &#39;{{ puid }}&#39;
-    group: &#39;{{ pgid }}&#39;
-    mode: &#39;0664&#39;
-
-- name: Deploy arrs stack
-  community.docker.docker_stack:
-    state: present
-    name: arrs
-    compose:
-      - /opt/compose/arrs-stack.yml
-</code></pre><p>Sub_tasks prepare a docker swarm service to run, including:</p>
-<ul>
-<li>Creating directories</li>
-<li>Creating and preparing config files</li>
-<li>Creating databases and adding database info to the config files</li>
-<li>Retrieving vault variables or generating keys/api/passwords during the play</li>
-<li>Preparing docker secrets</li>
-<li>Creating cloudflare A/CNAME DNS records
-and so on&hellip;</li>
-</ul>
+<p>I make use of sub-tasks in roles if a set of tasks meet the following criteria:</p>
+<ol>
+<li>The tasks are role specific/niche and not appropriate for common tasks</li>
+<li>The number of tasks would clutter up the main tasks file.</li>
+</ol>
+<p>One example is my recyclarr config tasks:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Include recyclarr tasks</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.include_tasks</span>: <span style="color:#ae81ff">sub_tasks/recyclarr.yml</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># CONFIG</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Check config exists</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.stat</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ recyclarr_location }}/recyclarr.yml&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">register</span>: <span style="color:#ae81ff">recyclarr_config</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Generate default config</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">when</span>: <span style="color:#ae81ff">not recyclarr_config.stat.exists</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.docker.docker_container</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">name</span>: <span style="color:#ae81ff">recyclarr-config</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">image</span>: <span style="color:#e6db74">&#39;{{ recyclarr_image_repo }}:{{ recyclarr_image_tag }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">pull</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">started</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">container_default_behavior</span>: <span style="color:#ae81ff">compatibility</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">networks</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#39;{{ network_overlay }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">env</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">RECYCLARR_CREATE_CONFIG</span>: <span style="color:#e6db74">&#39;true&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">user</span>: <span style="color:#e6db74">&#39;{{ puid }}:{{ pgid }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">volumes</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#e6db74">&#39;{{ recyclarr_location }}:/config&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cleanup</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Remove config container</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.docker.docker_container</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">container_default_behavior</span>: <span style="color:#ae81ff">compatibility</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">name</span>: <span style="color:#ae81ff">recyclarr-config</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">absent</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">stop_timeout</span>: <span style="color:#ae81ff">10</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">register</span>: <span style="color:#ae81ff">remove_recyclarr_config_container</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">retries</span>: <span style="color:#ae81ff">5</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">delay</span>: <span style="color:#ae81ff">10</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">until</span>: <span style="color:#ae81ff">remove_recyclarr_config_container is succeeded</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># SECRETS</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Insert recyclarr secrets settings</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.blockinfile</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ recyclarr_location }}/secrets.yml&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">marker</span>: <span style="color:#e6db74">&#34;## {mark} ANSIBLE RECYCLARR MANAGED BLOCK ##&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">owner</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">group</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">mode</span>: <span style="color:#e6db74">&#39;0664&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">create</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">block</span>: |<span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      radarr_base_url: http://{{ radarr_name }}:{{ radarr_ports_cont }}
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      radarr_api_key: {{ radarr_api }}
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      radarr4k_base_url: http://{{ radarr_4k_name }}:{{ radarr_4k_ports_cont }}
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      radarr4k_api_key: {{ radarr_4k_api }}
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      sonarr_base_url: http://{{ sonarr_name }}:{{ sonarr_ports_cont }}
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      sonarr_api_key: {{ sonarr_api }}
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      sonarr4k_base_url: http://{{ sonarr_4k_name }}:{{ sonarr_4k_ports_cont }}
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      sonarr4k_api_key: {{ sonarr_4k_api }}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># CONFIGS</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## This is just one of the configs. I have another three.</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Insert radarr config settings</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.blockinfile</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ recyclarr_location }}/configs/radarr.yml&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">marker</span>: <span style="color:#e6db74">&#34;## {mark} ANSIBLE RADARR MANAGED BLOCK ##&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">owner</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">group</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">mode</span>: <span style="color:#e6db74">&#39;0664&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">create</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">block</span>: |<span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      radarr:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        radarr:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          media_naming:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">            folder: plex
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">            movie:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">              rename: true
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">              standard: default
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          quality_definition:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">            type: movie
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          quality_profiles:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">            - name: Remux + WEB 1080p
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">              reset_unmatched_scores:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                enabled: true
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">              upgrade:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                allowed: true
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                until_quality: Remux-1080p
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                until_score: 10000
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">              min_format_score: 0
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">              quality_sort: top
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">              qualities:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - name: Remux-1080p
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - name: Bluray-1080p
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                  enabled: false
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - name: WEB 1080p
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                  qualities:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                    - WEBRip-1080p
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                    - WEBDL-1080p
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          delete_old_custom_formats: true
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          replace_existing_custom_formats: true
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">          custom_formats:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">            - trash_ids:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                  # Audio Advanced #1
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - 417804f7f2c4308c1f4c5d380d4c4475 # ATMOS (undefined)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - 1af239278386be2919e1bcee0bde047e # DD+ ATMOS
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - 185f1dd7264c4562b9022d963ac37424 # DD+
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - f9f847ac70a0af62ea4a08280b859636 # DTS-ES
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - dcf3ec6938fa32445f590a4da84256cd # DTS-HD MA
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - 2f22d89048b01681dde8afe203bf2e95 # DTS X
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - 1c1a4c5e823891c75bc50380a6866f73 # DTS
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - 496f355514737f7d83bf7aa4d24f8169 # TrueHD ATMOS
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - 3cafb66171b47f226146a0770576870f # TrueHD
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                  # Audio Advanced #2
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - 240770601cc226190c367ef59aba7463 # AAC
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - c2998bd0d90ed5621d8df281e839436e # DD
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - 8e109e50e0a0b83a5098b056e13bf6db # DTS-HD HRA
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - a570d4a0e56a2874b64e5bfa55202a1b # FLAC
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - 6ba9033150e7896bdc9ec4b44f2b230f # MP3
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - a061e2e700f81932daf888599f8a8273 # Opus
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - e7c2fcae07cbada050a0af3357491d7b # PCM
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                  # HDR Formats
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - e23edd2482476e595fb990b12e7c609c # DV HDR10
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - 55d53828b9d81cbe20b02efd00aa0efd # DV HLG
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - a3e19f8f627608af0211acd02bf89735 # DV SDR
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - 58d6a88f13e2db7f5059c41047876f00 # DV
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - 2a4d9069cc1fe3242ff9bdaebed239bb # HDR (undefined)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - e61e28db95d22bedcadf030b8f156d96 # HDR
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - dfb86d5941bc9075d6af23b09c2aeecd # HDR10
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - b974a6cd08c1066250f1f177d7aa1225 # HDR10+
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - 9364dd386c9b4a1100dde8264690add7 # HLG
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - 08d6d8834ad9ec87b1dc7ec8148e7a1f # PQ
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                  # HQ Release Groups
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - 3a3ff47579026e76d6504ebea39390de # Remux Tier 01
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - 9f98181fe5a3fbeb0cc29340da2a468a # Remux Tier 02
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - 8baaf0b3142bf4d94c42a724f034e27a # Remux Tier 03
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - 403816d65392c79236dcb6dd591aeda4 # WEB Tier 02
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - c20f169ef63c5f40c2def54abaf4438e # WEB Tier 01
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - af94e0fe497124d1f9ce732069ec8c3b # WEB Tier 03
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                  # Movie Versions
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - eca37840c13c6ef2dd0262b141a5482f # 4K Remaster
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - e0c07d59beb37348e975a930d5e50319 # Criterion Collection
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - 0f12c086e289cf966fa5948eac571f44 # Hybrid
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - 9f6cbff8cfe4ebbc1bde14c7b7bec0de # IMAX Enhanced
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - eecf3a857724171f968a66cb5719e152 # IMAX
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - 570bc9ebecd92723d2d21500f4be314c # Remaster
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - 957d0f44b592285f26449575e8b1167e # Special Edition
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - e9001909a4c88013a359d0b9920d7bea # Theatrical Cut
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - 9d27d9d2181838f76dee150882bdc58c # Masters of Cinema
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - 09d9dd29a0fc958f9796e65c2a8864b4 # Open Matte
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - db9b4c4b53d312a3ca5f1378f6440fc9 # Vinegar Syndrome
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                  # Unwanted
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - cae4ca30163749b891686f95532519bd # AV1
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - ed38b889b31be83fda192888e2286d83 # BR-DISK
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - e6886871085226c3da1830830146846c # Generated Dynamic HDR
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - 90a6f9a284dff5103f6346090e6280c8 # LQ
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - e204b80c87be9497a8a6eaff48f72905 # LQ (Release Title)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - 712d74cd88bceb883ee32f773656b1f5 # Sing-Along Versions
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - b8cd450cbfa689c0259a01d9e29ba3d6 # 3D
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - dc98083864ea246d05a42df0d05f81cc # x265 (HD)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - bfd8eb01832d646a0a89c4deb46f8564 # Upscaled
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - 0a3f082873eb454bde444150b70253cc # Extras
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                  # Misc
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - b6832f586342ef70d9c128d40c07b872 # Bad Dual Groups
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - ae9b7c9ebde1f3bd336a8cbd1ec4c5e5 # No-RlsGroup
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - 5c44f52a8714fdd79bb4d98e2673be1f # Retags
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - 182fa1c42a2468f8488e6dcf75a81b81 # Internal
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - c465ccc73923871b3eb1802042331306 # Line/Mic Dubbed
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - e7718d7a3ce595f289bfee26adc178f5 # Repack/Proper
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - ae43b294509409a6a13919dedd4764c4 # Repack2
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - 5caaaa1c08c1742aa4342d8c4cc463f2 # Repack3
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - 2899d84dc9372de3408e6d8cc18e9666 # x264
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - 0d91270a7255a1e388fa85e959f359d8 # FreeLeech
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                  # Streaming Services
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - b3b3a6ac74ecbd56bcdbefa4799fb9df # AMZN
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - 40e9380490e748672c2522eaaeb692f7 # ATVP
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - 84272245b2988854bfb76a16e60baea5 # DSNP
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - 509e5f41146e278f9eab1ddaceb34515 # HBO
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - 5763d1b0ce84aff3b21038eea8e9b8ad # HMAX
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - 526d445d4c16214309f0fd2b3be18a89 # Hulu
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - e0ec9672be6cac914ffad34a6b077209 # iT
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - 6a061313d22e51e0f25b7cd4dc065233 # MAX
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - 170b1d363bd8516fbf3a3eb05d4faff6 # NF
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - c9fd353f8f5f1baf56dc601c4cb29920 # PCOK
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - e36a0ba1bc902b26ee40818a1d59b8bd # PMTP
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - c2863d2a50c9acad1fb50e53ece60817 # STAN
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">              assign_scores_to:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - name: Remux + WEB 1080p</span>
+</span></span></code></pre></div><p>The idea is to keep the main tasks file as streamlined as possible, and sub-tasks can help with that.</p>
 <pre tabindex="0"><code>
 ***
 
-## Templates
+## Roles/Templates
 
 ***
 
