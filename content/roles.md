@@ -281,46 +281,7 @@ Above, I loop over `path`, `owner`, `group`. However, you can name them whatever
 
 ***
 
-After creating the directory, I typically deal with files via template and copy tasks.
-
-**Copy**
-
-For copies, [I have common tasks](https://drjoyce.blog/common/#file-copy) that get called
-
-```yaml
-
-- name: Copy Hugo Terminal Themes files
-  ansible.builtin.include_tasks: /ansible/common/copy.yml
-  vars:
-    copy_source: '{{ item.source }}'
-    copy_destination: '{{ item.destination }}'
-  loop:
-    - { source: '{{ role_path }}/files/favicon.png', destination: '/{{ hugo_site_name }}/static/favicon.png' }
-    - { source: '{{ role_path }}/files/og-image.png', destination: '/{{ hugo_site_name }}/static/og-image.png' }
-    - { source: '{{ role_path }}/files/terminal.css', destination: '/{{ hugo_site_name }}/static/terminal.css' }
-
-```
-
-**Templates**
-
-For templates, like copies, [I have common tasks](https://drjoyce.blog/common/#templates) that get called:
-
-```yaml
-
-- name: Conduct template tasks
-  ansible.builtin.include_tasks: '/ansible/common/template.yml'
-  vars:
-    template_location: '{{ item.template }}'
-    file_location: '{{ item.file }}'
-  loop:
-    - { template: '{{ role_path }}/templates/configs/prometheus.yml.j2', file: '{{ prometheus_location }}/prometheus.yml' }
-    - { template: '{{ role_path }}/templates/configs/loki-config.yaml.j2', file: '{{ loki_location }}/loki-config.yaml' }
-    - { template: '{{ role_path }}/templates/configs/promtail-config.yaml.j2', file: '{{ promtail_location }}/promtail.yaml' }
-    - { template: '{{ role_path }}/templates/configs/scraparr-config.yaml.j2', file: '{{ scraparr_location }}/config.yaml' }
-
-```
-
-Templates make up the majority of my files tasks, and it's how I handle config files for services.
+After creating directories, I deal with files using common tasks for [templates](https://drjoyce.blog/common/#templates) and [copy tasks](https://drjoyce.blog/common/#file-copy).
 
 ***
 
@@ -328,12 +289,12 @@ Templates make up the majority of my files tasks, and it's how I handle config f
 
 ***
 
-In this section I create any required postgres/mariadb databases using relevant ansible modules:
+Here I create any required postgres/mariadb databases using relevant ansible modules:
 
 
 **MariaDB**
 
-For MariaDB, I have a single task that checks for a database and creates one if none exists.
+I have a single task that checks for a database and creates one if none exists.
 
 ```yaml
 
@@ -350,39 +311,9 @@ For MariaDB, I have a single task that checks for a database and creates one if 
 
 **Postgres**
 
-For Postgres I have [common tasks defined elsewhere](https://drjoyce.blog/common/) that is included using `ansible.builtin.include_tasks`. All that is required are the name of the databases.
+I have [common tasks defined elsewhere](https://drjoyce.blog/common/).
 
-```yaml
-
-- name: Conduct Postgres DB tasks
-  ansible.builtin.include_tasks: /ansible/common/postgres.yml
-  vars:
-    postgres_database: '{{ item }}'
-  loop:
-    - 'bazarr'
-    - 'lidarr-main'
-    - 'lidarr-log'
-    - 'prowlarr-main'
-    - 'prowlarr-log'
-    - 'radarr-main'
-    - 'radarr-log'
-    - 'radarr-4k-main'
-    - 'radarr-4k-log'
-    - 'readarr-main'
-    - 'readarr-log'
-    - 'readarr-cache'
-    - 'sonarr-main'
-    - 'sonarr-log'
-    - 'sonarr-4k-main'
-    - 'sonarr-4k-log'
-    - 'whisparr-main'
-    - 'whisparr-log'
-    - 'whisparr-main-v3'
-    - 'whisparr-log-v3'
-
-```
-
-Both cases require an existing mariadb/postgres database instance that is up and accepting connections, with all relevant database login details stored in `group_vars/vault`. I deploy my databases via docker, but it doesn't matter if you installed via a different method. Also, since these are ansible module tasks, and are not part of your docker network, they rely on your machine ip (gathered in pre-tasks) and host port.
+Both require an existing mariadb/postgres database instance that is up and accepting connections, with all relevant database login details stored in `group_vars/vault`. I deploy my databases via docker, but it doesn't matter if you installed via a different method. Also, since these are ansible module tasks, and are not part of your docker network, they rely on machine ip and host port.
 
 Once the database is created, depending on the services, additional database tasks will be required. These usually revolve around adding your database details to the service config. For me, I prefer defining the database details via the services docker environmental variables, but sometimes this isn't possible. Sometimes I prefer editing the config, which is the case with my arrs stack:
 
@@ -584,27 +515,10 @@ Of course, if you still need your sqlite databases you wouldn't use these. But f
 
 ***
 
-In this section, I add cloudflare DNS records for any services that require it via [common tasks](https://drjoyce.blog/common/#cloudflare-dns)
+In this section, I add cloudflare DNS records via [common tasks](https://drjoyce.blog/common/#cloudflare-dns)
 
-```yaml
 
-- name: Add DNS records
-  ansible.builtin.include_tasks: /ansible/common/cloudflare.yml
-  vars:
-    cloudflare_domain: '{{ local_domain }}'
-    cloudflare_record: '{{ item }}'
-    cloudflare_type: 'A'
-    cloudflare_value: '{{ ipify_public_ip }}'
-    cloudflare_proxy: 'false'
-    cloudflare_solo: 'true'
-    cloudflare_remove_existing: 'true'
-  loop:
-    - '{{ prometheus_name }}'
-    - '{{ sabnzbd_name }}'
-
-```
-
-Prior to moving to common tasks, I would define the cloudflare tasks in role sub_tasks, like so:
+Previously, I would define the cloudflare tasks in role sub_tasks, like so:
 
 ```yaml
 
@@ -661,61 +575,13 @@ Prior to moving to common tasks, I would define the cloudflare tasks in role sub
 
 ***
 
-In this section, include [common tasks](https://drjoyce.blog/common/#traefik-labels) to set Traefik labels for each services requiring them:
+Here I include [common tasks](https://drjoyce.blog/common/#traefik-labels) to set Traefik labels for services.
 
-```yaml
+***
 
-- name: Set traefik Labels
-  ansible.builtin.include_tasks: /ansible/common/labels.yml
-  vars:
-    router_variable: '{{ item.var }}'
-    router_network: '{{ network_overlay }}'
-    router_name: '{{ item.name }}'
-    router_port: '{{ item.port }}'
-    router_api: '{{ item.api }}'
-    router_domain: '{{ local_domain }}'
-    router_entrypoint: 'http'  ## web if saltbox
-    router_secure_entrypoint: 'https'  ## websecure if saltbox
-    router_tls_certresolver: 'dns-cloudflare'  ## cfdns if saltbox
-    router_tls_options: 'tls-opts@file'  ## securetls@file if saltbox
-    router_themepark_app: '{{ item.tp_app }}'
-    router_themepark_theme: 'hotpink'
-    router_http_middlewares: '{{ traefik_http_middlewares + item.sso + item.tp }}'
-    router_https_middlewares: '{{ traefik_https_middlewares + item.sso + item.tp }}'
-  loop:
-    ## grafana
-    - { var: 'grafana_labels',
-        name: '{{ grafana_name }}',
-        port: '{{ grafana_ports_cont }}',
-        api: '',
-        sso: ',authelia@swarm',
-        tp: '',
-        tp_app: '' }
-    ## prometheus
-    - { var: 'prometheus_labels',
-        name: '{{ prometheus_name }}',
-        port: '{{ prometheus_ports_cont }}',
-        api: '',
-        sso: ',authelia@swarm',
-        tp: '',
-        tp_app: '' }
+### Deploy
 
-```
-
-
-   - Deploy
-
-
-
-
-
-
-
-
-
-
-
-
+***
 
 
 Removes existing stacks, retrieves common vault variables, includes sub_tasks, and then deploys the stack.

@@ -189,7 +189,7 @@ Group_Vars For my set up, group_vars, is structured like the following:
   <h1 class="post-title">
     <a href="http://localhost:1313/roles/">Structuring your Ansible Roles</a>
   </h1>
-  <div class="post-meta"><span class="post-reading-time">16 min read (3222 words)</span></div>
+  <div class="post-meta"><span class="post-reading-time">14 min read (2813 words)</span></div>
 
   
     <span class="post-tags">
@@ -225,6 +225,7 @@ Group_Vars For my set up, group_vars, is structured like the following:
         <li><a href="#databases">Databases</a></li>
         <li><a href="#dns">DNS</a></li>
         <li><a href="#traefik">Traefik</a></li>
+        <li><a href="#deploy">Deploy</a></li>
         <li><a href="#sub-tasks">Sub-tasks</a></li>
       </ul>
     </li>
@@ -428,39 +429,13 @@ Group_Vars For my set up, group_vars, is structured like the following:
 <hr>
 <h3 id="files">Files<a href="#files" class="hanchor" ariaLabel="Anchor">#</a> </h3>
 <hr>
-<p>After creating the directory, I typically deal with files via template and copy tasks.</p>
-<p><strong>Copy</strong></p>
-<p>For copies, <a href="https://drjoyce.blog/common/#file-copy">I have common tasks</a> that get called</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Copy Hugo Terminal Themes files</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.include_tasks</span>: <span style="color:#ae81ff">/ansible/common/copy.yml</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">vars</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">copy_source</span>: <span style="color:#e6db74">&#39;{{ item.source }}&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">copy_destination</span>: <span style="color:#e6db74">&#39;{{ item.destination }}&#39;</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">loop</span>:
-</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">source</span>: <span style="color:#e6db74">&#39;{{ role_path }}/files/favicon.png&#39;</span><span style="color:#f92672">, destination</span>: <span style="color:#e6db74">&#39;/{{ hugo_site_name }}/static/favicon.png&#39;</span> }
-</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">source</span>: <span style="color:#e6db74">&#39;{{ role_path }}/files/og-image.png&#39;</span><span style="color:#f92672">, destination</span>: <span style="color:#e6db74">&#39;/{{ hugo_site_name }}/static/og-image.png&#39;</span> }
-</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">source</span>: <span style="color:#e6db74">&#39;{{ role_path }}/files/terminal.css&#39;</span><span style="color:#f92672">, destination</span>: <span style="color:#e6db74">&#39;/{{ hugo_site_name }}/static/terminal.css&#39;</span> }
-</span></span></code></pre></div><p><strong>Templates</strong></p>
-<p>For templates, like copies, <a href="https://drjoyce.blog/common/#templates">I have common tasks</a> that get called:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Conduct template tasks</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.include_tasks</span>: <span style="color:#e6db74">&#39;/ansible/common/template.yml&#39;</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">vars</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">template_location</span>: <span style="color:#e6db74">&#39;{{ item.template }}&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">file_location</span>: <span style="color:#e6db74">&#39;{{ item.file }}&#39;</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">loop</span>:
-</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">template</span>: <span style="color:#e6db74">&#39;{{ role_path }}/templates/configs/prometheus.yml.j2&#39;</span><span style="color:#f92672">, file</span>: <span style="color:#e6db74">&#39;{{ prometheus_location }}/prometheus.yml&#39;</span> }
-</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">template</span>: <span style="color:#e6db74">&#39;{{ role_path }}/templates/configs/loki-config.yaml.j2&#39;</span><span style="color:#f92672">, file</span>: <span style="color:#e6db74">&#39;{{ loki_location }}/loki-config.yaml&#39;</span> }
-</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">template</span>: <span style="color:#e6db74">&#39;{{ role_path }}/templates/configs/promtail-config.yaml.j2&#39;</span><span style="color:#f92672">, file</span>: <span style="color:#e6db74">&#39;{{ promtail_location }}/promtail.yaml&#39;</span> }
-</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">template</span>: <span style="color:#e6db74">&#39;{{ role_path }}/templates/configs/scraparr-config.yaml.j2&#39;</span><span style="color:#f92672">, file</span>: <span style="color:#e6db74">&#39;{{ scraparr_location }}/config.yaml&#39;</span> }
-</span></span></code></pre></div><p>Templates make up the majority of my files tasks, and it&rsquo;s how I handle config files for services.</p>
+<p>After creating directories, I deal with files using common tasks for <a href="https://drjoyce.blog/common/#templates">templates</a> and <a href="https://drjoyce.blog/common/#file-copy">copy tasks</a>.</p>
 <hr>
 <h3 id="databases">Databases<a href="#databases" class="hanchor" ariaLabel="Anchor">#</a> </h3>
 <hr>
-<p>In this section I create any required postgres/mariadb databases using relevant ansible modules:</p>
+<p>Here I create any required postgres/mariadb databases using relevant ansible modules:</p>
 <p><strong>MariaDB</strong></p>
-<p>For MariaDB, I have a single task that checks for a database and creates one if none exists.</p>
+<p>I have a single task that checks for a database and creates one if none exists.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Create mariadb database</span>
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.mysql.mysql_db</span>:
@@ -471,34 +446,8 @@ Group_Vars For my set up, group_vars, is structured like the following:
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#39;wordpress&#39;</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">present</span>
 </span></span></code></pre></div><p><strong>Postgres</strong></p>
-<p>For Postgres I have <a href="https://drjoyce.blog/common/">common tasks defined elsewhere</a> that is included using <code>ansible.builtin.include_tasks</code>. All that is required are the name of the databases.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Conduct Postgres DB tasks</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.include_tasks</span>: <span style="color:#ae81ff">/ansible/common/postgres.yml</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">vars</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">postgres_database</span>: <span style="color:#e6db74">&#39;{{ item }}&#39;</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">loop</span>:
-</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;bazarr&#39;</span>
-</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;lidarr-main&#39;</span>
-</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;lidarr-log&#39;</span>
-</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;prowlarr-main&#39;</span>
-</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;prowlarr-log&#39;</span>
-</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;radarr-main&#39;</span>
-</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;radarr-log&#39;</span>
-</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;radarr-4k-main&#39;</span>
-</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;radarr-4k-log&#39;</span>
-</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;readarr-main&#39;</span>
-</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;readarr-log&#39;</span>
-</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;readarr-cache&#39;</span>
-</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;sonarr-main&#39;</span>
-</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;sonarr-log&#39;</span>
-</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;sonarr-4k-main&#39;</span>
-</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;sonarr-4k-log&#39;</span>
-</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;whisparr-main&#39;</span>
-</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;whisparr-log&#39;</span>
-</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;whisparr-main-v3&#39;</span>
-</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;whisparr-log-v3&#39;</span>
-</span></span></code></pre></div><p>Both cases require an existing mariadb/postgres database instance that is up and accepting connections, with all relevant database login details stored in <code>group_vars/vault</code>. I deploy my databases via docker, but it doesn&rsquo;t matter if you installed via a different method. Also, since these are ansible module tasks, and are not part of your docker network, they rely on your machine ip (gathered in pre-tasks) and host port.</p>
+<p>I have <a href="https://drjoyce.blog/common/">common tasks defined elsewhere</a>.</p>
+<p>Both require an existing mariadb/postgres database instance that is up and accepting connections, with all relevant database login details stored in <code>group_vars/vault</code>. I deploy my databases via docker, but it doesn&rsquo;t matter if you installed via a different method. Also, since these are ansible module tasks, and are not part of your docker network, they rely on machine ip and host port.</p>
 <p>Once the database is created, depending on the services, additional database tasks will be required. These usually revolve around adding your database details to the service config. For me, I prefer defining the database details via the services docker environmental variables, but sometimes this isn&rsquo;t possible. Sometimes I prefer editing the config, which is the case with my arrs stack:</p>
 <ol>
 <li>I use the <code>ansible.builtin.include_tasks</code> to include some common postgres config tasks contained in my <code>arrs/tasks/sub_tasks</code> folder:</li>
@@ -681,22 +630,8 @@ Group_Vars For my set up, group_vars, is structured like the following:
 <hr>
 <h3 id="dns">DNS<a href="#dns" class="hanchor" ariaLabel="Anchor">#</a> </h3>
 <hr>
-<p>In this section, I add cloudflare DNS records for any services that require it via <a href="https://drjoyce.blog/common/#cloudflare-dns">common tasks</a></p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Add DNS records</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.include_tasks</span>: <span style="color:#ae81ff">/ansible/common/cloudflare.yml</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">vars</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_domain</span>: <span style="color:#e6db74">&#39;{{ local_domain }}&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_record</span>: <span style="color:#e6db74">&#39;{{ item }}&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_type</span>: <span style="color:#e6db74">&#39;A&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_value</span>: <span style="color:#e6db74">&#39;{{ ipify_public_ip }}&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_proxy</span>: <span style="color:#e6db74">&#39;false&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_solo</span>: <span style="color:#e6db74">&#39;true&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_remove_existing</span>: <span style="color:#e6db74">&#39;true&#39;</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">loop</span>:
-</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ prometheus_name }}&#39;</span>
-</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ sabnzbd_name }}&#39;</span>
-</span></span></code></pre></div><p>Prior to moving to common tasks, I would define the cloudflare tasks in role sub_tasks, like so:</p>
+<p>In this section, I add cloudflare DNS records via <a href="https://drjoyce.blog/common/#cloudflare-dns">common tasks</a></p>
+<p>Previously, I would define the cloudflare tasks in role sub_tasks, like so:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># CLOUDFLARE</span>
@@ -745,45 +680,10 @@ Group_Vars For my set up, group_vars, is structured like the following:
 </span></span></code></pre></div><hr>
 <h3 id="traefik">Traefik<a href="#traefik" class="hanchor" ariaLabel="Anchor">#</a> </h3>
 <hr>
-<p>In this section, include <a href="https://drjoyce.blog/common/#traefik-labels">common tasks</a> to set Traefik labels for each services requiring them:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Set traefik Labels</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.include_tasks</span>: <span style="color:#ae81ff">/ansible/common/labels.yml</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">vars</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_variable</span>: <span style="color:#e6db74">&#39;{{ item.var }}&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_network</span>: <span style="color:#e6db74">&#39;{{ network_overlay }}&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_name</span>: <span style="color:#e6db74">&#39;{{ item.name }}&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_port</span>: <span style="color:#e6db74">&#39;{{ item.port }}&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_api</span>: <span style="color:#e6db74">&#39;{{ item.api }}&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_domain</span>: <span style="color:#e6db74">&#39;{{ local_domain }}&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_entrypoint</span>: <span style="color:#e6db74">&#39;http&#39;</span>  <span style="color:#75715e">## web if saltbox</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_secure_entrypoint</span>: <span style="color:#e6db74">&#39;https&#39;</span>  <span style="color:#75715e">## websecure if saltbox</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_tls_certresolver</span>: <span style="color:#e6db74">&#39;dns-cloudflare&#39;</span>  <span style="color:#75715e">## cfdns if saltbox</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_tls_options</span>: <span style="color:#e6db74">&#39;tls-opts@file&#39;</span>  <span style="color:#75715e">## securetls@file if saltbox</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_themepark_app</span>: <span style="color:#e6db74">&#39;{{ item.tp_app }}&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_themepark_theme</span>: <span style="color:#e6db74">&#39;hotpink&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_http_middlewares</span>: <span style="color:#e6db74">&#39;{{ traefik_http_middlewares + item.sso + item.tp }}&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_https_middlewares</span>: <span style="color:#e6db74">&#39;{{ traefik_https_middlewares + item.sso + item.tp }}&#39;</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">loop</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">## grafana</span>
-</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">var</span>: <span style="color:#e6db74">&#39;grafana_labels&#39;</span>,
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#39;{{ grafana_name }}&#39;</span>,
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">port</span>: <span style="color:#e6db74">&#39;{{ grafana_ports_cont }}&#39;</span>,
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">api</span>: <span style="color:#e6db74">&#39;&#39;</span>,
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">sso</span>: <span style="color:#e6db74">&#39;,authelia@swarm&#39;</span>,
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">tp</span>: <span style="color:#e6db74">&#39;&#39;</span>,
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">tp_app</span>: <span style="color:#e6db74">&#39;&#39;</span> }
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">## prometheus</span>
-</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">var</span>: <span style="color:#e6db74">&#39;prometheus_labels&#39;</span>,
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#39;{{ prometheus_name }}&#39;</span>,
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">port</span>: <span style="color:#e6db74">&#39;{{ prometheus_ports_cont }}&#39;</span>,
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">api</span>: <span style="color:#e6db74">&#39;&#39;</span>,
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">sso</span>: <span style="color:#e6db74">&#39;,authelia@swarm&#39;</span>,
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">tp</span>: <span style="color:#e6db74">&#39;&#39;</span>,
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">tp_app</span>: <span style="color:#e6db74">&#39;&#39;</span> }
-</span></span></code></pre></div><ul>
-<li>Deploy</li>
-</ul>
+<p>Here I include <a href="https://drjoyce.blog/common/#traefik-labels">common tasks</a> to set Traefik labels for services.</p>
+<hr>
+<h3 id="deploy">Deploy<a href="#deploy" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<hr>
 <p>Removes existing stacks, retrieves common vault variables, includes sub_tasks, and then deploys the stack.</p>
 <p><strong>Example:</strong></p>
 <pre tabindex="0"><code>
