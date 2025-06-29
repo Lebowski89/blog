@@ -738,7 +738,7 @@ One example is my recyclarr config tasks:
 
 ```
 
-The idea is to keep the main tasks file as streamlined as possible, and sub-tasks can help with that.
+The idea is to keep the main tasks file as streamlined as possible.
 
 ```
 
@@ -748,7 +748,7 @@ The idea is to keep the main tasks file as streamlined as possible, and sub-task
 
 ***
 
-
+As the name suggests, the roles templates folder is where I keep all the files that will be templated during the play.
 
 ***
 
@@ -756,14 +756,15 @@ The idea is to keep the main tasks file as streamlined as possible, and sub-task
 
 ***
 
+Most roles will include at least one config file to be templated during the play. 
 
-
-Contains nearly all my service config files, ready to be called upon during play. I find templating more powerful than simply copying, as a change in a variable's value will apply to all templates referencing it - no need to edit every config file individually. 
+I find templating more powerful than simply copying, as a change in a variable's value will apply to the config template referencing it, negating the need to edit config files individually. 
 
 **Example:**
 
-```
-## Doplarr's config (config.edn.j2)
+```yaml
+
+  ## Doplarr's config (config.edn.j2)
 
 {
  :radarr/url "http://{{ radarr_name }}:{{ radarr_ports_cont }}"
@@ -781,42 +782,8 @@ Contains nearly all my service config files, ready to be called upon during play
  :discord/requested-msg-style :plain
  :log-level :trace
  }
+
  ```
- 
-**Which is then called with the following tasks:**
-
-```
-################################
-# CONFIG
-################################
-
-- name: Check if doplarr config.edn exists
-  ansible.builtin.stat:
-    path: '{{ doplarr_defaults_location }}/config.edn'
-  register: doplarr_config_edn
-
-- name: Load doplarr vault variable
-  when: not doplarr_config_edn.stat.exists
-  ansible.builtin.set_fact:
-    doplarr_token: '{{ lookup("ini", "doplarr_token section=" + "companions" + " file=" + "/ansible/vault.ini") }}'
-
-- name: Create doplarr config.edn file
-  when: not doplarr_config_edn.stat.exists
-  block:
-    - name: Import config file
-      ansible.builtin.template:
-        src: '{{ role_path }}/templates/configs/doplarr_config.edn.j2'
-        dest: '{{ doplarr_defaults_location }}/config.edn'
-        force: true
-        owner: '{{ puid }}'
-        group: '{{ pgid }}'
-        mode: '0664'
-
-    - name: Wait for 'config.edn' to be created
-      ansible.builtin.wait_for:
-        path: '{{ doplarr_defaults_location }}/config.edn'
-        state: present
-```
 
 ***
 
@@ -824,11 +791,59 @@ Contains nearly all my service config files, ready to be called upon during play
 
 ***
 
-Aside from the configs, the docker compose file is also templated, containing relevant (to the role) and related docker services.
+Each role will also have a docker compose file, containing the roles docker services.
 
-**Example:**
+**Docker Compose**
+
+```yaml
+
+version: '3.9'
+
+services:
+  {{ gluetun_name }}:
+    container_name: {{ gluetun_name }}
+    image: {{ gluetun_image_repo }}:{{ gluetun_image_tag }}
+    networks:
+      - {{ network_overlay }}
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - NET_ADMIN
+    environment:
+      PUID: '{{ puid }}'
+      PGID: '{{ pgid }}'
+      TZ: '{{ timezone }}'
+      ## And various other gluetun env...
+    ports:
+      - {{ jd2_ports_host }}:{{ jd2_ports_cont }}/tcp
+      - {{ searxng_ports_host }}:{{ searxng_ports_cont }}/tcp
+      - {{ librewolf_ports_http_host }}:{{ librewolf_ports_http_cont }}/tcp
+      - {{ librewolf_ports_https_host }}:{{ librewolf_ports_https_cont }}/tcp
+    volumes:
+      - {{ gluetun_location }}:/gluetun
+
+  {{ jd2_name }}:
+    container_name: {{ jd2_name }}
+    depends_on:
+      - {{ gluetun_name }}
+    image: {{ jd2_image_repo }}:{{ jd2_image_tag }}
+    network_mode: 'service:{{ gluetun_name }}'
+    environment:
+      USER_ID: '{{ puid }}'
+      GROUP_ID: '{{ pgid }}'
+      TZ: '{{ timezone }}'
+    volumes:
+      - {{ jd2_location }}:/config
+      - type: bind
+        source: /mnt
+        target: /output
 
 ```
+
+**Docker Swarm**
+
+```yaml
+
 version: '3.9'
 
 services:
@@ -867,7 +882,28 @@ services:
         constraints: [node.labels.ansible_host == pvr]
       labels: {{ adguard_defaults_labels }}
 
+```
+
+In my case, I prefer letting Ansible docker modules handle networks / secrets / volumes, so they're listed as external at the bottom of the compose file, like so:
+
+```yaml
+
 networks:
   {{ network_overlay }}:
     external: true
+
+secrets:
+  unifi_user_secret:
+    external: true
+
+  unifi_pass_secret:
+    external: true
+
+  unifi_root_pass_secret:
+    external: true
+
+volumes:
+  {{ media_volume }}:
+    external: true
+
 ```

@@ -189,7 +189,7 @@ Group_Vars For my set up, group_vars, is structured like the following:
   <h1 class="post-title">
     <a href="http://localhost:1313/roles/">Structuring your Ansible Roles</a>
   </h1>
-  <div class="post-meta"><span class="post-reading-time">13 min read (2760 words)</span></div>
+  <div class="post-meta"><span class="post-reading-time">14 min read (2847 words)</span></div>
 
   
     <span class="post-tags">
@@ -229,8 +229,11 @@ Group_Vars For my set up, group_vars, is structured like the following:
         <li><a href="#deploy">Deploy</a></li>
       </ul>
     </li>
-    <li><a href="#rolessub-tasks">Roles/Sub-tasks</a></li>
-    <li><a href="#doplarrs-config-configednj2">Doplarr&rsquo;s config (config.edn.j2)</a></li>
+    <li><a href="#rolessub-tasks">Roles/Sub-tasks</a>
+      <ul>
+        <li><a href="#compose">Compose</a></li>
+      </ul>
+    </li>
   </ul>
 </nav>
     </div>
@@ -810,7 +813,7 @@ Group_Vars For my set up, group_vars, is structured like the following:
 </span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - c2863d2a50c9acad1fb50e53ece60817 # STAN
 </span></span></span><span style="display:flex;"><span><span style="color:#e6db74">              assign_scores_to:
 </span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - name: Remux + WEB 1080p</span>
-</span></span></code></pre></div><p>The idea is to keep the main tasks file as streamlined as possible, and sub-tasks can help with that.</p>
+</span></span></code></pre></div><p>The idea is to keep the main tasks file as streamlined as possible.</p>
 <pre tabindex="0"><code>
 ***
 
@@ -818,7 +821,7 @@ Group_Vars For my set up, group_vars, is structured like the following:
 
 ***
 
-
+As the name suggests, the roles templates folder is where I keep all the files that will be templated during the play.
 
 ***
 
@@ -826,120 +829,137 @@ Group_Vars For my set up, group_vars, is structured like the following:
 
 ***
 
+Most roles will include at least one config file to be templated during the play. 
 
-
-Contains nearly all my service config files, ready to be called upon during play. I find templating more powerful than simply copying, as a change in a variable&#39;s value will apply to all templates referencing it - no need to edit every config file individually. 
-
-**Example:**
-</code></pre><h2 id="doplarrs-config-configednj2">Doplarr&rsquo;s config (config.edn.j2)<a href="#doplarrs-config-configednj2" class="hanchor" ariaLabel="Anchor">#</a> </h2>
-<p>{
-:radarr/url &ldquo;http://{{ radarr_name }}:{{ radarr_ports_cont }}&rdquo;
-:radarr/api &ldquo;{{ radarr_api }}&rdquo;
-:radarr/quality-profile &ldquo;{{ radarr_quality_profile }}&rdquo;
-:radarr/rootfolder &ldquo;{{ radarr_root_folder }}&rdquo;
-:sonarr/url &ldquo;http://{{ sonarr_name }}:{{ sonarr_ports_cont }}&rdquo;
-:sonarr/api &ldquo;{{ sonarr_api }}&rdquo;
-:sonarr/quality-profile &ldquo;{{ sonarr_quality_profile }}&rdquo;
-:sonarr/rootfolder &ldquo;{{ sonarr_root_folder }}&rdquo;
-:sonarr/season-folders true
-:partial-seasons true
-:discord/token &ldquo;{{ doplarr_token }}&rdquo;
-:discord/max-results 25
-:discord/requested-msg-style :plain
-:log-level :trace
-}</p>
-<pre tabindex="0"><code>
-**Which is then called with the following tasks:**
-</code></pre><p>################################</p>
-<h1 id="config">CONFIG<a href="#config" class="hanchor" ariaLabel="Anchor">#</a> </h1>
-<p>################################</p>
-<ul>
-<li>
-<p>name: Check if doplarr config.edn exists
-ansible.builtin.stat:
-path: &lsquo;{{ doplarr_defaults_location }}/config.edn&rsquo;
-register: doplarr_config_edn</p>
-</li>
-<li>
-<p>name: Load doplarr vault variable
-when: not doplarr_config_edn.stat.exists
-ansible.builtin.set_fact:
-doplarr_token: &lsquo;{{ lookup(&ldquo;ini&rdquo;, &ldquo;doplarr_token section=&rdquo; + &ldquo;companions&rdquo; + &quot; file=&quot; + &ldquo;/ansible/vault.ini&rdquo;) }}&rsquo;</p>
-</li>
-<li>
-<p>name: Create doplarr config.edn file
-when: not doplarr_config_edn.stat.exists
-block:</p>
-<ul>
-<li>
-<p>name: Import config file
-ansible.builtin.template:
-src: &lsquo;{{ role_path }}/templates/configs/doplarr_config.edn.j2&rsquo;
-dest: &lsquo;{{ doplarr_defaults_location }}/config.edn&rsquo;
-force: true
-owner: &lsquo;{{ puid }}&rsquo;
-group: &lsquo;{{ pgid }}&rsquo;
-mode: &lsquo;0664&rsquo;</p>
-</li>
-<li>
-<p>name: Wait for &lsquo;config.edn&rsquo; to be created
-ansible.builtin.wait_for:
-path: &lsquo;{{ doplarr_defaults_location }}/config.edn&rsquo;
-state: present</p>
-</li>
-</ul>
-</li>
-</ul>
-<pre tabindex="0"><code>
-***
-
-### Compose
-
-***
-
-Aside from the configs, the docker compose file is also templated, containing relevant (to the role) and related docker services.
+I find templating more powerful than simply copying, as a change in a variable&#39;s value will apply to the config template referencing it, negating the need to edit config files individually. 
 
 **Example:**
-</code></pre><p>version: &lsquo;3.9&rsquo;</p>
-<p>services:
-{{ adguard_defaults_name }}:
-image: {{ adguard_defaults_image_repo }}:{{ adguard_defaults_image_tag }}
-networks:
-- {{ network_overlay }}
-environment:
-PUID: &lsquo;{{ puid }}&rsquo;
-PGID: &lsquo;{{ pgid }}&rsquo;
-TZ: &lsquo;{{ timezone }}&rsquo;
-ports:
-- target: {{ adguard_defaults_ports_cont }}
-published: {{ adguard_defaults_ports_host }}
-protocol: tcp
-mode: ingress
-- target: {{ adguard_defaults_ports_dns_cont }}
-published: {{ adguard_defaults_ports_dns_host }}
-protocol: tcp
-mode: ingress
-- target: {{ adguard_defaults_ports_dns_cont }}
-published: {{ adguard_defaults_ports_dns_host }}
-protocol: udp
-mode: ingress
-volumes:
-- type: bind
-source: {{ adguard_defaults_location }}/work
-target: /opt/adguardhome/work
-- type: bind
-source: {{ adguard_defaults_location }}/conf
-target: /opt/adguardhome/conf
-deploy:
-mode: replicated
-replicas: 1
-placement:
-constraints: [node.labels.ansible_host == pvr]
-labels: {{ adguard_defaults_labels }}</p>
-<p>networks:
-{{ network_overlay }}:
-external: true</p>
-<pre tabindex="0"><code></code></pre>
+
+```yaml
+
+  ## Doplarr&#39;s config (config.edn.j2)
+
+{
+ :radarr/url &#34;http://{{ radarr_name }}:{{ radarr_ports_cont }}&#34;
+ :radarr/api &#34;{{ radarr_api }}&#34;
+ :radarr/quality-profile &#34;{{ radarr_quality_profile }}&#34;
+ :radarr/rootfolder &#34;{{ radarr_root_folder }}&#34;
+ :sonarr/url &#34;http://{{ sonarr_name }}:{{ sonarr_ports_cont }}&#34;
+ :sonarr/api &#34;{{ sonarr_api }}&#34;
+ :sonarr/quality-profile &#34;{{ sonarr_quality_profile }}&#34;
+ :sonarr/rootfolder &#34;{{ sonarr_root_folder }}&#34;
+ :sonarr/season-folders true
+ :partial-seasons true
+ :discord/token &#34;{{ doplarr_token }}&#34;
+ :discord/max-results 25
+ :discord/requested-msg-style :plain
+ :log-level :trace
+ }
+</code></pre><hr>
+<h3 id="compose">Compose<a href="#compose" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<hr>
+<p>Each role will also have a docker compose file, containing the roles docker services.</p>
+<p><strong>Docker Compose</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">version</span>: <span style="color:#e6db74">&#39;3.9&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">services</span>:
+</span></span><span style="display:flex;"><span>  {{ <span style="color:#f92672">gluetun_name }}</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">container_name</span>: {{ <span style="color:#ae81ff">gluetun_name }}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">image</span>: {{ <span style="color:#ae81ff">gluetun_image_repo }}:{{ gluetun_image_tag }}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">networks</span>:
+</span></span><span style="display:flex;"><span>      - {{ <span style="color:#ae81ff">network_overlay }}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">devices</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">/dev/net/tun:/dev/net/tun</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cap_add</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">NET_ADMIN</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">environment</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">PUID</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">PGID</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TZ</span>: <span style="color:#e6db74">&#39;{{ timezone }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#75715e">## And various other gluetun env...</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">ports</span>:
+</span></span><span style="display:flex;"><span>      - {{ <span style="color:#ae81ff">jd2_ports_host }}:{{ jd2_ports_cont }}/tcp</span>
+</span></span><span style="display:flex;"><span>      - {{ <span style="color:#ae81ff">searxng_ports_host }}:{{ searxng_ports_cont }}/tcp</span>
+</span></span><span style="display:flex;"><span>      - {{ <span style="color:#ae81ff">librewolf_ports_http_host }}:{{ librewolf_ports_http_cont }}/tcp</span>
+</span></span><span style="display:flex;"><span>      - {{ <span style="color:#ae81ff">librewolf_ports_https_host }}:{{ librewolf_ports_https_cont }}/tcp</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">volumes</span>:
+</span></span><span style="display:flex;"><span>      - {{ <span style="color:#ae81ff">gluetun_location }}:/gluetun</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  {{ <span style="color:#f92672">jd2_name }}</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">container_name</span>: {{ <span style="color:#ae81ff">jd2_name }}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">depends_on</span>:
+</span></span><span style="display:flex;"><span>      - {{ <span style="color:#ae81ff">gluetun_name }}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">image</span>: {{ <span style="color:#ae81ff">jd2_image_repo }}:{{ jd2_image_tag }}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">network_mode</span>: <span style="color:#e6db74">&#39;service:{{ gluetun_name }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">environment</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">USER_ID</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">GROUP_ID</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TZ</span>: <span style="color:#e6db74">&#39;{{ timezone }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">volumes</span>:
+</span></span><span style="display:flex;"><span>      - {{ <span style="color:#ae81ff">jd2_location }}:/config</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">type</span>: <span style="color:#ae81ff">bind</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">source</span>: <span style="color:#ae81ff">/mnt</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">target</span>: <span style="color:#ae81ff">/output</span>
+</span></span></code></pre></div><p><strong>Docker Swarm</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">version</span>: <span style="color:#e6db74">&#39;3.9&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">services</span>:
+</span></span><span style="display:flex;"><span>  {{ <span style="color:#f92672">adguard_defaults_name }}</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">image</span>: {{ <span style="color:#ae81ff">adguard_defaults_image_repo }}:{{ adguard_defaults_image_tag }}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">networks</span>:
+</span></span><span style="display:flex;"><span>      - {{ <span style="color:#ae81ff">network_overlay }}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">environment</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">PUID</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">PGID</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TZ</span>: <span style="color:#e6db74">&#39;{{ timezone }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">ports</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">target</span>: {{ <span style="color:#ae81ff">adguard_defaults_ports_cont }}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">published</span>: {{ <span style="color:#ae81ff">adguard_defaults_ports_host }}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">protocol</span>: <span style="color:#ae81ff">tcp</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">mode</span>: <span style="color:#ae81ff">ingress</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">target</span>: {{ <span style="color:#ae81ff">adguard_defaults_ports_dns_cont }}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">published</span>: {{ <span style="color:#ae81ff">adguard_defaults_ports_dns_host }}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">protocol</span>: <span style="color:#ae81ff">tcp</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">mode</span>: <span style="color:#ae81ff">ingress</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">target</span>: {{ <span style="color:#ae81ff">adguard_defaults_ports_dns_cont }}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">published</span>: {{ <span style="color:#ae81ff">adguard_defaults_ports_dns_host }}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">protocol</span>: <span style="color:#ae81ff">udp</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">mode</span>: <span style="color:#ae81ff">ingress</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">volumes</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">type</span>: <span style="color:#ae81ff">bind</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">source</span>: {{ <span style="color:#ae81ff">adguard_defaults_location }}/work</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">target</span>: <span style="color:#ae81ff">/opt/adguardhome/work</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">type</span>: <span style="color:#ae81ff">bind</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">source</span>: {{ <span style="color:#ae81ff">adguard_defaults_location }}/conf</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">target</span>: <span style="color:#ae81ff">/opt/adguardhome/conf</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">deploy</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">mode</span>: <span style="color:#ae81ff">replicated</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">replicas</span>: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">placement</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">constraints</span>: [<span style="color:#ae81ff">node.labels.ansible_host == pvr]</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">labels</span>: {{ <span style="color:#ae81ff">adguard_defaults_labels }}</span>
+</span></span></code></pre></div><p>In my case, I prefer letting Ansible docker modules handle networks / secrets / volumes, so they&rsquo;re listed as external at the bottom of the compose file, like so:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">networks</span>:
+</span></span><span style="display:flex;"><span>  {{ <span style="color:#f92672">network_overlay }}</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">external</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">secrets</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">unifi_user_secret</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">external</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">unifi_pass_secret</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">external</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">unifi_root_pass_secret</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">external</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">volumes</span>:
+</span></span><span style="display:flex;"><span>  {{ <span style="color:#f92672">media_volume }}</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">external</span>: <span style="color:#66d9ef">true</span>
+</span></span></code></pre></div>
       </div></div>
 
   
