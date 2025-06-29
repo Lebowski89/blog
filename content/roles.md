@@ -69,24 +69,24 @@ radarr_root_folder: '/media/movies'
 radarr_quality_profile: 'Remux + WEB 1080p'
 ```
 
-In the above example, the name/ports/location are required by the arrs role to deploy Radarr.
+Above, the name/ports/location are required by the arrs role to deploy Radarr.
 
-The reason these are defined in group_vars rather than within each role is because these variables may be required by not just one role but multiple roles, for example:
+The reason these are defined in group_vars rather than within each role is because these may be required by not just one role but multiple, for example:
   - Role 1 - Prepares and deploys Radarr
   - Role 2 - Prepares and deploys Doplarr and Jellyseerr
   - Role 3 - Prepares and deploys Radarr Prometheus exporter
 
-In the above example, all three roles will require Radarr's service name, port, location and api (in group_vars/vault). Rather than defining these multiple times, it is defined once in group_vars. Previously, I would only include these variables that were required by multiple roles in group_vars and the rest within the role/defaults folder, but this led to a mish-mash of defaults in different locations, so I simply moved all to group_vars. 
+In the above example, all three roles will require Radarr's service name, port, location and api (in group_vars/vault). Rather than defining these multiple times, it is defined once in group_vars. 
+
+Remember: The benefit of defaults variables, aside from sharing information between roles, is to have the ability to quickly change their value and have it represented throughout all roles/tasks that use it.
 
 ***
 
-## Defaults
+### Role/Defaults
 
 ***
 
-Each role contains 'defaults' variables that are specific to the services being deployed. For roles with single/few services, defaults are defined in a single main.yml file (role/defaults/main.yml), but most services will have their own defaults file (role/defaults/main/someservice.yml). Common defaults include names, ports, locations, traefik labels, and any other variable not in group_vars or created during the play. With a defaults/main folder, you can have as many defaults files as you like.
-
-**Example:**
+Previously, I would only include defaults that were required by multiple roles in group_vars and the remainder in role defaults, but this led to a mish-mash of defaults in different locations. With the adoption of common tasks to handle things, such as traefik labels, I was able to cut down the amount of defaults and could move all to group_vars. One thing I did like to do when using role defaults was to include 'defaults' in the variable name:
 
 ```yaml
 ## metrics/defaults/main/exporters.yml
@@ -110,38 +110,37 @@ plex_exporter_defaults_image_tag: 'latest'
 ## Note: bazarr_name and lidarr_name are defined in group_vars (see above).
 ```
 
+One thing you might like to do is to have role defaults that are used throughout the role, with these defaults pointing to group_vars. I simply preferred to have as few variables as possible.
+
 
 ***
 
-## Files
+## Role/Files
 
 ***
 
-When I want to copy a file into a service directory, I include them in the role/files folder. Generally, I prefer templates and/or creating files during the play. But there are some cases where I copy. One example includes the various themepark scripts (i.e, [Sonarr](https://github.com/themepark-dev/theme.park/blob/master/docker-mods/sonarr/root/etc/cont-init.d/98-themepark)), which are included as role/files/98-themepark-someapp and then copied using the following role tasks:
+When I simply want to copy a file for a service to use I include them in the role in a files folder, for example:
 
-  ```
-################################
-# THEME
-################################
-
-- name: Check if theme-park script exists
-  ansible.builtin.stat:
-    path: '{{ sonarr_defaults_location }}/98-themepark-sonarr'
-  register: sonarr_theme_script
-
-- name: Copy theme-park script
-  when: not sonarr_theme_script.stat.exists
-  ansible.builtin.copy:
-    src: '{{ role_path }}/files/98-themepark-sonarr'
-    dest: '{{ sonarr_defaults_location }}/98-themepark-sonarr'
-    owner: '{{ puid }}'
-    group: '{{ pgid }}'
-    mode: '0775'
+```yaml
+/ansible/roles/blog
+├── files
+│   ├── favicon.png
+│   ├── hugo.yaml
+│   ├── og-image.png
+│   └── terminal.css
+├── tasks
+│   └── main.yml
+└── templates
+    ├── blog-stack.yml.j2
+    └── configs
+        └── hugo.toml.j2
 ```
 
+Above, I have themes files for my Hugo blog which are copied during the play to the hugo/static folder. Generally, I prefer to template files during the play, but in cases, such as the above, I don't need to change or edit the files and simply need the file moved into the correct directory. 
+
 ***
 
-## Tasks
+## Role/Tasks
 
 ***
 

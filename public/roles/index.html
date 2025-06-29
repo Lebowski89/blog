@@ -189,7 +189,7 @@ Group_Vars For my set up, group_vars, is structured like the following:
   <h1 class="post-title">
     <a href="http://localhost:1313/roles/">Structuring your Ansible Roles</a>
   </h1>
-  <div class="post-meta"><span class="post-reading-time">8 min read (1614 words)</span></div>
+  <div class="post-meta"><span class="post-reading-time">8 min read (1646 words)</span></div>
 
   
     <span class="post-tags">
@@ -211,10 +211,13 @@ Group_Vars For my set up, group_vars, is structured like the following:
       <nav id="TableOfContents">
   <ul>
     <li><a href="#introduction">Introduction</a></li>
-    <li><a href="#group_vars">Group_Vars</a></li>
-    <li><a href="#defaults">Defaults</a></li>
-    <li><a href="#files">Files</a></li>
-    <li><a href="#tasks">Tasks</a>
+    <li><a href="#group_vars">Group_Vars</a>
+      <ul>
+        <li><a href="#roledefaults">Role/Defaults</a></li>
+      </ul>
+    </li>
+    <li><a href="#rolefiles">Role/Files</a></li>
+    <li><a href="#roletasks">Role/Tasks</a>
       <ul>
         <li><a href="#sub-tasks">Sub-tasks</a></li>
       </ul>
@@ -275,19 +278,19 @@ Group_Vars For my set up, group_vars, is structured like the following:
 </span></span><span style="display:flex;"><span><span style="color:#f92672">radarr_location</span>: <span style="color:#e6db74">&#39;/opt/{{ radarr_name }}&#39;</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">radarr_root_folder</span>: <span style="color:#e6db74">&#39;/media/movies&#39;</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">radarr_quality_profile</span>: <span style="color:#e6db74">&#39;Remux + WEB 1080p&#39;</span>
-</span></span></code></pre></div><p>In the above example, the name/ports/location are required by the arrs role to deploy Radarr.</p>
-<p>The reason these are defined in group_vars rather than within each role is because these variables may be required by not just one role but multiple roles, for example:</p>
+</span></span></code></pre></div><p>Above, the name/ports/location are required by the arrs role to deploy Radarr.</p>
+<p>The reason these are defined in group_vars rather than within each role is because these may be required by not just one role but multiple, for example:</p>
 <ul>
 <li>Role 1 - Prepares and deploys Radarr</li>
 <li>Role 2 - Prepares and deploys Doplarr and Jellyseerr</li>
 <li>Role 3 - Prepares and deploys Radarr Prometheus exporter</li>
 </ul>
-<p>In the above example, all three roles will require Radarr&rsquo;s service name, port, location and api (in group_vars/vault). Rather than defining these multiple times, it is defined once in group_vars. Previously, I would only include these variables that were required by multiple roles in group_vars and the rest within the role/defaults folder, but this led to a mish-mash of defaults in different locations, so I simply moved all to group_vars.</p>
+<p>In the above example, all three roles will require Radarr&rsquo;s service name, port, location and api (in group_vars/vault). Rather than defining these multiple times, it is defined once in group_vars.</p>
+<p>Remember: The benefit of defaults variables, aside from sharing information between roles, is to have the ability to quickly change their value and have it represented throughout all roles/tasks that use it.</p>
 <hr>
-<h2 id="defaults">Defaults<a href="#defaults" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<h3 id="roledefaults">Role/Defaults<a href="#roledefaults" class="hanchor" ariaLabel="Anchor">#</a> </h3>
 <hr>
-<p>Each role contains &lsquo;defaults&rsquo; variables that are specific to the services being deployed. For roles with single/few services, defaults are defined in a single main.yml file (role/defaults/main.yml), but most services will have their own defaults file (role/defaults/main/someservice.yml). Common defaults include names, ports, locations, traefik labels, and any other variable not in group_vars or created during the play. With a defaults/main folder, you can have as many defaults files as you like.</p>
-<p><strong>Example:</strong></p>
+<p>Previously, I would only include defaults that were required by multiple roles in group_vars and the remainder in role defaults, but this led to a mish-mash of defaults in different locations. With the adoption of common tasks to handle things, such as traefik labels, I was able to cut down the amount of defaults and could move all to group_vars. One thing I did like to do when using role defaults was to include &lsquo;defaults&rsquo; in the variable name:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#75715e">## metrics/defaults/main/exporters.yml</span>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
@@ -307,29 +310,26 @@ Group_Vars For my set up, group_vars, is structured like the following:
 </span></span><span style="display:flex;"><span><span style="color:#f92672">plex_exporter_defaults_image_tag</span>: <span style="color:#e6db74">&#39;latest&#39;</span>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e">## Note: bazarr_name and lidarr_name are defined in group_vars (see above).</span>
-</span></span></code></pre></div><hr>
-<h2 id="files">Files<a href="#files" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+</span></span></code></pre></div><p>One thing you might like to do is to have role defaults that are used throughout the role, with these defaults pointing to group_vars. I simply preferred to have as few variables as possible.</p>
 <hr>
-<p>When I want to copy a file into a service directory, I include them in the role/files folder. Generally, I prefer templates and/or creating files during the play. But there are some cases where I copy. One example includes the various themepark scripts (i.e, <a href="https://github.com/themepark-dev/theme.park/blob/master/docker-mods/sonarr/root/etc/cont-init.d/98-themepark">Sonarr</a>), which are included as role/files/98-themepark-someapp and then copied using the following role tasks:</p>
-<pre tabindex="0"><code>################################
-# THEME
-################################
-
-- name: Check if theme-park script exists
-ansible.builtin.stat:
-  path: &#39;{{ sonarr_defaults_location }}/98-themepark-sonarr&#39;
-register: sonarr_theme_script
-
-- name: Copy theme-park script
-when: not sonarr_theme_script.stat.exists
-ansible.builtin.copy:
-  src: &#39;{{ role_path }}/files/98-themepark-sonarr&#39;
-  dest: &#39;{{ sonarr_defaults_location }}/98-themepark-sonarr&#39;
-  owner: &#39;{{ puid }}&#39;
-  group: &#39;{{ pgid }}&#39;
-  mode: &#39;0775&#39;
-</code></pre><hr>
-<h2 id="tasks">Tasks<a href="#tasks" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<h2 id="rolefiles">Role/Files<a href="#rolefiles" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<hr>
+<p>When I simply want to copy a file for a service to use I include them in the role in a files folder, for example:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#ae81ff">/ansible/roles/blog</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">├── files</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">│   ├── favicon.png</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">│   ├── hugo.yaml</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">│   ├── og-image.png</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">│   └── terminal.css</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">├── tasks</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">│   └── main.yml</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">└── templates</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ae81ff">├── blog-stack.yml.j2</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#ae81ff">└── configs</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#ae81ff">└── hugo.toml.j2</span>
+</span></span></code></pre></div><p>Above, I have themes files for my Hugo blog which are copied during the play to the hugo/static folder. Generally, I prefer to template files during the play, but in cases, such as the above, I don&rsquo;t need to change or edit the files and simply need the file moved into the correct directory.</p>
+<hr>
+<h2 id="roletasks">Role/Tasks<a href="#roletasks" class="hanchor" ariaLabel="Anchor">#</a> </h2>
 <hr>
 <p>Removes existing stacks, retrieves common vault variables, includes sub_tasks, and then deploys the stack.</p>
 <p><strong>Example:</strong></p>
