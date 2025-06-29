@@ -189,7 +189,7 @@ Group_Vars For my set up, group_vars, is structured like the following:
   <h1 class="post-title">
     <a href="http://localhost:1313/roles/">Structuring your Ansible Roles</a>
   </h1>
-  <div class="post-meta"><span class="post-reading-time">8 min read (1646 words)</span></div>
+  <div class="post-meta"><span class="post-reading-time">10 min read (2119 words)</span></div>
 
   
     <span class="post-tags">
@@ -219,6 +219,9 @@ Group_Vars For my set up, group_vars, is structured like the following:
     <li><a href="#rolefiles">Role/Files</a></li>
     <li><a href="#roletasks">Role/Tasks</a>
       <ul>
+        <li><a href="#clean-up">Clean Up</a></li>
+        <li><a href="#directories">Directories</a></li>
+        <li><a href="#databases">Databases</a></li>
         <li><a href="#sub-tasks">Sub-tasks</a></li>
       </ul>
     </li>
@@ -242,7 +245,8 @@ Group_Vars For my set up, group_vars, is structured like the following:
 <h2 id="group_vars">Group_Vars<a href="#group_vars" class="hanchor" ariaLabel="Anchor">#</a> </h2>
 <hr>
 <p>For my set up, group_vars, is structured like the following:</p>
-<pre tabindex="0"><code class="language-cli" data-lang="cli">/ansible/group_vars
+<pre tabindex="0"><code class="language-cli" data-lang="cli">
+/ansible/group_vars
 └── all
     ├── docker.yml
     ├── roles
@@ -270,7 +274,8 @@ Group_Vars For my set up, group_vars, is structured like the following:
 <li>The <code>vault.yml</code> file contains all sensitive variables, including api/keys/domains/passwords/emails and any other sensitive information.</li>
 </ol>
 <p>The remaining variables are contained in the <code>group_vars/all/roles</code> folder, with one group_vars file per role. These contain all the relevant information required to get the roles services up and running, for example:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">radarr_name</span>: <span style="color:#e6db74">&#39;radarr&#39;</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">radarr_name</span>: <span style="color:#e6db74">&#39;radarr&#39;</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">radarr_image_repo</span>: <span style="color:#e6db74">&#39;ghcr.io/hotio/radarr&#39;</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">radarr_image_tag</span>: <span style="color:#e6db74">&#39;latest&#39;</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">radarr_ports_host</span>: <span style="color:#e6db74">&#39;7878&#39;</span>
@@ -285,13 +290,14 @@ Group_Vars For my set up, group_vars, is structured like the following:
 <li>Role 2 - Prepares and deploys Doplarr and Jellyseerr</li>
 <li>Role 3 - Prepares and deploys Radarr Prometheus exporter</li>
 </ul>
-<p>In the above example, all three roles will require Radarr&rsquo;s service name, port, location and api (in group_vars/vault). Rather than defining these multiple times, it is defined once in group_vars.</p>
+<p>In the above example, all three roles will require Radarr&rsquo;s service name, port, location and api. Rather than defining these multiple times, they&rsquo;re defined once in group_vars.</p>
 <p>Remember: The benefit of defaults variables, aside from sharing information between roles, is to have the ability to quickly change their value and have it represented throughout all roles/tasks that use it.</p>
 <hr>
 <h3 id="roledefaults">Role/Defaults<a href="#roledefaults" class="hanchor" ariaLabel="Anchor">#</a> </h3>
 <hr>
-<p>Previously, I would only include defaults that were required by multiple roles in group_vars and the remainder in role defaults, but this led to a mish-mash of defaults in different locations. With the adoption of common tasks to handle things, such as traefik labels, I was able to cut down the amount of defaults and could move all to group_vars. One thing I did like to do when using role defaults was to include &lsquo;defaults&rsquo; in the variable name:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#75715e">## metrics/defaults/main/exporters.yml</span>
+<p>Previously, I would include defaults required by multiple roles in group_vars and the remainder in role defaults, but this led to a mish-mash of defaults in different locations. With the adoption of common tasks to handle things, such as traefik labels, I was able to minimise the amount of defaults and moved all to group_vars. One thing I did like to do when using role defaults was to include &lsquo;defaults&rsquo; in the variable name:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">## metrics/defaults/main/exporters.yml</span>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># BASICS</span>
@@ -310,12 +316,13 @@ Group_Vars For my set up, group_vars, is structured like the following:
 </span></span><span style="display:flex;"><span><span style="color:#f92672">plex_exporter_defaults_image_tag</span>: <span style="color:#e6db74">&#39;latest&#39;</span>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e">## Note: bazarr_name and lidarr_name are defined in group_vars (see above).</span>
-</span></span></code></pre></div><p>One thing you might like to do is to have role defaults that are used throughout the role, with these defaults pointing to group_vars. I simply preferred to have as few variables as possible.</p>
+</span></span></code></pre></div><p>You also might like to have role defaults that are used throughout the role, with these defaults pointing to group_vars. I simply prefer to have as few variables as possible.</p>
 <hr>
 <h2 id="rolefiles">Role/Files<a href="#rolefiles" class="hanchor" ariaLabel="Anchor">#</a> </h2>
 <hr>
-<p>When I simply want to copy a file for a service to use I include them in the role in a files folder, for example:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#ae81ff">/ansible/roles/blog</span>
+<p>When I want to copy a file for a service, I include them in the role/files folder, for example:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">/ansible/roles/blog</span>
 </span></span><span style="display:flex;"><span><span style="color:#ae81ff">├── files</span>
 </span></span><span style="display:flex;"><span><span style="color:#ae81ff">│   ├── favicon.png</span>
 </span></span><span style="display:flex;"><span><span style="color:#ae81ff">│   ├── hugo.yaml</span>
@@ -327,37 +334,142 @@ Group_Vars For my set up, group_vars, is structured like the following:
 </span></span><span style="display:flex;"><span>    <span style="color:#ae81ff">├── blog-stack.yml.j2</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#ae81ff">└── configs</span>
 </span></span><span style="display:flex;"><span>        <span style="color:#ae81ff">└── hugo.toml.j2</span>
-</span></span></code></pre></div><p>Above, I have themes files for my Hugo blog which are copied during the play to the hugo/static folder. Generally, I prefer to template files during the play, but in cases, such as the above, I don&rsquo;t need to change or edit the files and simply need the file moved into the correct directory.</p>
+</span></span></code></pre></div><p>Above, I have themes files for my Hugo blog which are copied during the play to the hugo/static folder. Generally, I prefer to template files during the play, but in cases, such as the above, I don&rsquo;t need to change or edit the files and simply need them copied.</p>
 <hr>
 <h2 id="roletasks">Role/Tasks<a href="#roletasks" class="hanchor" ariaLabel="Anchor">#</a> </h2>
 <hr>
+<p>The role tasks contain everything required to automate what I need, with idempotence (that is, to be able to run the role as many times as I want and have it fulfill the tasks I set it out to do without fail). What I have found works best is to have as many tasks follow a streamlined and common structure as possible whenever you make a role. When deploying docker services, I have the following set of tasks:</p>
+<hr>
+<h3 id="clean-up">Clean Up<a href="#clean-up" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<hr>
+<p>When carrying out tasks, it is best to bring down existing services. This is prevent any issues when making changes to running services. Also some changes will not be registered until a container or service is redeployed.</p>
+<p><strong>Bringing down a container:</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">remove existing container</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.docker.docker_container</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">container_default_behavior</span>: <span style="color:#ae81ff">compatibility</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#39;{{ radarr_name }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">absent</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">stop_timeout</span>: <span style="color:#ae81ff">10</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">register</span>: <span style="color:#ae81ff">remove_radarr_docker</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">retries</span>: <span style="color:#ae81ff">5</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">delay</span>: <span style="color:#ae81ff">10</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">until</span>: <span style="color:#ae81ff">remove_radarr_docker is succeeded</span>
+</span></span></code></pre></div><p><strong>Bringing down a Compose stack:</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Check if gluetun compose exists</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.stat</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;/opt/gluetun-compose.yml&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">register</span>: <span style="color:#ae81ff">gluetun_compose_yaml</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Remove gluetun compose stack</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">when</span>: <span style="color:#ae81ff">gluetun_compose_yaml.stat.exists</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.docker.docker_compose_v2</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">project_src</span>: <span style="color:#e6db74">&#39;/opt&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">files</span>: <span style="color:#ae81ff">gluetun-compose.yml</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">absent</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Remove gluetun-compose file</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">when</span>: <span style="color:#ae81ff">gluetun_compose_yaml.stat.exists</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.file</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;/opt/gluetun-compose.yml&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">absent</span>
+</span></span></code></pre></div><p><strong>Bringing down a Swarm stack:</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Remove arrs stack</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.docker.docker_stack</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">name</span>: <span style="color:#ae81ff">arrs</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">absent</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Remove arrs-stack file</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.file</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#ae81ff">/opt/arrs-stack.yml</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">absent</span>
+</span></span></code></pre></div><hr>
+<h3 id="directories">Directories<a href="#directories" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<hr>
+<p>I then create (if not already existing) the directories and sub-directories required for the role:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Create directories</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.file</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ item }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#e6db74">&#39;directory&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">force</span>: <span style="color:#e6db74">&#39;false&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">owner</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">group</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">mode</span>: <span style="color:#e6db74">&#39;0755&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">loop</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ bazarr_location }}&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ bazarr_location }}/config&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ lidarr_location }}&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ prowlarr_location }}&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ radarr_location }}&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ radarr_4k_location }}&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ readarr_location }}&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ sonarr_location }}&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ sonarr_4k_location }}&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ whisparr_location }}&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ whisparr_v3_location }}&#39;</span>
+</span></span></code></pre></div><p>Most of the time, the only thing differing between the roles are the paths of the directories, so it&rsquo;s a simple case of looping over the directory location. However, sometimes services may require different permissions, such as with bitnami containers. In these cases, it&rsquo;s a simple case of iterating over a list of required hashes, as below:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Create directories</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.file</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ item.path }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#e6db74">&#39;directory&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">force</span>: <span style="color:#e6db74">&#39;false&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">owner</span>: <span style="color:#e6db74">&#39;{{ item.owner }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">group</span>: <span style="color:#e6db74">&#39;{{ item.group }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">mode</span>: <span style="color:#e6db74">&#39;0755&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">loop</span>:
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ authelia_location }}&#39;</span><span style="color:#f92672">, owner</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span><span style="color:#f92672">, group</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ authelia_logs_location }}&#39;</span><span style="color:#f92672">, owner</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span><span style="color:#f92672">, group</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ authelia_redis_location }}&#39;</span><span style="color:#f92672">, owner: &#39;1001&#39;, group</span>: <span style="color:#e6db74">&#39;1001&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ traefik_location }}&#39;</span><span style="color:#f92672">, owner</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span><span style="color:#f92672">, group</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ traefik_logs_location }}&#39;</span><span style="color:#f92672">, owner</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span><span style="color:#f92672">, group</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span> }
+</span></span></code></pre></div><p>Above, I loop over <code>path</code>, <code>owner</code>, <code>group</code>. However, you can name them whatever you want, as long as it matches up with the value after <code>item.</code>.</p>
+<hr>
+<h3 id="databases">Databases<a href="#databases" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<hr>
+<p>In this section I create any required postgres or mariadb databases using the relevant ansible modules:</p>
+<p><strong>Postgres</strong></p>
+<p>For Postgres I have a set of [common tasks defined elsewhere]: <a href="https://drjoyce.blog/common/">https://drjoyce.blog/common/</a> that is included using <code>ansible.builtin.include_tasks</code>. All that is required here are the name of the databases.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Conduct Postgres DB tasks</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.include_tasks</span>: <span style="color:#ae81ff">/ansible/common/postgres.yml</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">vars</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">postgres_database</span>: <span style="color:#e6db74">&#39;{{ item }}&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">loop</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;bazarr&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;lidarr-main&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;lidarr-log&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;prowlarr-main&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;prowlarr-log&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;radarr-main&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;radarr-log&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;radarr-4k-main&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;radarr-4k-log&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;readarr-main&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;readarr-log&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;readarr-cache&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;sonarr-main&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;sonarr-log&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;sonarr-4k-main&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;sonarr-4k-log&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;whisparr-main&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;whisparr-log&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;whisparr-main-v3&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;whisparr-log-v3&#39;</span>
+</span></span></code></pre></div><ul>
+<li>Files</li>
+<li>Volumes</li>
+<li>Database</li>
+<li>DNS</li>
+<li>Traefik</li>
+<li>Deploy</li>
+</ul>
 <p>Removes existing stacks, retrieves common vault variables, includes sub_tasks, and then deploys the stack.</p>
 <p><strong>Example:</strong></p>
-<pre tabindex="0"><code>################################
-# CLEAN UP
-################################
-
-- name: Remove arrs stack
-  community.docker.docker_stack:
-    name: arrs
-    state: absent
-
-- name: Remove arrs-stack file
-  ansible.builtin.file:
-    path: /opt/compose/arrs-stack.yml
-    state: absent
-
-################################
-# VAULT
-################################
-
-- name: Load common vault variables
-  ansible.builtin.set_fact:
-    cloudflare_api: &#39;{{ lookup(&#34;ini&#34;, &#34;cloudflare_api section=&#34; + &#34;traefik&#34; + &#34; file=&#34; + &#34;/ansible/vault.ini&#34;) }}&#39;
-    local_domain: &#39;{{ lookup(&#34;ini&#34;, &#34;local_domain section=&#34; + &#34;traefik&#34; + &#34; file=&#34; + &#34;/ansible/vault.ini&#34;) }}&#39;
-    postgres_username: &#39;{{ lookup(&#34;ini&#34;, &#34;username section=&#34; + &#34;postgres&#34; + &#34; file=&#34; + &#34;/ansible/vault.ini&#34;) }}&#39;
-    postgres_password: &#39;{{ lookup(&#34;ini&#34;, &#34;password section=&#34; + &#34;postgres&#34; + &#34; file=&#34; + &#34;/ansible/vault.ini&#34;) }}&#39;
-
+<pre tabindex="0"><code>
 ################################
 # SUB-TASKS
 ################################

@@ -28,6 +28,7 @@ Ansible roles contain the majority of my tasks that automate the setup and deplo
 For my set up, group_vars, is structured like the following:
 
 ```cli
+
 /ansible/group_vars
 └── all
     ├── docker.yml
@@ -50,6 +51,7 @@ For my set up, group_vars, is structured like the following:
     │   └── wordpress.yml
     ├── traefik.yml
     └── vault.yml
+
 ```
 
 1. The `docker.yml` file contains general docker variables, such as puid/pgid and docker network information 
@@ -59,6 +61,7 @@ For my set up, group_vars, is structured like the following:
 The remaining variables are contained in the `group_vars/all/roles` folder, with one group_vars file per role. These contain all the relevant information required to get the roles services up and running, for example:
 
 ```yaml
+
 radarr_name: 'radarr'
 radarr_image_repo: 'ghcr.io/hotio/radarr'
 radarr_image_tag: 'latest'
@@ -67,6 +70,7 @@ radarr_ports_cont: '7878'
 radarr_location: '/opt/{{ radarr_name }}'
 radarr_root_folder: '/media/movies'
 radarr_quality_profile: 'Remux + WEB 1080p'
+
 ```
 
 Above, the name/ports/location are required by the arrs role to deploy Radarr.
@@ -76,7 +80,7 @@ The reason these are defined in group_vars rather than within each role is becau
   - Role 2 - Prepares and deploys Doplarr and Jellyseerr
   - Role 3 - Prepares and deploys Radarr Prometheus exporter
 
-In the above example, all three roles will require Radarr's service name, port, location and api (in group_vars/vault). Rather than defining these multiple times, it is defined once in group_vars. 
+In the above example, all three roles will require Radarr's service name, port, location and api. Rather than defining these multiple times, they're defined once in group_vars. 
 
 Remember: The benefit of defaults variables, aside from sharing information between roles, is to have the ability to quickly change their value and have it represented throughout all roles/tasks that use it.
 
@@ -86,9 +90,10 @@ Remember: The benefit of defaults variables, aside from sharing information betw
 
 ***
 
-Previously, I would only include defaults that were required by multiple roles in group_vars and the remainder in role defaults, but this led to a mish-mash of defaults in different locations. With the adoption of common tasks to handle things, such as traefik labels, I was able to cut down the amount of defaults and could move all to group_vars. One thing I did like to do when using role defaults was to include 'defaults' in the variable name:
+Previously, I would include defaults required by multiple roles in group_vars and the remainder in role defaults, but this led to a mish-mash of defaults in different locations. With the adoption of common tasks to handle things, such as traefik labels, I was able to minimise the amount of defaults and moved all to group_vars. One thing I did like to do when using role defaults was to include 'defaults' in the variable name:
 
 ```yaml
+
 ## metrics/defaults/main/exporters.yml
 
 ################################
@@ -108,9 +113,10 @@ plex_exporter_defaults_image_repo: 'ghcr.io/axsuul/plex-media-server-exporter'
 plex_exporter_defaults_image_tag: 'latest'
 
 ## Note: bazarr_name and lidarr_name are defined in group_vars (see above).
+
 ```
 
-One thing you might like to do is to have role defaults that are used throughout the role, with these defaults pointing to group_vars. I simply preferred to have as few variables as possible.
+You also might like to have role defaults that are used throughout the role, with these defaults pointing to group_vars. I simply prefer to have as few variables as possible.
 
 
 ***
@@ -119,9 +125,10 @@ One thing you might like to do is to have role defaults that are used throughout
 
 ***
 
-When I simply want to copy a file for a service to use I include them in the role in a files folder, for example:
+When I want to copy a file for a service, I include them in the role/files folder, for example:
 
 ```yaml
+
 /ansible/roles/blog
 ├── files
 │   ├── favicon.png
@@ -134,9 +141,10 @@ When I simply want to copy a file for a service to use I include them in the rol
     ├── blog-stack.yml.j2
     └── configs
         └── hugo.toml.j2
+
 ```
 
-Above, I have themes files for my Hugo blog which are copied during the play to the hugo/static folder. Generally, I prefer to template files during the play, but in cases, such as the above, I don't need to change or edit the files and simply need the file moved into the correct directory. 
+Above, I have themes files for my Hugo blog which are copied during the play to the hugo/static folder. Generally, I prefer to template files during the play, but in cases, such as the above, I don't need to change or edit the files and simply need them copied. 
 
 ***
 
@@ -144,14 +152,60 @@ Above, I have themes files for my Hugo blog which are copied during the play to 
 
 ***
 
-Removes existing stacks, retrieves common vault variables, includes sub_tasks, and then deploys the stack.
+The role tasks contain everything required to automate what I need, with idempotence (that is, to be able to run the role as many times as I want and have it fulfill the tasks I set it out to do without fail). What I have found works best is to have as many tasks follow a streamlined and common structure as possible whenever you make a role. When deploying docker services, I have the following set of tasks:
 
-**Example:**
+***
+
+### Clean Up
+
+***
+
+When carrying out tasks, it is best to bring down existing services. This is prevent any issues when making changes to running services. Also some changes will not be registered until a container or service is redeployed. 
+
+**Bringing down a container:**
+
+```yaml
+
+- name: remove existing container
+  community.docker.docker_container:
+    container_default_behavior: compatibility
+    name: '{{ radarr_name }}'
+    state: absent
+    stop_timeout: 10
+  register: remove_radarr_docker
+  retries: 5
+  delay: 10
+  until: remove_radarr_docker is succeeded
 
 ```
-################################
-# CLEAN UP
-################################
+
+**Bringing down a Compose stack:**
+
+```yaml
+
+- name: Check if gluetun compose exists
+  ansible.builtin.stat:
+    path: '/opt/gluetun-compose.yml'
+  register: gluetun_compose_yaml
+
+- name: Remove gluetun compose stack
+  when: gluetun_compose_yaml.stat.exists
+  community.docker.docker_compose_v2:
+    project_src: '/opt'
+    files: gluetun-compose.yml
+    state: absent
+
+- name: Remove gluetun-compose file
+  when: gluetun_compose_yaml.stat.exists
+  ansible.builtin.file:
+    path: '/opt/gluetun-compose.yml'
+    state: absent
+
+```
+
+**Bringing down a Swarm stack:**
+
+```yaml
 
 - name: Remove arrs stack
   community.docker.docker_stack:
@@ -160,19 +214,146 @@ Removes existing stacks, retrieves common vault variables, includes sub_tasks, a
 
 - name: Remove arrs-stack file
   ansible.builtin.file:
-    path: /opt/compose/arrs-stack.yml
+    path: /opt/arrs-stack.yml
     state: absent
 
-################################
-# VAULT
-################################
+```
 
-- name: Load common vault variables
-  ansible.builtin.set_fact:
-    cloudflare_api: '{{ lookup("ini", "cloudflare_api section=" + "traefik" + " file=" + "/ansible/vault.ini") }}'
-    local_domain: '{{ lookup("ini", "local_domain section=" + "traefik" + " file=" + "/ansible/vault.ini") }}'
-    postgres_username: '{{ lookup("ini", "username section=" + "postgres" + " file=" + "/ansible/vault.ini") }}'
-    postgres_password: '{{ lookup("ini", "password section=" + "postgres" + " file=" + "/ansible/vault.ini") }}'
+***
+
+### Directories
+
+***
+
+I then create (if not already existing) the directories and sub-directories required for the role:
+
+```yaml
+
+- name: Create directories
+  ansible.builtin.file:
+    path: '{{ item }}'
+    state: 'directory'
+    force: 'false'
+    owner: '{{ puid }}'
+    group: '{{ pgid }}'
+    mode: '0755'
+  loop:
+    - '{{ bazarr_location }}'
+    - '{{ bazarr_location }}/config'
+    - '{{ lidarr_location }}'
+    - '{{ prowlarr_location }}'
+    - '{{ radarr_location }}'
+    - '{{ radarr_4k_location }}'
+    - '{{ readarr_location }}'
+    - '{{ sonarr_location }}'
+    - '{{ sonarr_4k_location }}'
+    - '{{ whisparr_location }}'
+    - '{{ whisparr_v3_location }}'
+
+```
+
+Most of the time, the only thing differing between the roles are the paths of the directories, so it's a simple case of looping over the directory location. However, sometimes services may require different permissions, such as with bitnami containers. In these cases, it's a simple case of iterating over a list of required hashes, as below:
+
+
+```yaml
+
+- name: Create directories
+  ansible.builtin.file:
+    path: '{{ item.path }}'
+    state: 'directory'
+    force: 'false'
+    owner: '{{ item.owner }}'
+    group: '{{ item.group }}'
+    mode: '0755'
+  loop:
+    - { path: '{{ authelia_location }}', owner: '{{ puid }}', group: '{{ pgid }}' }
+    - { path: '{{ authelia_logs_location }}', owner: '{{ puid }}', group: '{{ pgid }}' }
+    - { path: '{{ authelia_redis_location }}', owner: '1001', group: '1001' }
+    - { path: '{{ traefik_location }}', owner: '{{ puid }}', group: '{{ pgid }}' }
+    - { path: '{{ traefik_logs_location }}', owner: '{{ puid }}', group: '{{ pgid }}' }
+
+```
+
+Above, I loop over `path`, `owner`, `group`. However, you can name them whatever you want, as long as it matches up with the value after `item.`.
+
+***
+
+### Databases
+
+***
+
+In this section I create any required postgres or mariadb databases using the relevant ansible modules:
+
+
+
+
+**Postgres**
+
+For Postgres I have a set of [common tasks defined elsewhere]: https://drjoyce.blog/common/ that is included using `ansible.builtin.include_tasks`. All that is required here are the name of the databases.
+
+```yaml
+
+- name: Conduct Postgres DB tasks
+  ansible.builtin.include_tasks: /ansible/common/postgres.yml
+  vars:
+    postgres_database: '{{ item }}'
+  loop:
+    - 'bazarr'
+    - 'lidarr-main'
+    - 'lidarr-log'
+    - 'prowlarr-main'
+    - 'prowlarr-log'
+    - 'radarr-main'
+    - 'radarr-log'
+    - 'radarr-4k-main'
+    - 'radarr-4k-log'
+    - 'readarr-main'
+    - 'readarr-log'
+    - 'readarr-cache'
+    - 'sonarr-main'
+    - 'sonarr-log'
+    - 'sonarr-4k-main'
+    - 'sonarr-4k-log'
+    - 'whisparr-main'
+    - 'whisparr-log'
+    - 'whisparr-main-v3'
+    - 'whisparr-log-v3'
+
+```
+
+
+
+
+
+
+
+
+
+   - Files
+   - Volumes
+   - Database
+   - DNS
+   - Traefik
+   - Deploy
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Removes existing stacks, retrieves common vault variables, includes sub_tasks, and then deploys the stack.
+
+**Example:**
+
+```
 
 ################################
 # SUB-TASKS
