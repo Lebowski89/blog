@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  
+    <title>Ansible :: Le Tour De Blog</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="" />
+<meta name="keywords" content="" />
+
+  <meta name="robots" content="noodp" />
+
+<link rel="canonical" href="http://localhost:1313/tags/ansible/" />
+
+
+
+
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/buttons.min.86f6b4c106b6c6eb690ae5203d36b442c1f66f718ff4e8164fa86cf6c61ad641.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/code.min.d529ea4b2fb8d34328d7d31afc5466d5f7bc2f0bc9abdd98b69385335d7baee4.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/fonts.min.5bb7ed13e1d00d8ff39ea84af26737007eb5051b157b86fc24487c94f3dc8bbe.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/footer.min.eb8dfc2c6a7eafa36cd3ba92d63e69e849e2200e0002a228d137f236b09ecd75.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/gist.min.a751e8b0abe1ba8bc53ced52a38b19d8950fe78ca29454ea8c2595cf26aad5c0.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/header.min.75c7eb0e2872d95ff48109c6647d0223a38db52e2561dd87966eb5fc7c6bdac6.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/main.min.775ac2af004d44c22a6d000fbd1d9af529642f5cef27399d0280d180af2c2e9b.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/menu.min.310d32205bdedd6f43144e3c3273c9deecd238eba5f9108db5ea96ca0cfbe377.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/pagination.min.bbb986dbce00a5ce5aca0504b7925fc1c581992a4bf57f163e5d69cc1db7d836.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/post.min.ad50c7f4d00e7975918f37fc74c6029e1959a40d66fb5b2c6564a8715e985573.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/syntax.min.e9ab635cf918bc84b901eb65c0b2caa74c9544245e3647c1af5c129896ef276e.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/terminal.min.e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/terms.min.b81791663c3790e738e571cdbf802312390d30e4b1d8dc9d814a5b5454d0ac11.css">
+
+
+<link rel="stylesheet" href="http://localhost:1313/terminal.css">
+
+
+
+
+<link rel="shortcut icon" href="http://localhost:1313/favicon.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+
+
+<meta name="twitter:card" content="summary" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Ansible">
+<meta property="og:description" content="" />
+<meta property="og:url" content="http://localhost:1313/tags/ansible/" />
+<meta property="og:site_name" content="Le Tour De Blog" />
+
+  <meta property="og:image" content="http://localhost:1313/og-image.png">
+
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="627">
+
+
+
+
+
+  <link href="/tags/ansible/index.xml" rel="alternate" type="application/rss+xml" title="Le Tour De Blog" />
+
+
+
+
+
+
+
+
+
+</head>
+<body>
+
+
+<div class="container center">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="http://localhost:1313/">
+  <div class="logo">
+    Le Tour De Blog
+  </div>
+</a>
+
+    </div>
+    
+      <ul class="menu menu--mobile">
+  <li class="menu__trigger">Menu&nbsp;▾</li>
+  <li>
+    <ul class="menu__dropdown">
+      
+        
+          <li><a href="/about/">About</a></li>
+        
+      
+        
+          <li><a href="/playbook/">Ansible (Playbook)</a></li>
+        
+      
+        
+          <li><a href="/roles/">Ansible (Roles)</a></li>
+        
+      
+        
+          <li><a href="/common/">Ansible (Common-Tasks)</a></li>
+        
+      
+        
+          <li><a href="/misc/">Ansible (Misc)</a></li>
+        
+      
+      
+    </ul>
+  </li>
+</ul>
+
+    
+    
+  </div>
+  
+    <nav class="navigation-menu">
+  <ul class="navigation-menu__inner menu--desktop">
+    
+      
+        
+          <li><a href="/about/" >About</a></li>
+        
+      
+        
+          <li><a href="/playbook/" >Ansible (Playbook)</a></li>
+        
+      
+        
+          <li><a href="/roles/" >Ansible (Roles)</a></li>
+        
+      
+        
+          <li><a href="/common/" >Ansible (Common-Tasks)</a></li>
+        
+      
+        
+          <li><a href="/misc/" >Ansible (Misc)</a></li>
+        
+      
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+  <h1>Posts for: #Ansible</h1>
+  
+  <div class="posts">
+    
+      <article class="post on-list">
+        <h1 class="post-title">
+          <a href="http://localhost:1313/common/">Handling common tasks within Ansible</a>
+        </h1>
+        <div class="post-meta"></div>
+
+        
+          <span class="post-tags">
+            
+            #<a href="http://localhost:1313/tags/common-tasks/">common-tasks</a>&nbsp;
+            
+            #<a href="http://localhost:1313/tags/ansible/">ansible</a>&nbsp;
+            
+            #<a href="http://localhost:1313/tags/cloudflare/">cloudflare</a>&nbsp;
+            
+            #<a href="http://localhost:1313/tags/traefik/">traefik</a>&nbsp;
+            
+          </span>
+        
+
+        
+
+
+        <div class="post-content">
+          
+            <hr>
+<h2 id="introduction">Introduction</h2>
+<hr>
+<p>When you begin constructing your Ansible tasks - roles - collections, you quickly realise that there are many tasks that you will use repeatedly with little variance. For example, if you&rsquo;re using Ansible to help set-up and deploy your docker containers, you&rsquo;ll have common tasks that create directories, configs, DNS and Traefik labels, among many others. If you&rsquo;re like me, I would simply copy and paste these tasks. While Ansible will run through and automate these repeated tasks all the same, the more tasks you have to repeat in a play, the more bloated and unreadable your playbook becomes and the more maintenance upkeep is required.</p>
+          
+        </div>
+
+        
+          <div>
+            <a class="read-more button inline" href="/common/">[Read More]</a>
+          </div>
+        
+      </article>
+    
+      <article class="post on-list">
+        <h1 class="post-title">
+          <a href="http://localhost:1313/misc/">Miscellaneous Ansible topics (rants)</a>
+        </h1>
+        <div class="post-meta"></div>
+
+        
+          <span class="post-tags">
+            
+            #<a href="http://localhost:1313/tags/ansible/">ansible</a>&nbsp;
+            
+            #<a href="http://localhost:1313/tags/misc/">misc</a>&nbsp;
+            
+          </span>
+        
+
+        
+
+
+        <div class="post-content">
+          
+            <h2 id="ansible-lives">Ansible Lives!</h2>
+<p>A weird thing I&rsquo;ve noticed with my Ansible journey are the number of people who either think that Ansible is dying/dead. It simply is not so. Some of these &lsquo;doomsayers&rsquo; don&rsquo;t approach Ansible with a mindset of what can it do to help them achieve jobs and tasks, they approach it with whether learning it will give them the skill-set to fast-track their entry into a job, career, industry. These people will then jump onto Kubernetes and other solutions that are &lsquo;all the rage&rsquo; these days. But it&rsquo;s important to remember:</p>
+          
+        </div>
+
+        
+          <div>
+            <a class="read-more button inline" href="/misc/">[Read More]</a>
+          </div>
+        
+      </article>
+    
+      <article class="post on-list">
+        <h1 class="post-title">
+          <a href="http://localhost:1313/playbook/">Structuring your Ansible Playbook</a>
+        </h1>
+        <div class="post-meta"></div>
+
+        
+          <span class="post-tags">
+            
+            #<a href="http://localhost:1313/tags/playbook/">playbook</a>&nbsp;
+            
+            #<a href="http://localhost:1313/tags/ansible/">ansible</a>&nbsp;
+            
+          </span>
+        
+
+        
+
+
+        <div class="post-content">
+          
+            <hr>
+<h2 id="introduction">Introduction</h2>
+<hr>
+<p>The automating of tasks with Ansible begins and ends with tasks defined in a playbook. There are various ways to structure your playbook, including:</p>
+<ul>
+<li>Defining everything in a single playbook</li>
+<li>Defining tasks across multiple playbooks</li>
+<li>Using a single playbook to include roles that contain various organised tasks</li>
+</ul>
+<p>For me, I prefer the latter option. I have a single <code>playbook.yml</code>, and various roles containing tasks to automate the deployment of my docker services. However, there is no right way of doing things, and it&rsquo;s simply a case of how many tasks you&rsquo;re dealing with, what sort of tasks, and how you prefer to do things.</p>
+          
+        </div>
+
+        
+          <div>
+            <a class="read-more button inline" href="/playbook/">[Read More]</a>
+          </div>
+        
+      </article>
+    
+      <article class="post on-list">
+        <h1 class="post-title">
+          <a href="http://localhost:1313/roles/">Structuring your Ansible Roles</a>
+        </h1>
+        <div class="post-meta"></div>
+
+        
+          <span class="post-tags">
+            
+            #<a href="http://localhost:1313/tags/roles/">roles</a>&nbsp;
+            
+            #<a href="http://localhost:1313/tags/ansible/">ansible</a>&nbsp;
+            
+          </span>
+        
+
+        
+
+
+        <div class="post-content">
+          
+            <hr>
+<h2 id="introduction">Introduction</h2>
+<hr>
+<p>Ansible roles contain the majority of my tasks that automate the setup and deployment of my Docker containers and Swarm services. During my time with Ansible, my roles have changed a lot, but the structure of</p>
+<hr>
+<h2 id="group_vars">Group_Vars</h2>
+<hr>
+<p>Contains variables that may be required across multiple roles. For example:</p>
+<ul>
+<li>Role 1 - Prepares and deploys Radarr</li>
+<li>Role 2 - Prepares and deploys Doplarr and Jellyseerr</li>
+<li>Role 3 - Prepares and deploys Radarr Prometheus exporter</li>
+</ul>
+<p>In the above example, all three roles will require Radarr&rsquo;s service name, port, location and api. Rather than defining these multiple times, it can be defined once in group_vars (minus sensitive values depending on your set-up).</p>
+          
+        </div>
+
+        
+          <div>
+            <a class="read-more button inline" href="/roles/">[Read More]</a>
+          </div>
+        
+      </article>
+    
+      <article class="post on-list">
+        <h1 class="post-title">
+          <a href="http://localhost:1313/posts/main/">Welcome to my Blog</a>
+        </h1>
+        <div class="post-meta"></div>
+
+        
+          <span class="post-tags">
+            
+            #<a href="http://localhost:1313/tags/ansible/">ansible</a>&nbsp;
+            
+          </span>
+        
+
+        
+
+
+        <div class="post-content">
+          
+            <p>This blog is dedicated to Ansible, and I will use this to discuss my set-up and provide some useful tips and information from my experiences using it to set-up and deploy Docker containers and Swarm services.</p>
+<p><strong>The Why?</strong></p>
+<ul>
+<li>Since I started using Ansible, I have grown to love it and am quite addicted to it, but it can be quite daunting for newcomers</li>
+<li>It is one thing to automate a task and another to do it efficiently and effectively</li>
+<li>It can be easy to fall into a rabbit hole of troubleshooting and frustration.</li>
+</ul>
+<p>So with that said, see the Ansible topics in the menus above. It will grow over time when I have time.</p>
+          
+        </div>
+
+        
+          <div>
+            <a class="read-more button inline" href="/posts/main/">[Read More]</a>
+          </div>
+        
+      </article>
+    
+
+    <div class="pagination">
+  <div class="pagination__buttons">
+    
+    
+    
+  </div>
+</div>
+
+  </div>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2025 Powered by <a href="https://gohugo.io">Hugo</a></span>
+    
+      <span>:: <a href="https://github.com/panr/hugo-theme-terminal" target="_blank">Theme</a> made by <a href="https://github.com/panr" target="_blank">panr</a></span>
+      </div>
+  </div>
+</footer>
+
+
+
+
+
+
+<script type="text/javascript" src="/bundle.min.js"></script>
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>

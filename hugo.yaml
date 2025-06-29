@@ -53,14 +53,18 @@ menu:
     name: Ansible (Playbook)
     url: /playbook/
     weight: 2
+  - identifier: roles
+    name: Ansible (Roles)
+    url: /roles/
+    weight: 3
   - identifier: common
     name: Ansible (Common-Tasks)
     url: /common/
-    weight: 3
+    weight: 4
   - identifier: misc
     name: Ansible (Misc)
     url: /misc/
-    weight: 3
+    weight: 5
 
 caches:
   images:

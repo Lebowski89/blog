@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Le Tour De Blog</title>
-    <link>http://localhost:1313/</link>
-    <description>Recent content on Le Tour De Blog</description>
+    <title>Ansible on Le Tour De Blog</title>
+    <link>http://localhost:1313/tags/ansible/</link>
+    <description>Recent content in Ansible on Le Tour De Blog</description>
     <generator>Hugo</generator>
     <language>en-us</language>
-    <lastBuildDate>Tue, 24 Jun 2025 00:00:00 +0000</lastBuildDate>
-    <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="http://localhost:1313/tags/ansible/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Handling common tasks within Ansible</title>
       <link>http://localhost:1313/common/</link>
@@ -42,13 +41,6 @@
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       <guid>http://localhost:1313/posts/main/</guid>
       <description>&lt;p&gt;This blog is dedicated to Ansible, and I will use this to discuss my set-up and provide some useful tips and information from my experiences using it to set-up and deploy Docker containers and Swarm services.&lt;/p&gt;&#xA;&lt;p&gt;&lt;strong&gt;The Why?&lt;/strong&gt;&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;Since I started using Ansible, I have grown to love it and am quite addicted to it, but it can be quite daunting for newcomers&lt;/li&gt;&#xA;&lt;li&gt;It is one thing to automate a task and another to do it efficiently and effectively&lt;/li&gt;&#xA;&lt;li&gt;It can be easy to fall into a rabbit hole of troubleshooting and frustration.&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;p&gt;So with that said, see the Ansible topics in the menus above. It will grow over time when I have time.&lt;/p&gt;</description>
-    </item>
-    <item>
-      <title>About</title>
-      <link>http://localhost:1313/about/</link>
-      <pubDate>Tue, 24 Jun 2025 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/about/</guid>
-      <description>&lt;p&gt;Hi,&lt;/p&gt;&#xA;&lt;p&gt;I&amp;rsquo;m just someone, who, in my sparetime, loves self-hosting the various services I enjoy and depend on, with a specific focus on media-centric apps (i.e, the ‘Servarr-suite’ (Bazarr, Lidarr, Prowlarr, Radarr, Readarr, Sonarr and Whisparr)), which aid in my favourite pastime of media consumption (when I&amp;rsquo;m not in War Thunder). The purpose of this blog will be to share various tidbits of information and guides from my experiences, especially those pertaining to my current ansible + ubuntu + docker swarm setup.&lt;/p&gt;</description>
     </item>
   </channel>
 </rss>

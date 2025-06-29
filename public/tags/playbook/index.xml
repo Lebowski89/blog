@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Playbook on Le Tour De Blog</title>
+    <link>http://localhost:1313/tags/playbook/</link>
+    <description>Recent content in Playbook on Le Tour De Blog</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <atom:link href="http://localhost:1313/tags/playbook/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Structuring your Ansible Playbook</title>
+      <link>http://localhost:1313/playbook/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/playbook/</guid>
+      <description>&lt;hr&gt;&#xA;&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;&#xA;&lt;hr&gt;&#xA;&lt;p&gt;The automating of tasks with Ansible begins and ends with tasks defined in a playbook. There are various ways to structure your playbook, including:&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;Defining everything in a single playbook&lt;/li&gt;&#xA;&lt;li&gt;Defining tasks across multiple playbooks&lt;/li&gt;&#xA;&lt;li&gt;Using a single playbook to include roles that contain various organised tasks&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;p&gt;For me, I prefer the latter option. I have a single &lt;code&gt;playbook.yml&lt;/code&gt;, and various roles containing tasks to automate the deployment of my docker services. However, there is no right way of doing things, and it&amp;rsquo;s simply a case of how many tasks you&amp;rsquo;re dealing with, what sort of tasks, and how you prefer to do things.&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

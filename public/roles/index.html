@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  
+    <title>Structuring your Ansible Roles :: Le Tour De Blog</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content=" Introduction Ansible roles contain the majority of my tasks that automate the setup and deployment of my Docker containers and Swarm services. During my time with Ansible, my roles have changed a lot, both content and structure wise.
+Group_Vars For my set up, group_vars, is structured like the following:
+/ansible/group_vars └── all ├── docker.yml ├── roles │ ├── arrs.yml │ ├── blog.yml │ ├── comps.yml │ ├── dns.yml │ ├── gitea.yml │ ├── mariadb.yml │ ├── metrics.yml │ ├── plex.yml │ ├── postgres.yml │ ├── proxy.yml │ ├── torrents.yml │ ├── unifi.yml │ ├── usenet.yml │ ├── utilities.yml │ ├── vpn.yml │ └── wordpress.yml ├── traefik.yml └── vault.yml The docker.yml file contains general docker variables, such as puid/pgid and docker network information The traefik.yml file contains traefik middleware and a traefik labels template variables (used by the traefik labels common task) The vault.yml file contains all sensitive variables, including api/keys/domains/passwords/emails and any other sensitive information. The remaining variables are contained in the group_vars/all/roles folder, with one group_vars file per role. These contain all the relevant information required to get the roles services up and running, for example:
+" />
+<meta name="keywords" content="" />
+
+  <meta name="robots" content="noodp" />
+
+<link rel="canonical" href="http://localhost:1313/roles/" />
+
+
+
+
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/buttons.min.86f6b4c106b6c6eb690ae5203d36b442c1f66f718ff4e8164fa86cf6c61ad641.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/code.min.d529ea4b2fb8d34328d7d31afc5466d5f7bc2f0bc9abdd98b69385335d7baee4.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/fonts.min.5bb7ed13e1d00d8ff39ea84af26737007eb5051b157b86fc24487c94f3dc8bbe.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/footer.min.eb8dfc2c6a7eafa36cd3ba92d63e69e849e2200e0002a228d137f236b09ecd75.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/gist.min.a751e8b0abe1ba8bc53ced52a38b19d8950fe78ca29454ea8c2595cf26aad5c0.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/header.min.75c7eb0e2872d95ff48109c6647d0223a38db52e2561dd87966eb5fc7c6bdac6.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/main.min.775ac2af004d44c22a6d000fbd1d9af529642f5cef27399d0280d180af2c2e9b.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/menu.min.310d32205bdedd6f43144e3c3273c9deecd238eba5f9108db5ea96ca0cfbe377.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/pagination.min.bbb986dbce00a5ce5aca0504b7925fc1c581992a4bf57f163e5d69cc1db7d836.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/post.min.ad50c7f4d00e7975918f37fc74c6029e1959a40d66fb5b2c6564a8715e985573.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/syntax.min.e9ab635cf918bc84b901eb65c0b2caa74c9544245e3647c1af5c129896ef276e.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/terminal.min.e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/terms.min.b81791663c3790e738e571cdbf802312390d30e4b1d8dc9d814a5b5454d0ac11.css">
+
+
+<link rel="stylesheet" href="http://localhost:1313/terminal.css">
+
+
+
+
+<link rel="shortcut icon" href="http://localhost:1313/favicon.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+
+
+<meta name="twitter:card" content="summary" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Structuring your Ansible Roles">
+<meta property="og:description" content=" Introduction Ansible roles contain the majority of my tasks that automate the setup and deployment of my Docker containers and Swarm services. During my time with Ansible, my roles have changed a lot, both content and structure wise.
+Group_Vars For my set up, group_vars, is structured like the following:
+/ansible/group_vars └── all ├── docker.yml ├── roles │ ├── arrs.yml │ ├── blog.yml │ ├── comps.yml │ ├── dns.yml │ ├── gitea.yml │ ├── mariadb.yml │ ├── metrics.yml │ ├── plex.yml │ ├── postgres.yml │ ├── proxy.yml │ ├── torrents.yml │ ├── unifi.yml │ ├── usenet.yml │ ├── utilities.yml │ ├── vpn.yml │ └── wordpress.yml ├── traefik.yml └── vault.yml The docker.yml file contains general docker variables, such as puid/pgid and docker network information The traefik.yml file contains traefik middleware and a traefik labels template variables (used by the traefik labels common task) The vault.yml file contains all sensitive variables, including api/keys/domains/passwords/emails and any other sensitive information. The remaining variables are contained in the group_vars/all/roles folder, with one group_vars file per role. These contain all the relevant information required to get the roles services up and running, for example:
+" />
+<meta property="og:url" content="http://localhost:1313/roles/" />
+<meta property="og:site_name" content="Le Tour De Blog" />
+
+  <meta property="og:image" content="http://localhost:1313/og-image.png">
+
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="627">
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body>
+
+
+<div class="container center">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="http://localhost:1313/">
+  <div class="logo">
+    Le Tour De Blog
+  </div>
+</a>
+
+    </div>
+    
+      <ul class="menu menu--mobile">
+  <li class="menu__trigger">Menu&nbsp;▾</li>
+  <li>
+    <ul class="menu__dropdown">
+      
+        
+          <li><a href="/about/">About</a></li>
+        
+      
+        
+          <li><a href="/playbook/">Ansible (Playbook)</a></li>
+        
+      
+        
+          <li><a href="/roles/">Ansible (Roles)</a></li>
+        
+      
+        
+          <li><a href="/common/">Ansible (Common-Tasks)</a></li>
+        
+      
+        
+          <li><a href="/misc/">Ansible (Misc)</a></li>
+        
+      
+      
+    </ul>
+  </li>
+</ul>
+
+    
+    
+  </div>
+  
+    <nav class="navigation-menu">
+  <ul class="navigation-menu__inner menu--desktop">
+    
+      
+        
+          <li><a href="/about/" >About</a></li>
+        
+      
+        
+          <li><a href="/playbook/" >Ansible (Playbook)</a></li>
+        
+      
+        
+          <li><a href="/roles/" >Ansible (Roles)</a></li>
+        
+      
+        
+          <li><a href="/common/" >Ansible (Common-Tasks)</a></li>
+        
+      
+        
+          <li><a href="/misc/" >Ansible (Misc)</a></li>
+        
+      
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+<article class="post">
+  <h1 class="post-title">
+    <a href="http://localhost:1313/roles/">Structuring your Ansible Roles</a>
+  </h1>
+  <div class="post-meta"><span class="post-reading-time">8 min read (1614 words)</span></div>
+
+  
+    <span class="post-tags">
+      
+      #<a href="http://localhost:1313/tags/roles/">roles</a>&nbsp;
+      
+      #<a href="http://localhost:1313/tags/ansible/">ansible</a>&nbsp;
+      
+    </span>
+  
+  
+
+
+  
+    <div class="table-of-contents">
+      <h2>
+        Contents
+      </h2>
+      <nav id="TableOfContents">
+  <ul>
+    <li><a href="#introduction">Introduction</a></li>
+    <li><a href="#group_vars">Group_Vars</a></li>
+    <li><a href="#defaults">Defaults</a></li>
+    <li><a href="#files">Files</a></li>
+    <li><a href="#tasks">Tasks</a>
+      <ul>
+        <li><a href="#sub-tasks">Sub-tasks</a></li>
+      </ul>
+    </li>
+    <li><a href="#templates">Templates</a>
+      <ul>
+        <li><a href="#configs">Configs</a></li>
+        <li><a href="#compose">Compose</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+    </div>
+  
+
+  <div class="post-content"><div>
+        <hr>
+<h2 id="introduction">Introduction<a href="#introduction" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<hr>
+<p>Ansible roles contain the majority of my tasks that automate the setup and deployment of my Docker containers and Swarm services. During my time with Ansible, my roles have changed a lot, both content and structure wise.</p>
+<hr>
+<h2 id="group_vars">Group_Vars<a href="#group_vars" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<hr>
+<p>For my set up, group_vars, is structured like the following:</p>
+<pre tabindex="0"><code class="language-cli" data-lang="cli">/ansible/group_vars
+└── all
+    ├── docker.yml
+    ├── roles
+    │   ├── arrs.yml
+    │   ├── blog.yml
+    │   ├── comps.yml
+    │   ├── dns.yml
+    │   ├── gitea.yml
+    │   ├── mariadb.yml
+    │   ├── metrics.yml
+    │   ├── plex.yml
+    │   ├── postgres.yml
+    │   ├── proxy.yml
+    │   ├── torrents.yml
+    │   ├── unifi.yml
+    │   ├── usenet.yml
+    │   ├── utilities.yml
+    │   ├── vpn.yml
+    │   └── wordpress.yml
+    ├── traefik.yml
+    └── vault.yml
+</code></pre><ol>
+<li>The <code>docker.yml</code> file contains general docker variables, such as puid/pgid and docker network information</li>
+<li>The <code>traefik.yml</code> file contains traefik middleware and a traefik labels template variables (used by the traefik labels common task)</li>
+<li>The <code>vault.yml</code> file contains all sensitive variables, including api/keys/domains/passwords/emails and any other sensitive information.</li>
+</ol>
+<p>The remaining variables are contained in the <code>group_vars/all/roles</code> folder, with one group_vars file per role. These contain all the relevant information required to get the roles services up and running, for example:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">radarr_name</span>: <span style="color:#e6db74">&#39;radarr&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">radarr_image_repo</span>: <span style="color:#e6db74">&#39;ghcr.io/hotio/radarr&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">radarr_image_tag</span>: <span style="color:#e6db74">&#39;latest&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">radarr_ports_host</span>: <span style="color:#e6db74">&#39;7878&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">radarr_ports_cont</span>: <span style="color:#e6db74">&#39;7878&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">radarr_location</span>: <span style="color:#e6db74">&#39;/opt/{{ radarr_name }}&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">radarr_root_folder</span>: <span style="color:#e6db74">&#39;/media/movies&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">radarr_quality_profile</span>: <span style="color:#e6db74">&#39;Remux + WEB 1080p&#39;</span>
+</span></span></code></pre></div><p>In the above example, the name/ports/location are required by the arrs role to deploy Radarr.</p>
+<p>The reason these are defined in group_vars rather than within each role is because these variables may be required by not just one role but multiple roles, for example:</p>
+<ul>
+<li>Role 1 - Prepares and deploys Radarr</li>
+<li>Role 2 - Prepares and deploys Doplarr and Jellyseerr</li>
+<li>Role 3 - Prepares and deploys Radarr Prometheus exporter</li>
+</ul>
+<p>In the above example, all three roles will require Radarr&rsquo;s service name, port, location and api (in group_vars/vault). Rather than defining these multiple times, it is defined once in group_vars. Previously, I would only include these variables that were required by multiple roles in group_vars and the rest within the role/defaults folder, but this led to a mish-mash of defaults in different locations, so I simply moved all to group_vars.</p>
+<hr>
+<h2 id="defaults">Defaults<a href="#defaults" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<hr>
+<p>Each role contains &lsquo;defaults&rsquo; variables that are specific to the services being deployed. For roles with single/few services, defaults are defined in a single main.yml file (role/defaults/main.yml), but most services will have their own defaults file (role/defaults/main/someservice.yml). Common defaults include names, ports, locations, traefik labels, and any other variable not in group_vars or created during the play. With a defaults/main folder, you can have as many defaults files as you like.</p>
+<p><strong>Example:</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#75715e">## metrics/defaults/main/exporters.yml</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># BASICS</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">bazarr_exporter_defaults_name</span>: <span style="color:#e6db74">&#39;{{ bazarr_name }}-exporter&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">bazarr_exporter_defaults_image_repo</span>: <span style="color:#e6db74">&#39;ghcr.io/onedr0p/exportarr&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">bazarr_exporter_defaults_image_tag</span>: <span style="color:#e6db74">&#39;latest&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">lidarr_exporter_defaults_name</span>: <span style="color:#e6db74">&#39;{{ lidarr_name }}-exporter&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">lidarr_exporter_defaults_image_repo</span>: <span style="color:#e6db74">&#39;ghcr.io/onedr0p/exportarr&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">lidarr_exporter_defaults_image_tag</span>: <span style="color:#e6db74">&#39;latest&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">plex_exporter_defaults_name</span>: <span style="color:#e6db74">&#39;plex-exporter&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">plex_exporter_defaults_image_repo</span>: <span style="color:#e6db74">&#39;ghcr.io/axsuul/plex-media-server-exporter&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">plex_exporter_defaults_image_tag</span>: <span style="color:#e6db74">&#39;latest&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">## Note: bazarr_name and lidarr_name are defined in group_vars (see above).</span>
+</span></span></code></pre></div><hr>
+<h2 id="files">Files<a href="#files" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<hr>
+<p>When I want to copy a file into a service directory, I include them in the role/files folder. Generally, I prefer templates and/or creating files during the play. But there are some cases where I copy. One example includes the various themepark scripts (i.e, <a href="https://github.com/themepark-dev/theme.park/blob/master/docker-mods/sonarr/root/etc/cont-init.d/98-themepark">Sonarr</a>), which are included as role/files/98-themepark-someapp and then copied using the following role tasks:</p>
+<pre tabindex="0"><code>################################
+# THEME
+################################
+
+- name: Check if theme-park script exists
+ansible.builtin.stat:
+  path: &#39;{{ sonarr_defaults_location }}/98-themepark-sonarr&#39;
+register: sonarr_theme_script
+
+- name: Copy theme-park script
+when: not sonarr_theme_script.stat.exists
+ansible.builtin.copy:
+  src: &#39;{{ role_path }}/files/98-themepark-sonarr&#39;
+  dest: &#39;{{ sonarr_defaults_location }}/98-themepark-sonarr&#39;
+  owner: &#39;{{ puid }}&#39;
+  group: &#39;{{ pgid }}&#39;
+  mode: &#39;0775&#39;
+</code></pre><hr>
+<h2 id="tasks">Tasks<a href="#tasks" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<hr>
+<p>Removes existing stacks, retrieves common vault variables, includes sub_tasks, and then deploys the stack.</p>
+<p><strong>Example:</strong></p>
+<pre tabindex="0"><code>################################
+# CLEAN UP
+################################
+
+- name: Remove arrs stack
+  community.docker.docker_stack:
+    name: arrs
+    state: absent
+
+- name: Remove arrs-stack file
+  ansible.builtin.file:
+    path: /opt/compose/arrs-stack.yml
+    state: absent
+
+################################
+# VAULT
+################################
+
+- name: Load common vault variables
+  ansible.builtin.set_fact:
+    cloudflare_api: &#39;{{ lookup(&#34;ini&#34;, &#34;cloudflare_api section=&#34; + &#34;traefik&#34; + &#34; file=&#34; + &#34;/ansible/vault.ini&#34;) }}&#39;
+    local_domain: &#39;{{ lookup(&#34;ini&#34;, &#34;local_domain section=&#34; + &#34;traefik&#34; + &#34; file=&#34; + &#34;/ansible/vault.ini&#34;) }}&#39;
+    postgres_username: &#39;{{ lookup(&#34;ini&#34;, &#34;username section=&#34; + &#34;postgres&#34; + &#34; file=&#34; + &#34;/ansible/vault.ini&#34;) }}&#39;
+    postgres_password: &#39;{{ lookup(&#34;ini&#34;, &#34;password section=&#34; + &#34;postgres&#34; + &#34; file=&#34; + &#34;/ansible/vault.ini&#34;) }}&#39;
+
+################################
+# SUB-TASKS
+################################
+
+- name: Include sub-tasks tasks
+  ansible.builtin.include_tasks: sub_tasks/{{ item }}.yml
+  loop:
+    - &#39;rclone&#39;  ## rclone runs first to create the torrents volume
+    - &#39;lidarr&#39;
+    - &#39;prowlarr&#39;
+    - &#39;radarr&#39;
+    - &#39;radarr4k&#39;
+    - &#39;readarr&#39;
+    - &#39;sonarr&#39;
+    - &#39;sonarr4k&#39;
+    - &#39;whisparr&#39;
+    - &#39;bazarr&#39;  ## bazarr relies on arrs API variables - run last
+
+################################
+# DEPLOY
+################################
+
+- name: Import arrs-stack file
+  ansible.builtin.template:
+    src: &#39;{{ role_path }}/templates/arrs-stack.yml.j2&#39;
+    dest: /opt/compose/arrs-stack.yml
+    force: true
+    owner: &#39;{{ puid }}&#39;
+    group: &#39;{{ pgid }}&#39;
+    mode: &#39;0664&#39;
+
+- name: Deploy arrs stack
+  community.docker.docker_stack:
+    state: present
+    name: arrs
+    compose:
+      - /opt/compose/arrs-stack.yml
+</code></pre><hr>
+<h3 id="sub-tasks">Sub-tasks<a href="#sub-tasks" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<hr>
+<p>Sub_tasks prepare a docker swarm service to run, including:</p>
+<ul>
+<li>Creating directories</li>
+<li>Creating and preparing config files</li>
+<li>Creating databases and adding database info to the config files</li>
+<li>Retrieving vault variables or generating keys/api/passwords during the play</li>
+<li>Preparing docker secrets</li>
+<li>Creating cloudflare A/CNAME DNS records
+and so on&hellip;</li>
+</ul>
+<p><strong>Example:</strong></p>
+<pre tabindex="0"><code>## companions/tasks/sub_tasks/ombi.yml
+
+################################
+# DIRECTORY
+################################
+
+- name: Create appdata directories
+  ansible.builtin.file:
+    path: &#39;{{ item }}&#39;
+    state: directory
+    owner: &#39;{{ puid }}&#39;
+    group: &#39;{{ pgid }}&#39;
+    mode: &#39;0755&#39;
+  loop:
+    - &#39;{{ ombi_defaults_location }}&#39;
+    - &#39;{{ ombi_defaults_location }}/config&#39;
+
+################################
+# POSTGRES
+################################
+
+- name: Ping for existing database
+  community.postgresql.postgresql_ping:
+    login_host: &#39;{{ pvr_machine }}&#39;
+    login_user: &#39;{{ postgres_username }}&#39;
+    login_password: &#39;{{ postgres_password }}&#39;
+    port: &#39;{{ postgres_ports_host }}&#39;
+    login_db: &#39;Ombi&#39;
+  register: ombi_postgres_db
+
+- name: Create postgres database
+  when: not ombi_postgres_db == true
+  community.postgresql.postgresql_db:
+    login_host: &#39;{{ pvr_machine }}&#39;
+    login_user: &#39;{{ postgres_username }}&#39;
+    login_password: &#39;{{ postgres_password }}&#39;
+    port: &#39;{{ postgres_ports_host }}&#39;
+    name: &#39;Ombi&#39;
+    state: present
+
+- name: Import ombi database.json
+  ansible.builtin.template:
+    src: &#39;{{ role_path }}/templates/configs/ombi_database.json.j2&#39;
+    dest: &#39;{{ ombi_defaults_location }}/config/database.json&#39;
+    force: true
+    owner: &#39;{{ puid }}&#39;
+    group: &#39;{{ pgid }}&#39;
+    mode: &#39;0664&#39;
+
+- name: Remove sqlite database files
+  ansible.builtin.file:
+    path: &#39;{{ ombi_defaults_location }}/{{ item }}&#39;
+    state: absent
+  loop:
+    - Ombi.db
+    - OmbiExternal.db
+    - OmbiSettings.db
+
+################################
+# CLOUDFLARE
+################################
+
+- name: Perform Cloudflare DNS tasks
+  block:
+    - name: Remove existing CNAME DNS record
+      community.general.cloudflare_dns:
+        api_token: &#39;{{ cloudflare_api }}&#39;
+        zone: &#39;{{ local_domain }}&#39;
+        state: &#39;absent&#39;
+        type: &#39;CNAME&#39;
+        record: &#39;{{ ombi_name }}&#39;
+
+    - name: Remove existing A DNS record
+      community.general.cloudflare_dns:
+        api_token: &#39;{{ cloudflare_api }}&#39;
+        zone: &#39;{{ local_domain }}&#39;
+        state: &#39;absent&#39;
+        type: &#39;A&#39;
+        record: &#39;{{ ombi_name }}&#39;
+
+    - name: Add DNS record
+      community.general.cloudflare_dns:
+        api_token: &#39;{{ cloudflare_api }}&#39;
+        zone: &#39;{{ local_domain }}&#39;
+        state: &#39;present&#39;
+        solo: true
+        proxied: &#39;{{ cloudflare_proxy }}&#39;
+        type: &#39;{{ cloudflare_record }}&#39;
+        value: &#39;{{ ipify_public_ip }}&#39;
+        record: &#39;{{ ombi_name }}&#39;
+      register: ombi_cloudflare_record_creation_status
+
+    - name: Tasks on success
+      when: ombi_cloudflare_record_creation_status is succeeded
+      block:
+        - name: Set &#39;dns_record_print&#39; variable
+          ansible.builtin.set_fact:
+            ombi_cloudflare_record_print: &#39;{{ (ombi_name == local_domain) | ternary(local_domain, ombi_name + &#34;.&#34; + local_domain) }}&#39;
+
+        - name: Display DNS record creation status
+          ansible.builtin.debug:
+            msg: &#39;DNS A Record for &#34;{{ ombi_cloudflare_record_print }}&#34; set to &#34;{{ ipify_public_ip }}&#34; was added. Proxy: {{ cloudflare_proxy }}&#39;
+</code></pre><hr>
+<h2 id="templates">Templates<a href="#templates" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<hr>
+<hr>
+<h3 id="configs">Configs<a href="#configs" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<hr>
+<p>Contains nearly all my service config files, ready to be called upon during play. I find templating more powerful than simply copying, as a change in a variable&rsquo;s value will apply to all templates referencing it - no need to edit every config file individually.</p>
+<p><strong>Example:</strong></p>
+<pre tabindex="0"><code>## Doplarr&#39;s config (config.edn.j2)
+
+{
+ :radarr/url &#34;http://{{ radarr_name }}:{{ radarr_ports_cont }}&#34;
+ :radarr/api &#34;{{ radarr_api }}&#34;
+ :radarr/quality-profile &#34;{{ radarr_quality_profile }}&#34;
+ :radarr/rootfolder &#34;{{ radarr_root_folder }}&#34;
+ :sonarr/url &#34;http://{{ sonarr_name }}:{{ sonarr_ports_cont }}&#34;
+ :sonarr/api &#34;{{ sonarr_api }}&#34;
+ :sonarr/quality-profile &#34;{{ sonarr_quality_profile }}&#34;
+ :sonarr/rootfolder &#34;{{ sonarr_root_folder }}&#34;
+ :sonarr/season-folders true
+ :partial-seasons true
+ :discord/token &#34;{{ doplarr_token }}&#34;
+ :discord/max-results 25
+ :discord/requested-msg-style :plain
+ :log-level :trace
+ }
+</code></pre><p><strong>Which is then called with the following tasks:</strong></p>
+<pre tabindex="0"><code>################################
+# CONFIG
+################################
+
+- name: Check if doplarr config.edn exists
+  ansible.builtin.stat:
+    path: &#39;{{ doplarr_defaults_location }}/config.edn&#39;
+  register: doplarr_config_edn
+
+- name: Load doplarr vault variable
+  when: not doplarr_config_edn.stat.exists
+  ansible.builtin.set_fact:
+    doplarr_token: &#39;{{ lookup(&#34;ini&#34;, &#34;doplarr_token section=&#34; + &#34;companions&#34; + &#34; file=&#34; + &#34;/ansible/vault.ini&#34;) }}&#39;
+
+- name: Create doplarr config.edn file
+  when: not doplarr_config_edn.stat.exists
+  block:
+    - name: Import config file
+      ansible.builtin.template:
+        src: &#39;{{ role_path }}/templates/configs/doplarr_config.edn.j2&#39;
+        dest: &#39;{{ doplarr_defaults_location }}/config.edn&#39;
+        force: true
+        owner: &#39;{{ puid }}&#39;
+        group: &#39;{{ pgid }}&#39;
+        mode: &#39;0664&#39;
+
+    - name: Wait for &#39;config.edn&#39; to be created
+      ansible.builtin.wait_for:
+        path: &#39;{{ doplarr_defaults_location }}/config.edn&#39;
+        state: present
+</code></pre><hr>
+<h3 id="compose">Compose<a href="#compose" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<hr>
+<p>Aside from the configs, the docker compose file is also templated, containing relevant (to the role) and related docker services.</p>
+<p><strong>Example:</strong></p>
+<pre tabindex="0"><code>version: &#39;3.9&#39;
+
+services:
+  {{ adguard_defaults_name }}:
+    image: {{ adguard_defaults_image_repo }}:{{ adguard_defaults_image_tag }}
+    networks:
+      - {{ network_overlay }}
+    environment:
+      PUID: &#39;{{ puid }}&#39;
+      PGID: &#39;{{ pgid }}&#39;
+      TZ: &#39;{{ timezone }}&#39;
+    ports:
+      - target: {{ adguard_defaults_ports_cont }}
+        published: {{ adguard_defaults_ports_host }}
+        protocol: tcp
+        mode: ingress
+      - target: {{ adguard_defaults_ports_dns_cont }}
+        published: {{ adguard_defaults_ports_dns_host }}
+        protocol: tcp
+        mode: ingress
+      - target: {{ adguard_defaults_ports_dns_cont }}
+        published: {{ adguard_defaults_ports_dns_host }}
+        protocol: udp
+        mode: ingress
+    volumes:
+      - type: bind
+        source: {{ adguard_defaults_location }}/work
+        target: /opt/adguardhome/work
+      - type: bind
+        source: {{ adguard_defaults_location }}/conf
+        target: /opt/adguardhome/conf
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints: [node.labels.ansible_host == pvr]
+      labels: {{ adguard_defaults_labels }}
+
+networks:
+  {{ network_overlay }}:
+    external: true
+</code></pre><p>With the compose files, you can either create and define networks, volumes, secrets within the file, or you can let ansible handle it and then use &rsquo;external: true&rsquo;. I prefer the latter and use various docker ansible modules to automate their creation:</p>
+<p><strong>Networks:</strong></p>
+<pre tabindex="0"><code>- name: Conduct overlay network tasks
+  when: inventory_hostname == &#39;localhost&#39;
+  block:
+    - name: Register overlay network
+      community.docker.docker_network_info:
+        name: &#39;{{ network_overlay }}&#39;
+      register: network_overlay_result
+
+    - name: Create overlay network
+      when: not network_overlay_result.exists
+      community.docker.docker_network:
+        name: &#39;{{ network_overlay }}&#39;
+        driver: &#39;{{ network_overlay_driver }}&#39;
+        attachable: true 
+        ipam_config:
+          - subnet: &#39;{{ network_overlay_subnet }}&#39;
+</code></pre><p><strong>Volumes:</strong></p>
+<pre tabindex="0"><code>- name: Create media volume
+  community.docker.docker_volume:
+    volume_name: &#39;{{ media_volume }}&#39;
+    state: present
+    recreate: options-changed
+    driver: local
+    driver_options:
+      type: nfs
+      o: &#39;addr={{ media_volume_address }},rw,nfsvers=4.2&#39;
+      device: &#39;{{ media_volume_device }}&#39;
+</code></pre><p><strong>Secrets:</strong></p>
+<pre tabindex="0"><code>- name: Prepare docker secrets
+  block:
+    - name: Unifi db user secret
+      community.docker.docker_secret:
+        name: unifi_user_secret
+        data: &#39;{{ unifi_db_user }}&#39;
+        state: present
+
+    - name: Unifi db password secret
+      community.docker.docker_secret:
+        name: unifi_pass_secret
+        data: &#39;{{ unifi_db_pass }}&#39;
+        state: present
+
+    - name: Unifi db root password secret
+      community.docker.docker_secret:
+        name: unifi_root_pass_secret
+        data: &#39;{{ unifi_db_root_pass }}&#39;
+        state: present
+</code></pre>
+      </div></div>
+
+  
+
+  
+    
+
+  
+</article>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2025 Powered by <a href="https://gohugo.io">Hugo</a></span>
+    
+      <span>:: <a href="https://github.com/panr/hugo-theme-terminal" target="_blank">Theme</a> made by <a href="https://github.com/panr" target="_blank">panr</a></span>
+      </div>
+  </div>
+</footer>
+
+
+
+
+
+
+<script type="text/javascript" src="/bundle.min.js"></script>
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>

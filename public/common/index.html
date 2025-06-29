@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  
+    <title>Handling common tasks within Ansible :: Le Tour De Blog</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content=" Introduction When you begin constructing your Ansible tasks - roles - collections, you quickly realise that there are many tasks that you will use repeatedly with little variance. For example, if you&rsquo;re using Ansible to help set-up and deploy your docker containers, you&rsquo;ll have common tasks that create directories, configs, DNS and Traefik labels, among many others. If you&rsquo;re like me, I would simply copy and paste these tasks. While Ansible will run through and automate these repeated tasks all the same, the more tasks you have to repeat in a play, the more bloated and unreadable your playbook becomes and the more maintenance upkeep is required.
+" />
+<meta name="keywords" content="" />
+
+  <meta name="robots" content="noodp" />
+
+<link rel="canonical" href="http://localhost:1313/common/" />
+
+
+
+
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/buttons.min.86f6b4c106b6c6eb690ae5203d36b442c1f66f718ff4e8164fa86cf6c61ad641.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/code.min.d529ea4b2fb8d34328d7d31afc5466d5f7bc2f0bc9abdd98b69385335d7baee4.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/fonts.min.5bb7ed13e1d00d8ff39ea84af26737007eb5051b157b86fc24487c94f3dc8bbe.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/footer.min.eb8dfc2c6a7eafa36cd3ba92d63e69e849e2200e0002a228d137f236b09ecd75.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/gist.min.a751e8b0abe1ba8bc53ced52a38b19d8950fe78ca29454ea8c2595cf26aad5c0.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/header.min.75c7eb0e2872d95ff48109c6647d0223a38db52e2561dd87966eb5fc7c6bdac6.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/main.min.775ac2af004d44c22a6d000fbd1d9af529642f5cef27399d0280d180af2c2e9b.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/menu.min.310d32205bdedd6f43144e3c3273c9deecd238eba5f9108db5ea96ca0cfbe377.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/pagination.min.bbb986dbce00a5ce5aca0504b7925fc1c581992a4bf57f163e5d69cc1db7d836.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/post.min.ad50c7f4d00e7975918f37fc74c6029e1959a40d66fb5b2c6564a8715e985573.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/syntax.min.e9ab635cf918bc84b901eb65c0b2caa74c9544245e3647c1af5c129896ef276e.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/terminal.min.e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/terms.min.b81791663c3790e738e571cdbf802312390d30e4b1d8dc9d814a5b5454d0ac11.css">
+
+
+<link rel="stylesheet" href="http://localhost:1313/terminal.css">
+
+
+
+
+<link rel="shortcut icon" href="http://localhost:1313/favicon.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+
+
+<meta name="twitter:card" content="summary" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Handling common tasks within Ansible">
+<meta property="og:description" content=" Introduction When you begin constructing your Ansible tasks - roles - collections, you quickly realise that there are many tasks that you will use repeatedly with little variance. For example, if you&rsquo;re using Ansible to help set-up and deploy your docker containers, you&rsquo;ll have common tasks that create directories, configs, DNS and Traefik labels, among many others. If you&rsquo;re like me, I would simply copy and paste these tasks. While Ansible will run through and automate these repeated tasks all the same, the more tasks you have to repeat in a play, the more bloated and unreadable your playbook becomes and the more maintenance upkeep is required.
+" />
+<meta property="og:url" content="http://localhost:1313/common/" />
+<meta property="og:site_name" content="Le Tour De Blog" />
+
+  <meta property="og:image" content="http://localhost:1313/og-image.png">
+
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="627">
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body>
+
+
+<div class="container center">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="http://localhost:1313/">
+  <div class="logo">
+    Le Tour De Blog
+  </div>
+</a>
+
+    </div>
+    
+      <ul class="menu menu--mobile">
+  <li class="menu__trigger">Menu&nbsp;▾</li>
+  <li>
+    <ul class="menu__dropdown">
+      
+        
+          <li><a href="/about/">About</a></li>
+        
+      
+        
+          <li><a href="/playbook/">Ansible (Playbook)</a></li>
+        
+      
+        
+          <li><a href="/roles/">Ansible (Roles)</a></li>
+        
+      
+        
+          <li><a href="/common/">Ansible (Common-Tasks)</a></li>
+        
+      
+        
+          <li><a href="/misc/">Ansible (Misc)</a></li>
+        
+      
+      
+    </ul>
+  </li>
+</ul>
+
+    
+    
+  </div>
+  
+    <nav class="navigation-menu">
+  <ul class="navigation-menu__inner menu--desktop">
+    
+      
+        
+          <li><a href="/about/" >About</a></li>
+        
+      
+        
+          <li><a href="/playbook/" >Ansible (Playbook)</a></li>
+        
+      
+        
+          <li><a href="/roles/" >Ansible (Roles)</a></li>
+        
+      
+        
+          <li><a href="/common/" >Ansible (Common-Tasks)</a></li>
+        
+      
+        
+          <li><a href="/misc/" >Ansible (Misc)</a></li>
+        
+      
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+<article class="post">
+  <h1 class="post-title">
+    <a href="http://localhost:1313/common/">Handling common tasks within Ansible</a>
+  </h1>
+  <div class="post-meta"><span class="post-reading-time">10 min read (2084 words)</span></div>
+
+  
+    <span class="post-tags">
+      
+      #<a href="http://localhost:1313/tags/common-tasks/">common-tasks</a>&nbsp;
+      
+      #<a href="http://localhost:1313/tags/ansible/">ansible</a>&nbsp;
+      
+      #<a href="http://localhost:1313/tags/cloudflare/">cloudflare</a>&nbsp;
+      
+      #<a href="http://localhost:1313/tags/traefik/">traefik</a>&nbsp;
+      
+    </span>
+  
+  
+
+
+  
+    <div class="table-of-contents">
+      <h2>
+        Contents
+      </h2>
+      <nav id="TableOfContents">
+  <ul>
+    <li><a href="#introduction">Introduction</a>
+      <ul>
+        <li><a href="#key-points">Key points</a></li>
+      </ul>
+    </li>
+    <li><a href="#cloudflare-dns">Cloudflare DNS</a>
+      <ul>
+        <li><a href="#common-task">Common Task</a></li>
+        <li><a href="#include_task">include_task</a></li>
+      </ul>
+    </li>
+    <li><a href="#files-and-directories">Files (and Directories)</a>
+      <ul>
+        <li><a href="#common-task-1">Common Task</a></li>
+        <li><a href="#include_task-1">include_task</a></li>
+      </ul>
+    </li>
+    <li><a href="#file-copy">File Copy</a>
+      <ul>
+        <li><a href="#common-task-2">Common Task</a></li>
+        <li><a href="#include_task-2">include_task</a></li>
+      </ul>
+    </li>
+    <li><a href="#templates">Templates</a>
+      <ul>
+        <li><a href="#common-task-3">Common Task</a></li>
+        <li><a href="#include_task-3">include_task</a></li>
+      </ul>
+    </li>
+    <li><a href="#traefik-labels">Traefik Labels</a>
+      <ul>
+        <li><a href="#group_vars">Group_Vars</a></li>
+        <li><a href="#common-task-4">Common Task</a></li>
+        <li><a href="#include_task-4">include_task</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+    </div>
+  
+
+  <div class="post-content"><div>
+        <hr>
+<h2 id="introduction">Introduction<a href="#introduction" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<hr>
+<p>When you begin constructing your Ansible tasks - roles - collections, you quickly realise that there are many tasks that you will use repeatedly with little variance. For example, if you&rsquo;re using Ansible to help set-up and deploy your docker containers, you&rsquo;ll have common tasks that create directories, configs, DNS and Traefik labels, among many others. If you&rsquo;re like me, I would simply copy and paste these tasks. While Ansible will run through and automate these repeated tasks all the same, the more tasks you have to repeat in a play, the more bloated and unreadable your playbook becomes and the more maintenance upkeep is required.</p>
+<p>To handle commonly repeated tasks, I&rsquo;ve found it is effective to make a common tasks, in which you include during plays as required. In these tasks are generic variables that are looped over and replaced with relevant variables as required.</p>
+<p>The rest of this document is dedicated to describing the common tasks I use.</p>
+<h3 id="key-points">Key points<a href="#key-points" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<ul>
+<li>The common tasks are included in a resources directory in the Ansible directory</li>
+<li>Each task has generic variables that will be replaced with relevant ones during the play when the role is included using the <code>ansible.builtin.include_tasks</code> module</li>
+<li>Loops and iterating over hashes are key to reducing the number of required tasks.</li>
+</ul>
+<hr>
+<h2 id="cloudflare-dns">Cloudflare DNS<a href="#cloudflare-dns" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<hr>
+<p>One integral time-saving task when spinning up docker services is to automate DNS records.</p>
+<h3 id="common-task">Common Task<a href="#common-task" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Remove existing A DNS record</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">when</span>: <span style="color:#ae81ff">cloudflare_remove_existing == &#39;true&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.general.cloudflare_dns</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">api_token</span>: <span style="color:#e6db74">&#39;{{ cloudflare_api }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">zone</span>: <span style="color:#e6db74">&#39;{{ cloudflare_domain }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">absent</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#39;{{ cloudflare_type }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">record</span>: <span style="color:#e6db74">&#39;{{ cloudflare_record }}&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Perform Cloudflare DNS tasks</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">block</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Add DNS record</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">community.general.cloudflare_dns</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">api_token</span>: <span style="color:#e6db74">&#39;{{ cloudflare_api }}&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">zone</span>: <span style="color:#e6db74">&#39;{{ cloudflare_domain }}&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">state</span>: <span style="color:#ae81ff">present</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">solo</span>: <span style="color:#e6db74">&#39;{{ cloudflare_solo }}&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">proxied</span>: <span style="color:#e6db74">&#39;{{ cloudflare_proxy }}&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#39;{{ cloudflare_type }}&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">value</span>: <span style="color:#e6db74">&#39;{{ cloudflare_value }}&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">record</span>: <span style="color:#e6db74">&#39;{{ cloudflare_record }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">register</span>: <span style="color:#ae81ff">cloudflare_record_creation_status</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Tasks on success</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">cloudflare_record_creation_status is succeeded</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">block</span>:
+</span></span><span style="display:flex;"><span>        - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Set &#39;dns_record_print&#39; variable</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">ansible.builtin.set_fact</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">cloudflare_record_print</span>: <span style="color:#e6db74">&#39;{{ (cloudflare_record == cloudflare_domain) | ternary(cloudflare_domain, cloudflare_record + &#34;.&#34; + cloudflare_domain) }}&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Display DNS record creation status</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">ansible.builtin.debug</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">msg</span>: <span style="color:#e6db74">&#39;DNS A Record for &#34;{{ cloudflare_record_print }}&#34; set to &#34;{{ cloudflare_value }}&#34; was added. Proxy: {{ cloudflare_proxy }}&#39;</span>
+</span></span></code></pre></div><p>These will add/remove DNS records and display the DNS record on success.</p>
+<h3 id="include_task">include_task<a href="#include_task" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Add Cloudflare DNS records</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.include_tasks</span>: <span style="color:#e6db74">&#39;/ansible/resources/cloudflare.yml&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">vars</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_domain</span>: <span style="color:#e6db74">&#39;{{ local_domain }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_record</span>: <span style="color:#e6db74">&#39;{{ obsidian_name }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_type</span>: <span style="color:#e6db74">&#39;A&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_value</span>: <span style="color:#e6db74">&#39;{{ ipify_public_ip }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_proxy</span>: <span style="color:#e6db74">&#39;false&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_solo</span>: <span style="color:#e6db74">&#39;true&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_remove_existing</span>: <span style="color:#e6db74">&#39;true&#39;</span>
+</span></span></code></pre></div><p>In the above example, variables from the common task are replaced with relevant values required to create a DNS record for my Obsidian container running on my local server. You can create loops to handle as many services as you require:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Add &#39;GitHub Pages&#39; DNS records</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.include_tasks</span>: <span style="color:#e6db74">&#39;/ansible/resources/cloudflare.yml&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">vars</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_domain</span>: <span style="color:#e6db74">&#39;{{ github_pages_domain }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_record</span>: <span style="color:#e6db74">&#39;@&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_type</span>: <span style="color:#e6db74">&#39;{{ item.type }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_value</span>: <span style="color:#e6db74">&#39;{{ item.value }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_proxy</span>: <span style="color:#e6db74">&#39;false&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_solo</span>: <span style="color:#e6db74">&#39;false&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_remove_existing</span>: <span style="color:#e6db74">&#39;false&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">loop</span>:
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">type: &#39;A&#39;, value</span>: <span style="color:#e6db74">&#39;185.199.108.153&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">type: &#39;A&#39;, value</span>: <span style="color:#e6db74">&#39;185.199.109.153&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">type: &#39;A&#39;, value</span>: <span style="color:#e6db74">&#39;185.199.110.153&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">type: &#39;A&#39;, value</span>: <span style="color:#e6db74">&#39;185.199.111.153&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">type: &#39;AAAA&#39;, value</span>: <span style="color:#e6db74">&#39;2606:50c0:8000::153&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">type: &#39;AAAA&#39;, value</span>: <span style="color:#e6db74">&#39;2606:50c0:8001::153&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">type: &#39;AAAA&#39;, value</span>: <span style="color:#e6db74">&#39;2606:50c0:8002::153&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">type: &#39;AAAA&#39;, value</span>: <span style="color:#e6db74">&#39;2606:50c0:8003::153&#39;</span> }
+</span></span></code></pre></div><p>With each loop the variables are replaced without interfering with others.</p>
+<hr>
+<h2 id="files-and-directories">Files (and Directories)<a href="#files-and-directories" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<hr>
+<p>One of the simplest and most common tasks within each of my roles are those involving the <code>ansible.builtin.file</code> module, specifically the creation of directories and touching of files.</p>
+<h3 id="common-task-1">Common Task<a href="#common-task-1" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Conduct file task</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.file</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ file_path }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#e6db74">&#39;{{ file_state }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">force</span>: <span style="color:#e6db74">&#39;{{ file_force }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">owner</span>: <span style="color:#e6db74">&#39;{{ file_owner }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">group</span>: <span style="color:#e6db74">&#39;{{ file_group }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">mode</span>: <span style="color:#e6db74">&#39;{{ file_mode }}&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Wait for file</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">when</span>: <span style="color:#ae81ff">(file_state != &#39;directory&#39;) and (file_state != &#39;touch&#39;)</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.wait_for</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ file_path }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#e6db74">&#39;{{ file_state }}&#39;</span>
+</span></span></code></pre></div><p>The above includes a <code>wait_for</code> task to assure the file is present before continuing the play.</p>
+<h3 id="include_task-1">include_task<a href="#include_task-1" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Create directories</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.include_tasks</span>: <span style="color:#e6db74">&#39;/ansible/resources/file.yml&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">vars</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">file_path</span>: <span style="color:#e6db74">&#39;{{ item }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">file_state</span>: <span style="color:#e6db74">&#39;directory&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">file_force</span>: <span style="color:#e6db74">&#39;false&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">file_owner</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">file_group</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">file_mode</span>: <span style="color:#e6db74">&#39;0755&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">loop</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ hugo_cache_location }}&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ obsidian_location }}&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ obsidian_location }}/vault&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ obsidian_location }}/vault/posts&#39;</span>
+</span></span></code></pre></div><p>In some cases the desired variables will differ between files and directories:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Create directories</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.include_tasks</span>: <span style="color:#e6db74">&#39;/ansible/resources/file.yml&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">vars</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">file_path</span>: <span style="color:#e6db74">&#39;{{ item.path }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">file_state</span>: <span style="color:#e6db74">&#39;directory&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">file_force</span>: <span style="color:#e6db74">&#39;false&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">file_owner</span>: <span style="color:#e6db74">&#39;{{ item.owner }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">file_group</span>: <span style="color:#e6db74">&#39;{{ item.group }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">file_mode</span>: <span style="color:#e6db74">&#39;0755&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">loop</span>:
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ authelia_location }}&#39;</span><span style="color:#f92672">, owner</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span><span style="color:#f92672">, group</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ authelia_logs_location }}&#39;</span><span style="color:#f92672">, owner</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span><span style="color:#f92672">, group</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ authelia_redis_location }}&#39;</span><span style="color:#f92672">, owner: &#39;1001&#39;, group</span>: <span style="color:#e6db74">&#39;1001&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ traefik_location }}&#39;</span><span style="color:#f92672">, owner</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span><span style="color:#f92672">, group</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ traefik_logs_location }}&#39;</span><span style="color:#f92672">, owner</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span><span style="color:#f92672">, group</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span> }
+</span></span></code></pre></div><p>In some cases it&rsquo;s a simple case of &rsquo;touching&rsquo; a file:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Touch acme.json</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.include_tasks</span>: <span style="color:#e6db74">&#39;/ansible/resources/file.yml&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">vars</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">file_path</span>: <span style="color:#e6db74">&#39;{{ traefik_location }}/acme.json&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">file_state</span>: <span style="color:#e6db74">&#39;touch&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">file_force</span>: <span style="color:#e6db74">&#39;false&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">file_owner</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">file_group</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">file_mode</span>: <span style="color:#e6db74">&#39;0600&#39;</span>
+</span></span></code></pre></div><hr>
+<h2 id="file-copy">File Copy<a href="#file-copy" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<hr>
+<p>A simple task to copy files from one directory to another. I typically use this to copy files that docker services require from their role folder to the services appdata directory (though, I prefer to template files where and when possible).</p>
+<h3 id="common-task-2">Common Task<a href="#common-task-2" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Check if file exists</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.stat</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ copy_destination }}&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">register</span>: <span style="color:#ae81ff">file_copy_stat</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Copy file</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">when</span>: <span style="color:#ae81ff">not file_copy_stat.stat.exists</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.copy</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">src</span>: <span style="color:#e6db74">&#39;{{ copy_source }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">dest</span>: <span style="color:#e6db74">&#39;{{ copy_destination }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">force</span>: <span style="color:#e6db74">&#39;{{ copy_force }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">owner</span>: <span style="color:#e6db74">&#39;{{ copy_owner }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">group</span>: <span style="color:#e6db74">&#39;{{ copy_pgid }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">mode</span>: <span style="color:#e6db74">&#39;{{ copy_mode }}&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Wait for file to be created</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.wait_for</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ copy_destination }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">present</span>
+</span></span></code></pre></div><h3 id="include_task-2">include_task<a href="#include_task-2" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Copy Hugo Terminal Themes files</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.include_tasks</span>: <span style="color:#e6db74">&#39;/ansible/resources/copy.yml&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">vars</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">copy_source</span>: <span style="color:#e6db74">&#39;{{ item.source }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">copy_destination</span>: <span style="color:#e6db74">&#39;{{ item.destination }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">copy_force</span>: <span style="color:#e6db74">&#39;true&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">copy_owner</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">copy_group</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">copy_mode</span>: <span style="color:#e6db74">&#39;0644&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">loop</span>:
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">source</span>: <span style="color:#e6db74">&#39;{{ role_path }}/files/favicon.png&#39;</span><span style="color:#f92672">, destination</span>: <span style="color:#e6db74">&#39;/{{ hugo_site_name }}/static/favicon.png&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">source</span>: <span style="color:#e6db74">&#39;{{ role_path }}/files/og-image.png&#39;</span><span style="color:#f92672">, destination</span>: <span style="color:#e6db74">&#39;/{{ hugo_site_name }}/static/og-image.png&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">source</span>: <span style="color:#e6db74">&#39;{{ role_path }}/files/terminal.css&#39;</span><span style="color:#f92672">, destination</span>: <span style="color:#e6db74">&#39;/{{ hugo_site_name }}/static/terminal.css&#39;</span> }
+</span></span></code></pre></div><p>In the above example, I copy the files required for this blogs theme.</p>
+<hr>
+<h2 id="templates">Templates<a href="#templates" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<hr>
+<p>One of the most important tasks, and one of the primary reasons I&rsquo;m using Ansible, is to set-up the various configs for my VMs and the services in them. For this, I typically template a config file from a role directory into a desired folder.</p>
+<h3 id="common-task-3">Common Task<a href="#common-task-3" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Template file</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.template</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">src</span>: <span style="color:#e6db74">&#39;{{ template_source }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">dest</span>: <span style="color:#e6db74">&#39;{{ template_destination }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">force</span>: <span style="color:#e6db74">&#39;{{ template_force }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">owner</span>: <span style="color:#e6db74">&#39;{{ template_owner }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">group</span>: <span style="color:#e6db74">&#39;{{ template_group }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">mode</span>: <span style="color:#e6db74">&#39;{{ template_mode }}&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Wait for file to be created</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.wait_for</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ template_destination }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">present</span>
+</span></span></code></pre></div><h3 id="include_task-3">include_task<a href="#include_task-3" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Conduct template tasks</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.include_tasks</span>: <span style="color:#e6db74">&#39;/ansible/resources/template.yml&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">vars</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">template_location</span>: <span style="color:#e6db74">&#39;{{ item.template }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">file_location</span>: <span style="color:#e6db74">&#39;{{ item.file }}&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">loop</span>:
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">template</span>: <span style="color:#e6db74">&#39;{{ role_path }}/templates/configs/autobrr_config.toml.j2&#39;</span><span style="color:#f92672">, file</span>: <span style="color:#e6db74">&#39;{{ autobrr_location }}/config.toml&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">template</span>: <span style="color:#e6db74">&#39;{{ role_path }}/templates/configs/doplarr_config.edn.j2&#39;</span><span style="color:#f92672">, file</span>: <span style="color:#e6db74">&#39;{{ doplarr_location }}/config.edn&#39;</span> }
+</span></span></code></pre></div><p><strong>Example config (autobrr_config.toml.j2):</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-toml" data-lang="toml"><span style="display:flex;"><span><span style="color:#75715e"># config.toml</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">host</span> = <span style="color:#e6db74">&#39;0.0.0.0&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">port</span> = <span style="color:#e6db74">&#39;{{ autobrr_ports_cont }}&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">logPath</span> = <span style="color:#e6db74">&#39;{{ autobrr_logs_path }}&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">logLevel</span> = <span style="color:#e6db74">&#39;{{ autobrr_logs_level }}&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">logMaxSize</span> = <span style="color:#e6db74">&#39;{{ autobrr_logs_max_size }}&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">logMaxBackups</span> = <span style="color:#e6db74">&#39;{{ autobrr_logs_max_backups }}&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">checkForUpdates</span> = <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">sessionSecret</span> = <span style="color:#e6db74">&#39;{{ autobrr_session_secret.stdout }}&#39;</span>
+</span></span></code></pre></div><p><strong>After templating:</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-toml" data-lang="toml"><span style="display:flex;"><span><span style="color:#75715e"># config.toml</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">host</span> = <span style="color:#e6db74">&#39;0.0.0.0&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">port</span> = <span style="color:#e6db74">&#39;7474&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">logPath</span> = <span style="color:#e6db74">&#39;/log/autobrr.log&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">logLevel</span> = <span style="color:#e6db74">&#39;DEBUG&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">logMaxSize</span> = <span style="color:#e6db74">&#39;50&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">logMaxBackups</span> = <span style="color:#e6db74">&#39;3&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">checkForUpdates</span> = <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">sessionSecret</span> = <span style="color:#e6db74">&#39;SomeSecret&#39;</span>
+</span></span></code></pre></div><hr>
+<h2 id="traefik-labels">Traefik Labels<a href="#traefik-labels" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<hr>
+<p>Traefik is my reverse-proxy of choice for my docker services, with much of the config taking place in Traefik docker labels. Previously, I would define the Traefik labels for each service individually in a role defaults file. Depending on the service, I have http, https, api and theme-park labels. It can get quite extensive and much of the labels are the same across services with only variables such as the router name and port differing.</p>
+<p>To reduce the bloat, I make use of:</p>
+<ol>
+<li>A labels template contained in my group_vars</li>
+<li>A common task file to determine required labels</li>
+<li>Include_tasks task with relevant variables.</li>
+</ol>
+<h3 id="group_vars">Group_Vars<a href="#group_vars" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">traefik_labels_core</span>:
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">traefik.enable</span>: <span style="color:#e6db74">&#34;true&#34;</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">traefik.docker.network</span>: <span style="color:#e6db74">&#34;{{ router_network }}&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">traefik_labels_http</span>:
+</span></span><span style="display:flex;"><span>  - <span style="color:#e6db74">&#39;{ &#34;traefik.http.routers.{{ router_name }}.entrypoints&#34;: &#34;{{ router_entrypoint }}&#34; }&#39;</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#e6db74">&#39;{ &#34;traefik.http.routers.{{ router_name }}.rule&#34;: &#34;{{ router_rule }}&#34; }&#39;</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#e6db74">&#39;{ &#34;traefik.http.routers.{{ router_name }}.middlewares&#34;: &#34;{{ router_http_middlewares }}&#34; }&#39;</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#e6db74">&#39;{ &#34;traefik.http.routers.{{ router_name }}.priority&#34;: &#34;20&#34; }&#39;</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#e6db74">&#39;{ &#34;traefik.http.routers.{{ router_name }}.service&#34;: &#34;{{ router_name }}-svc&#34; }&#39;</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#e6db74">&#39;{ &#34;traefik.http.services.{{ router_name }}-svc.loadbalancer.server.port&#34;: &#34;{{ router_port }}&#34; }&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">traefik_labels_https</span>:
+</span></span><span style="display:flex;"><span>  - <span style="color:#e6db74">&#39;{ &#34;traefik.http.routers.{{ router_name }}-secure.entrypoints&#34;: &#34;{{ router_secure_entrypoint }}&#34; }&#39;</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#e6db74">&#39;{ &#34;traefik.http.routers.{{ router_name }}-secure.rule&#34;: &#34;{{ router_rule }}&#34; }&#39;</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#e6db74">&#39;{ &#34;traefik.http.routers.{{ router_name }}-secure.middlewares&#34;: &#34;{{ router_https_middlewares }}&#34; }&#39;</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#e6db74">&#39;{ &#34;traefik.http.routers.{{ router_name }}-secure.priority&#34;: &#34;20&#34; }&#39;</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#e6db74">&#39;{ &#34;traefik.http.routers.{{ router_name }}-secure.service&#34;: &#34;{{ router_name }}-secure-svc&#34; }&#39;</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#e6db74">&#39;{ &#34;traefik.http.routers.{{ router_name }}-secure.tls.certresolver&#34;: &#34;{{ router_tls_certresolver }}&#34; }&#39;</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#e6db74">&#39;{ &#34;traefik.http.routers.{{ router_name }}-secure.tls.options&#34;: &#34;{{ router_tls_options }}&#34; }&#39;</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#e6db74">&#39;{ &#34;traefik.http.services.{{ router_name }}-secure-svc.loadbalancer.server.port&#34;: &#34;{{ router_port }}&#34; }&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">traefik_labels_http_api</span>:
+</span></span><span style="display:flex;"><span>  - <span style="color:#e6db74">&#39;{ &#34;traefik.http.routers.{{ router_name }}-api.entrypoints&#34;: &#34;{{ router_entrypoint }}&#34; }&#39;</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#e6db74">&#39;{ &#34;traefik.http.routers.{{ router_name }}-api.rule&#34;: &#34;{{ router_api_rule }}&#34; }&#39;</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#e6db74">&#39;{ &#34;traefik.http.routers.{{ router_name }}-api.middlewares&#34;: &#34;{{ traefik_http_middlewares }}&#34; }&#39;</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#e6db74">&#39;{ &#34;traefik.http.routers.{{ router_name }}-api.priority&#34;: &#34;30&#34; }&#39;</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#e6db74">&#39;{ &#34;traefik.http.routers.{{ router_name }}-api.service&#34;: &#34;{{ router_name }}-svc&#34; }&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">traefik_labels_https_api</span>:
+</span></span><span style="display:flex;"><span>  - <span style="color:#e6db74">&#39;{ &#34;traefik.http.routers.{{ router_name }}-api-secure.entrypoints&#34;: &#34;{{ router_secure_entrypoint }}&#34; }&#39;</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#e6db74">&#39;{ &#34;traefik.http.routers.{{ router_name }}-api-secure.rule&#34;: &#34;{{ router_api_rule }}&#34; }&#39;</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#e6db74">&#39;{ &#34;traefik.http.routers.{{ router_name }}-api-secure.middlewares&#34;: &#34;{{ traefik_https_middlewares }}&#34; }&#39;</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#e6db74">&#39;{ &#34;traefik.http.routers.{{ router_name }}-api-secure.priority&#34;: &#34;30&#34; }&#39;</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#e6db74">&#39;{ &#34;traefik.http.routers.{{ router_name }}-api-secure.service&#34;: &#34;{{ router_name }}-secure-svc&#34; }&#39;</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#e6db74">&#39;{ &#34;traefik.http.routers.{{ router_name }}-api-secure.tls.certresolver&#34;: &#34;{{ router_tls_certresolver }}&#34; }&#39;</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#e6db74">&#39;{ &#34;traefik.http.routers.{{ router_name }}-api-secure.tls.options&#34;: &#34;{{ router_tls_options }}&#34; }&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">traefik_labels_themepark</span>:
+</span></span><span style="display:flex;"><span>  - <span style="color:#e6db74">&#39;{ &#34;traefik.http.middlewares.themepark-{{ router_name }}.plugin.themepark.app&#34;: &#34;{{ router_themepark_app }}&#34; }&#39;</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#e6db74">&#39;{ &#34;traefik.http.middlewares.themepark-{{ router_name }}.plugin.themepark.theme&#34;: &#34;{{ router_themepark_theme }}&#34; }&#39;</span>
+</span></span></code></pre></div><h3 id="common-task-4">Common Task<a href="#common-task-4" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># CHECKS</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Set api fact</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.set_fact</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_api_is_enabled</span>: <span style="color:#e6db74">&#39;{{ (router_api is defined) and
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                               (router_api is not none) and
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                               (router_api | trim | length &gt; 0) }}&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Set themepark fact</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.set_fact</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_themepark_is_enabled</span>: <span style="color:#e6db74">&#39;{{ (router_themepark_app is defined) and
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                                     (router_themepark_app is not none) and
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                                     (router_themepark_app | trim | length &gt; 0) }}&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># RULES</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Set router rule</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.set_fact</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_rule</span>: <span style="color:#e6db74">&#39;{{ &#34;Host(`&#34; + router_name + &#34;.&#34; + router_domain + &#34;`)&#34; }}&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Set router api rule</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">when</span>: <span style="color:#ae81ff">router_api_is_enabled</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.set_fact</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_api_rule</span>: <span style="color:#e6db74">&#39;{{ &#34;Host(`&#34; + router_name + &#34;.&#34; + router_domain + &#34;`) &amp;&amp; (&#34; + router_api + &#34;)&#34; }}&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># LABELS</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Set basic traefik labels</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">when</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#ae81ff">not router_themepark_is_enabled</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#ae81ff">not router_api_is_enabled</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.set_fact</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#39;{{ router_variable }}&#39;</span>: <span style="color:#e6db74">&#39;{{ traefik_labels_core
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                                 | combine(traefik_labels_http)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                                 | combine(traefik_labels_https) }}&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Set api traefik labels</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">when</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#ae81ff">not router_themepark_is_enabled</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#ae81ff">router_api_is_enabled</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.set_fact</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#39;{{ router_variable }}&#39;</span>: <span style="color:#e6db74">&#39;{{ traefik_labels_core
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                                 | combine(traefik_labels_http)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                                 | combine(traefik_labels_https)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                                 | combine(traefik_labels_http_api) 
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                                 | combine(traefik_labels_https_api) }}&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Set api-only traefik labels</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">when</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#ae81ff">not router_themepark_is_enabled</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#ae81ff">router_api_is_enabled</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#ae81ff">router_variable is search(&#39;_api_labels&#39;)</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.set_fact</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#39;{{ router_variable }}&#39;</span>: <span style="color:#e6db74">&#39;{{ traefik_labels_core
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                                 | combine(traefik_labels_http_api) 
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                                 | combine(traefik_labels_https_api) }}&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Set themepark traefik labels</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">when</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#ae81ff">router_themepark_is_enabled</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#ae81ff">not router_api_is_enabled</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.set_fact</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#39;{{ router_variable }}&#39;</span>: <span style="color:#e6db74">&#39;{{ traefik_labels_core
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                                 | combine(traefik_labels_http)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                                 | combine(traefik_labels_https)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                                 | combine(traefik_labels_themepark) }}&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Set full traefik labels</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">when</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#ae81ff">router_themepark_is_enabled</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#ae81ff">router_api_is_enabled</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.set_fact</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#39;{{ router_variable }}&#39;</span>: <span style="color:#e6db74">&#39;{{ traefik_labels_core
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                                 | combine(traefik_labels_http)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                                 | combine(traefik_labels_https)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                                 | combine(traefik_labels_http_api) 
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                                 | combine(traefik_labels_https_api)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                                 | combine(traefik_labels_themepark) }}&#39;</span>
+</span></span></code></pre></div><p>The above task file combines the relevant labels into a single variable that is provided to the docker compose file.</p>
+<h3 id="include_task-4">include_task<a href="#include_task-4" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Set traefik Labels</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.include_tasks</span>: <span style="color:#ae81ff">/ansible/resources/labels.yml</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">vars</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_variable</span>: <span style="color:#e6db74">&#39;{{ item.var }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_network</span>: <span style="color:#e6db74">&#39;{{ network_overlay }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_name</span>: <span style="color:#e6db74">&#39;{{ item.name }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_port</span>: <span style="color:#e6db74">&#39;{{ item.port }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_api</span>: <span style="color:#e6db74">&#39;{{ item.api }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_domain</span>: <span style="color:#e6db74">&#39;{{ local_domain }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_entrypoint</span>: <span style="color:#e6db74">&#39;http&#39;</span>  <span style="color:#75715e">## web if saltbox</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_secure_entrypoint</span>: <span style="color:#e6db74">&#39;https&#39;</span>  <span style="color:#75715e">## websecure if saltbox</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_tls_certresolver</span>: <span style="color:#e6db74">&#39;dns-cloudflare&#39;</span>  <span style="color:#75715e">## cfdns if saltbox</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_tls_options</span>: <span style="color:#e6db74">&#39;tls-opts@file&#39;</span>  <span style="color:#75715e">## securetls@file if saltbox</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_themepark_app</span>: <span style="color:#e6db74">&#39;{{ item.tp_app }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_themepark_theme</span>: <span style="color:#e6db74">&#39;hotpink&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_http_middlewares</span>: <span style="color:#e6db74">&#39;{{ traefik_http_middlewares + item.sso + item.tp }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_https_middlewares</span>: <span style="color:#e6db74">&#39;{{ traefik_https_middlewares + item.sso + item.tp }}&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">loop</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">## bazarr</span>
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">var</span>: <span style="color:#e6db74">&#39;bazarr_labels&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#39;{{ bazarr_name }}&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">port</span>: <span style="color:#e6db74">&#39;{{ bazarr_ports_cont }}&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">api</span>: <span style="color:#e6db74">&#39;PathPrefix(`/api`)&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">sso</span>: <span style="color:#e6db74">&#39;,authelia@swarm&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">tp</span>: <span style="color:#e6db74">&#39;,themepark-bazarr&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">tp_app</span>: <span style="color:#e6db74">&#39;bazarr&#39;</span> }
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">## lidarr</span>
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">var</span>: <span style="color:#e6db74">&#39;lidarr_labels&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#39;{{ lidarr_name }}&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">port</span>: <span style="color:#e6db74">&#39;{{ lidarr_ports_cont }}&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">api</span>: <span style="color:#e6db74">&#39;PathPrefix(`/api`) || PathPrefix(`/feed`) || PathPrefix(`/ping`)&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">sso</span>: <span style="color:#e6db74">&#39;,authelia@swarm&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">tp</span>: <span style="color:#e6db74">&#39;,themepark-lidarr&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">tp_app</span>: <span style="color:#e6db74">&#39;lidarr&#39;</span> }
+</span></span></code></pre></div><p>In the above example, both services receive full Traefik labels, including being protected by my SSO provider (Authelia), API labels and Theme-Park. Simply leaving the API and/or Themepark vars empty will remove these labels, i.e:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Set Obsidian traefik Labels</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.include_tasks</span>: <span style="color:#ae81ff">/ansible/resources/labels.yml</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">vars</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_variable</span>: <span style="color:#e6db74">&#39;obsidian_labels&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_network</span>: <span style="color:#e6db74">&#39;{{ network_overlay }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_name</span>: <span style="color:#e6db74">&#39;{{ obsidian_name }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_port</span>: <span style="color:#e6db74">&#39;{{ obsidian_ports_http_cont }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_api</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_domain</span>: <span style="color:#e6db74">&#39;{{ local_domain }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_entrypoint</span>: <span style="color:#e6db74">&#39;http&#39;</span>  <span style="color:#75715e">## web if saltbox</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_secure_entrypoint</span>: <span style="color:#e6db74">&#39;https&#39;</span>  <span style="color:#75715e">## websecure if saltbox</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_tls_certresolver</span>: <span style="color:#e6db74">&#39;dns-cloudflare&#39;</span>  <span style="color:#75715e">## cfdns if saltbox</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_tls_options</span>: <span style="color:#e6db74">&#39;tls-opts@file&#39;</span>  <span style="color:#75715e">## securetls@file if saltbox</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_themepark_app</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_themepark_theme</span>: <span style="color:#e6db74">&#39;hotpink&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_http_middlewares</span>: <span style="color:#e6db74">&#39;{{ traefik_http_middlewares + &#34;,authelia@swarm&#34; }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_https_middlewares</span>: <span style="color:#e6db74">&#39;{{ traefik_https_middlewares + &#34;,authelia@swarm&#34; }}&#39;</span>
+</span></span></code></pre></div><p>Moving Traefik labels to this eliminated unnecessary defaults files.</p>
+<script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="lebowski89" data-description="Support me on Buy me a coffee!" data-message="Coffee" data-color="#5F7FFF" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
+      </div></div>
+
+  
+
+  
+    
+
+  
+</article>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2025 Powered by <a href="https://gohugo.io">Hugo</a></span>
+    
+      <span>:: <a href="https://github.com/panr/hugo-theme-terminal" target="_blank">Theme</a> made by <a href="https://github.com/panr" target="_blank">panr</a></span>
+      </div>
+  </div>
+</footer>
+
+
+
+
+
+
+<script type="text/javascript" src="/bundle.min.js"></script>
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>

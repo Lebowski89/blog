@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Traefik on Le Tour De Blog</title>
+    <link>http://localhost:1313/tags/traefik/</link>
+    <description>Recent content in Traefik on Le Tour De Blog</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <atom:link href="http://localhost:1313/tags/traefik/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Handling common tasks within Ansible</title>
+      <link>http://localhost:1313/common/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/common/</guid>
+      <description>&lt;hr&gt;&#xA;&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;&#xA;&lt;hr&gt;&#xA;&lt;p&gt;When you begin constructing your Ansible tasks - roles - collections, you quickly realise that there are many tasks that you will use repeatedly with little variance. For example, if you&amp;rsquo;re using Ansible to help set-up and deploy your docker containers, you&amp;rsquo;ll have common tasks that create directories, configs, DNS and Traefik labels, among many others. If you&amp;rsquo;re like me, I would simply copy and paste these tasks. While Ansible will run through and automate these repeated tasks all the same, the more tasks you have to repeat in a play, the more bloated and unreadable your playbook becomes and the more maintenance upkeep is required.&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Misc on Le Tour De Blog</title>
+    <link>http://localhost:1313/tags/misc/</link>
+    <description>Recent content in Misc on Le Tour De Blog</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <atom:link href="http://localhost:1313/tags/misc/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Miscellaneous Ansible topics (rants)</title>
+      <link>http://localhost:1313/misc/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/misc/</guid>
+      <description>&lt;h2 id=&#34;ansible-lives&#34;&gt;Ansible Lives!&lt;/h2&gt;&#xA;&lt;p&gt;A weird thing I&amp;rsquo;ve noticed with my Ansible journey are the number of people who either think that Ansible is dying/dead. It simply is not so. Some of these &amp;lsquo;doomsayers&amp;rsquo; don&amp;rsquo;t approach Ansible with a mindset of what can it do to help them achieve jobs and tasks, they approach it with whether learning it will give them the skill-set to fast-track their entry into a job, career, industry. These people will then jump onto Kubernetes and other solutions that are &amp;lsquo;all the rage&amp;rsquo; these days. But it&amp;rsquo;s important to remember:&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

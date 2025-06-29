@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Roles on Le Tour De Blog</title>
+    <link>http://localhost:1313/tags/roles/</link>
+    <description>Recent content in Roles on Le Tour De Blog</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <atom:link href="http://localhost:1313/tags/roles/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Structuring your Ansible Roles</title>
+      <link>http://localhost:1313/roles/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/roles/</guid>
+      <description>&lt;hr&gt;&#xA;&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;&#xA;&lt;hr&gt;&#xA;&lt;p&gt;Ansible roles contain the majority of my tasks that automate the setup and deployment of my Docker containers and Swarm services. During my time with Ansible, my roles have changed a lot, but the structure of&lt;/p&gt;&#xA;&lt;hr&gt;&#xA;&lt;h2 id=&#34;group_vars&#34;&gt;Group_Vars&lt;/h2&gt;&#xA;&lt;hr&gt;&#xA;&lt;p&gt;Contains variables that may be required across multiple roles. For example:&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;Role 1 - Prepares and deploys Radarr&lt;/li&gt;&#xA;&lt;li&gt;Role 2 - Prepares and deploys Doplarr and Jellyseerr&lt;/li&gt;&#xA;&lt;li&gt;Role 3 - Prepares and deploys Radarr Prometheus exporter&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;p&gt;In the above example, all three roles will require Radarr&amp;rsquo;s service name, port, location and api. Rather than defining these multiple times, it can be defined once in group_vars (minus sensitive values depending on your set-up).&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

@@ -103,19 +103,36 @@ Pre-tasks, as the name suggests, always run first during a play. I reserve these
       register: public_ip
       tags: always
 
-    - name: Set timezone variable
-      ansible.builtin.set_fact:
-        timezone: '{{ ansible_facts.timezone }}'
-      tags: always
-
     - name: Public IP output
       ansible.builtin.debug:
         msg: '{{ ipify_public_ip }}'
       tags: always
 
+    - name: Set timezone variable
+      ansible.builtin.set_fact:
+        timezone: '{{ ansible_facts.timezone }}'
+      tags: always
+
+    - name: Timezone output
+      ansible.builtin.debug:
+        msg: '{{ timezone }}'
+      tags: always      
+
+    - name: Set Local IPs
+      when: not inventory_hostname == 'saltbox'
+      ansible.builtin.set_fact:
+        local_ip: '{{ ansible_default_ipv4.address | default(ansible_all_ipv4_addresses[0]) }}'
+      tags: always
+
+    - name: Local IP output
+      when: not inventory_hostname == 'saltbox'
+      ansible.builtin.debug:
+        msg: '{{ local_ip }}'
+      tags: always
+
 ```
 
-Above, I get package, timezone, and public IP information for each host, which is useful when installing packages, setting docker env values, and dealing with DNS tasks.
+Above, I get package, timezone, and local/public IP information for each host, which is useful when installing packages, deploying services, and dealing with DNS tasks.
 
 For example, this task relies on information gathered by the `Gather packages` task:
 
@@ -140,6 +157,287 @@ The tasks section is the bulk of my playbook, and is simply used to include my v
 ```yaml
 
   tasks:
+
+################################
+# ARRS
+################################
+
+  ## Services: `Bazarr` `Lidarr` `Prowlarr` `Radarr/Radarr-4K` `Readarr` `Sonarr/Sonarr-4K` `Whisparr/Whisparr-V3`
+
+    - name: Deploy arrs stack
+      when: inventory_hostname == 'localhost'
+      ansible.builtin.include_role:
+        name: arrs
+        apply:
+          tags: arrs
+      tags: arrs
+
+################################
+# BLOG
+################################
+
+  ## Services: `Hugo` `Obsidian`
+  
+    - name: Deploy blog stack
+      when: inventory_hostname == 'localhost'
+      ansible.builtin.include_role:
+        name: blog
+        apply:
+          tags: blog
+      tags: blog
+
+################################
+# COMPANIONS
+################################
+
+  ## Services: `AutoBrr` `Doplarr` `Jellyseerr` `Notifiarr` `Ombi` `Recyclarr` `TheLounge` `ThemePark` `ZNC`
+
+    - name: Retrieve Plex token
+      when: inventory_hostname == 'localhost'
+      ansible.builtin.set_fact:
+        plex_auth_token: '{{ lookup("ini", "token section=" + plex_name + " file=" + plex_token_location) | regex_replace("\n", "") }}'
+      tags: comps
+
+    - name: Deploy comps stack
+      when: inventory_hostname == 'localhost'
+      ansible.builtin.include_role:
+        name: comps
+        apply:
+          tags: comps
+      tags: comps
+
+################################
+# DNS
+################################
+
+  ## Services: `Technitium`
+
+    - name: Create directories
+      when: inventory_hostname == 'plex'
+      ansible.builtin.file:
+        path: '{{ technitium_location }}'
+        state: directory
+        owner: '{{ puid }}'
+        group: '{{ pgid }}'
+        mode: '0755'
+      tags: dns
+
+    - name: Fetch node name from plex host
+      when: inventory_hostname == 'plex'
+      ansible.builtin.set_fact:
+        plex_worker_node: '{{ ansible_facts["nodename"] }}'
+      tags: dns
+
+    - name: Set worker node technitium label
+      when: inventory_hostname == 'localhost'
+      docker_node:
+        hostname: '{{ hostvars["plex"]["plex_worker_node"] }}'
+        labels:
+          dns: technitium
+        labels_state: merge
+      tags: dns
+
+    - name: Deploy dns stack
+      when: inventory_hostname == 'localhost'
+      ansible.builtin.include_role:
+        name: dns
+        apply:
+          tags: dns
+      tags: dns
+
+    - name: Deploy dns stack
+      when: inventory_hostname == 'localhost'
+      ansible.builtin.include_role:
+        name: dns
+        apply:
+          tags: dns
+      tags: dns
+
+################################
+# GITEA
+################################
+
+    - name: Deploy gitea stack
+      when: inventory_hostname == 'localhost'
+      ansible.builtin.include_role:
+        name: gitea
+        apply:
+          tags: gitea
+      tags: gitea
+
+################################
+# MARIADB
+################################
+
+    - name: Deploy mariadb stack
+      when: inventory_hostname == 'localhost'
+      ansible.builtin.include_role:
+        name: mariadb
+        apply:
+          tags: mariadb
+      tags: mariadb
+
+################################
+# METRICS
+################################
+
+  ## Services: `Exportarr` `Grafana` `Loki` `Plex-Exporter` `Promtail` `Prometheus` `qBit-Exporter` `Scraparr`
+
+    - name: Deploy metrics stack
+      when: inventory_hostname == 'localhost'
+      ansible.builtin.include_role:
+        name: metrics
+        apply:
+          tags: metrics
+      tags: metrics
+
+################################
+# PLEX
+################################
+
+  ## Services: `ImageMaid` `Kometa` `Plex` `PlexTraktSync` `Posterr` `Tautulli` `Wrapperr`
+
+    - name: Prepare plex token
+      when: inventory_hostname == 'localhost'
+      ansible.builtin.include_role:
+        name: plex
+        apply:
+          tags: plex
+      tags: plex
+
+    - name: Prepare plex stack
+      when: inventory_hostname == 'plex'
+      ansible.builtin.include_role:
+        name: plex2
+        apply:
+          tags: plex
+      tags: plex
+
+    - name: Deploy plex stack
+      when: inventory_hostname == 'localhost'
+      ansible.builtin.include_role:
+        name: plex3
+        apply:
+          tags: plex
+      tags: plex
+
+################################
+# POSTGRES
+################################
+
+  ## Services: `Adminer` `Postgres`
+
+    - name: Deploy postgres stack
+      when: inventory_hostname == 'localhost'
+      ansible.builtin.include_role:
+        name: postgres
+        apply:
+          tags: postgres
+      tags: postgres
+
+################################
+# PROXY
+################################
+
+  ## Services: `Authelia` `Redis` `Traefik`
+
+    - name: Deploy proxy stack
+      when: inventory_hostname == 'localhost'
+      ansible.builtin.include_role:
+        name: proxy
+        apply:
+          tags: proxy
+      tags: proxy
+
+################################
+# TORRENTS
+################################
+
+  ## Services: `Cross-Seed` `qBittorrent` `qBit-Manage` `Seasonpackarr` `Unpackerr`
+
+    - name: Deploy torrents stack
+      when: inventory_hostname == 'saltbox'
+      ansible.builtin.include_role:
+        name: torrents
+        apply:
+          tags: torrents
+      tags: torrents
+
+################################
+# UNIFI
+################################
+
+  ## Services: `Mongo` `Unifi-Network-Application`
+
+    - name: Deploy unifi stack
+      when: inventory_hostname == 'localhost'
+      ansible.builtin.include_role:
+        name: unifi
+        apply:
+          tags: unifi
+      tags: unifi
+
+################################
+# UNIONFS
+################################
+
+  ## Services: `Cloudplow` `Mergerfs` `RClone`
+
+    - name: Deploy unionfs
+      when: inventory_hostname == 'localhost'
+      ansible.builtin.include_role:
+        name: unionfs
+        apply:
+          tags: unionfs
+      tags: unionfs
+
+################################
+# USENET
+################################
+
+  ## Services: `Sabnzbd` `NZBHydra2`
+
+    - name: Deploy usenet stack
+      when: inventory_hostname == 'localhost'
+      ansible.builtin.include_role:
+        name: usenet
+        apply:
+          tags: usenet
+      tags: usenet
+
+################################
+# UTILITIES
+################################
+
+  ## Services: `Gantry` `HomePage` `IT/Ombi-Tools` `Portainer`
+
+    - name: Retrieve Plex token
+      when: inventory_hostname == 'localhost'
+      ansible.builtin.set_fact:
+        plex_auth_token: '{{ lookup("ini", "token section=" + plex_name + " file=" + plex_token_location) | regex_replace("\n", "") }}'
+      tags: utilities
+
+    - name: Deploy utilities
+      when: inventory_hostname == 'localhost'
+      ansible.builtin.include_role:
+        name: utilities
+        apply:
+          tags: utilities
+      tags: utilities
+
+################################
+# VPN
+################################
+
+  ## Services: `Gluetun` `JDownloader2` `LibreWolf` `SearXNG`
+
+    - name: Deploy gluetun stack
+      when: inventory_hostname == 'localhost'
+      ansible.builtin.include_role:
+        name: vpn
+        apply:
+          tags: vpn
+      tags: vpn
 
 ################################
 # UBUNTU
@@ -211,248 +509,6 @@ The tasks section is the bulk of my playbook, and is simply used to include my v
           ansible_host: plex
         labels_state: replace
       tags: docker2
-
-################################
-# BLOG
-################################
-
-  ## Services: `Hugo` `Obsidian`
-  
-    - name: Deploy blog stack
-      when: inventory_hostname == 'localhost'
-      ansible.builtin.include_role:
-        name: blog
-        apply:
-          tags: blog
-      tags: blog
-
-################################
-# GITEA
-################################
-
-    - name: Deploy gitea stack
-      when: inventory_hostname == 'localhost'
-      ansible.builtin.include_role:
-        name: gitea
-        apply:
-          tags: gitea
-      tags: gitea
-
-################################
-# MARIADB
-################################
-
-    - name: Deploy mariadb stack
-      when: inventory_hostname == 'localhost'
-      ansible.builtin.include_role:
-        name: mariadb
-        apply:
-          tags: mariadb
-      tags: mariadb
-
-################################
-# POSTGRES
-################################
-
-  ## Services: `Adminer` `Postgres`
-
-    - name: Deploy postgres stack
-      when: inventory_hostname == 'localhost'
-      ansible.builtin.include_role:
-        name: postgres
-        apply:
-          tags: postgres
-      tags: postgres
-
-################################
-# ARRS
-################################
-
-  ## Services: `Bazarr` `Lidarr` `Prowlarr` `Radarr/Radarr-4K` `Readarr` `Sonarr/Sonarr-4K` `Whisparr/Whisparr-V3`
-
-    - name: Deploy arrs stack
-      when: inventory_hostname == 'localhost'
-      ansible.builtin.include_role:
-        name: arrs
-        apply:
-          tags: arrs
-      tags: arrs
-
-################################
-# COMPANIONS
-################################
-
-  ## Services: `AutoBrr` `Doplarr` `Jellyseerr` `Ombi` `Recyclarr` `TheLounge` `ZNC`
-
-    - name: Deploy companions stack
-      when: inventory_hostname == 'localhost'
-      ansible.builtin.include_role:
-        name: companions
-        apply:
-          tags: companions
-      tags: companions
-
-################################
-# USENET
-################################
-
-  ## Services: `Sabnzbd` `NZBHydra2`
-
-    - name: Deploy usenet stack
-      when: inventory_hostname == 'localhost'
-      ansible.builtin.include_role:
-        name: usenet
-        apply:
-          tags: usenet
-      tags: usenet
-
-################################
-# METRICS
-################################
-
-  ## Services: `Exportarr` `Grafana` `Loki` `Plex-Exporter` `Promtail` `Prometheus` `qBit-Exporter` `Scraparr`
-
-    - name: Deploy metrics stack
-      when: inventory_hostname == 'localhost'
-      ansible.builtin.include_role:
-        name: metrics
-        apply:
-          tags: metrics
-      tags: metrics
-
-################################
-# DNS
-################################
-
-  ## Services: `Adguard Home` `Technitium`
-
-    - name: Deploy dns stack
-      when: inventory_hostname == 'localhost'
-      ansible.builtin.include_role:
-        name: dns
-        apply:
-          tags: dns
-      tags: dns
-
-################################
-# TRAEFIK
-################################
-
-  ## Services: `Authelia` `Redis` `Traefik`
-
-    - name: Deploy traefik stack
-      when: inventory_hostname == 'localhost'
-      ansible.builtin.include_role:
-        name: traefik
-        apply:
-          tags: traefik
-      tags: traefik
-
-################################
-# TORRENTS
-################################
-
-  ## Services: `Cross-Seed` `qBittorrent` `qBit-Manage` `Seasonpackarr` `Unpackerr`
-
-    - name: Deploy torrents stack
-      when: inventory_hostname == 'saltbox'
-      ansible.builtin.include_role:
-        name: torrents
-        apply:
-          tags: torrents
-      tags: torrents
-
-################################
-# UNIFI
-################################
-
-  ## Services: `Mongo` `Unifi-Network-Application`
-
-    - name: Deploy unifi stack
-      when: inventory_hostname == 'localhost'
-      ansible.builtin.include_role:
-        name: unifi
-        apply:
-          tags: unifi
-      tags: unifi
-
-################################
-# GLUETUN
-################################
-
-  ## Services: `Gluetun` `JDownloader2` `LibreWolf` `SearXNG`
-
-    - name: Deploy gluetun stack
-      when: inventory_hostname == 'localhost'
-      ansible.builtin.include_role:
-        name: gluetun
-        apply:
-          tags: gluetun
-      tags: gluetun
-
-################################
-# UNIONFS
-################################
-
-  ## Services: `Cloudplow` `Mergerfs` `RClone`
-
-    - name: Deploy unionfs
-      when: inventory_hostname == 'localhost'
-      ansible.builtin.include_role:
-        name: unionfs
-        apply:
-          tags: unionfs
-      tags: unionfs
-
-################################
-# UTILITIES
-################################
-
-  ## Services: `Compose-Craft` `Gantry` `HomePage` `IT/Ombi-Tools` `Portainer` `ThemePark`
-
-    - name: Retrieve Plex token
-      when: inventory_hostname == 'localhost'
-      ansible.builtin.set_fact:
-        plex_auth_token: '{{ lookup("ini", "token section=" + plex_name + " file=" + plex_token_location) | regex_replace("\n", "") }}'
-      tags: utilities
-
-    - name: Deploy utilities
-      when: inventory_hostname == 'localhost'
-      ansible.builtin.include_role:
-        name: utilities
-        apply:
-          tags: utilities
-      tags: utilities
-
-################################
-# PLEX
-################################
-
-  ## Services: `Checkrr` `ImageMaid` `Kometa` `Plex` `PlexTraktSync` `Posterr` `Tautulli` `Wrapperr`
-
-    - name: Prepare plex token
-      when: inventory_hostname == 'localhost'
-      ansible.builtin.include_role:
-        name: plex
-        apply:
-          tags: plex
-      tags: plex
-
-    - name: Prepare plex stack
-      when: inventory_hostname == 'plex'
-      ansible.builtin.include_role:
-        name: plex2
-        apply:
-          tags: plex
-      tags: plex
-
-    - name: Deploy plex stack
-      when: inventory_hostname == 'localhost'
-      ansible.builtin.include_role:
-        name: plex3
-        apply:
-          tags: plex
-      tags: plex
 
 ```
 

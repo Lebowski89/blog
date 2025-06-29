@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+  
+    <title>Structuring your Ansible Playbook :: Le Tour De Blog</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content=" Introduction The automating of tasks with Ansible begins and ends with tasks defined in a playbook. There are various ways to structure your playbook, including:
+Defining everything in a single playbook Defining tasks across multiple playbooks Using a single playbook to include roles that contain various organised tasks For me, I prefer the latter option. I have a single playbook.yml, and various roles containing tasks to automate the deployment of my docker services. However, there is no right way of doing things, and it&rsquo;s simply a case of how many tasks you&rsquo;re dealing with, what sort of tasks, and how you prefer to do things.
+" />
+<meta name="keywords" content="" />
+
+  <meta name="robots" content="noodp" />
+
+<link rel="canonical" href="http://localhost:1313/playbook/" />
+
+
+
+
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/buttons.min.86f6b4c106b6c6eb690ae5203d36b442c1f66f718ff4e8164fa86cf6c61ad641.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/code.min.d529ea4b2fb8d34328d7d31afc5466d5f7bc2f0bc9abdd98b69385335d7baee4.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/fonts.min.5bb7ed13e1d00d8ff39ea84af26737007eb5051b157b86fc24487c94f3dc8bbe.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/footer.min.eb8dfc2c6a7eafa36cd3ba92d63e69e849e2200e0002a228d137f236b09ecd75.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/gist.min.a751e8b0abe1ba8bc53ced52a38b19d8950fe78ca29454ea8c2595cf26aad5c0.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/header.min.75c7eb0e2872d95ff48109c6647d0223a38db52e2561dd87966eb5fc7c6bdac6.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/main.min.775ac2af004d44c22a6d000fbd1d9af529642f5cef27399d0280d180af2c2e9b.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/menu.min.310d32205bdedd6f43144e3c3273c9deecd238eba5f9108db5ea96ca0cfbe377.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/pagination.min.bbb986dbce00a5ce5aca0504b7925fc1c581992a4bf57f163e5d69cc1db7d836.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/post.min.ad50c7f4d00e7975918f37fc74c6029e1959a40d66fb5b2c6564a8715e985573.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/syntax.min.e9ab635cf918bc84b901eb65c0b2caa74c9544245e3647c1af5c129896ef276e.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/terminal.min.e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855.css">
+
+  
+  <link rel="stylesheet" href="http://localhost:1313/css/terms.min.b81791663c3790e738e571cdbf802312390d30e4b1d8dc9d814a5b5454d0ac11.css">
+
+
+<link rel="stylesheet" href="http://localhost:1313/terminal.css">
+
+
+
+
+<link rel="shortcut icon" href="http://localhost:1313/favicon.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+
+
+<meta name="twitter:card" content="summary" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Structuring your Ansible Playbook">
+<meta property="og:description" content=" Introduction The automating of tasks with Ansible begins and ends with tasks defined in a playbook. There are various ways to structure your playbook, including:
+Defining everything in a single playbook Defining tasks across multiple playbooks Using a single playbook to include roles that contain various organised tasks For me, I prefer the latter option. I have a single playbook.yml, and various roles containing tasks to automate the deployment of my docker services. However, there is no right way of doing things, and it&rsquo;s simply a case of how many tasks you&rsquo;re dealing with, what sort of tasks, and how you prefer to do things.
+" />
+<meta property="og:url" content="http://localhost:1313/playbook/" />
+<meta property="og:site_name" content="Le Tour De Blog" />
+
+  <meta property="og:image" content="http://localhost:1313/og-image.png">
+
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="627">
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+<body>
+
+
+<div class="container center">
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="http://localhost:1313/">
+  <div class="logo">
+    Le Tour De Blog
+  </div>
+</a>
+
+    </div>
+    
+      <ul class="menu menu--mobile">
+  <li class="menu__trigger">Menu&nbsp;▾</li>
+  <li>
+    <ul class="menu__dropdown">
+      
+        
+          <li><a href="/about/">About</a></li>
+        
+      
+        
+          <li><a href="/playbook/">Ansible (Playbook)</a></li>
+        
+      
+        
+          <li><a href="/roles/">Ansible (Roles)</a></li>
+        
+      
+        
+          <li><a href="/common/">Ansible (Common-Tasks)</a></li>
+        
+      
+        
+          <li><a href="/misc/">Ansible (Misc)</a></li>
+        
+      
+      
+    </ul>
+  </li>
+</ul>
+
+    
+    
+  </div>
+  
+    <nav class="navigation-menu">
+  <ul class="navigation-menu__inner menu--desktop">
+    
+      
+        
+          <li><a href="/about/" >About</a></li>
+        
+      
+        
+          <li><a href="/playbook/" >Ansible (Playbook)</a></li>
+        
+      
+        
+          <li><a href="/roles/" >Ansible (Roles)</a></li>
+        
+      
+        
+          <li><a href="/common/" >Ansible (Common-Tasks)</a></li>
+        
+      
+        
+          <li><a href="/misc/" >Ansible (Misc)</a></li>
+        
+      
+    
+  </ul>
+</nav>
+
+  
+</header>
+
+
+  <div class="content">
+    
+<article class="post">
+  <h1 class="post-title">
+    <a href="http://localhost:1313/playbook/">Structuring your Ansible Playbook</a>
+  </h1>
+  <div class="post-meta"><span class="post-reading-time">9 min read (1826 words)</span></div>
+
+  
+    <span class="post-tags">
+      
+      #<a href="http://localhost:1313/tags/playbook/">playbook</a>&nbsp;
+      
+      #<a href="http://localhost:1313/tags/ansible/">ansible</a>&nbsp;
+      
+    </span>
+  
+  
+
+
+  
+    <div class="table-of-contents">
+      <h2>
+        Contents
+      </h2>
+      <nav id="TableOfContents">
+  <ul>
+    <li><a href="#introduction">Introduction</a></li>
+    <li><a href="#hosts">Hosts</a></li>
+    <li><a href="#pre_tasks">Pre_Tasks</a></li>
+    <li><a href="#tasks">Tasks</a></li>
+    <li><a href="#conditionals">Conditionals</a>
+      <ul>
+        <li><a href="#hostnames">Hostnames</a></li>
+        <li><a href="#tags">Tags</a></li>
+      </ul>
+    </li>
+    <li><a href="#handlers">Handlers</a></li>
+  </ul>
+</nav>
+    </div>
+  
+
+  <div class="post-content"><div>
+        <hr>
+<h2 id="introduction">Introduction<a href="#introduction" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<hr>
+<p>The automating of tasks with Ansible begins and ends with tasks defined in a playbook. There are various ways to structure your playbook, including:</p>
+<ul>
+<li>Defining everything in a single playbook</li>
+<li>Defining tasks across multiple playbooks</li>
+<li>Using a single playbook to include roles that contain various organised tasks</li>
+</ul>
+<p>For me, I prefer the latter option. I have a single <code>playbook.yml</code>, and various roles containing tasks to automate the deployment of my docker services. However, there is no right way of doing things, and it&rsquo;s simply a case of how many tasks you&rsquo;re dealing with, what sort of tasks, and how you prefer to do things.</p>
+<p>My <code>playbook.yml</code> is structured to include the following:</p>
+<ul>
+<li>Hosts</li>
+<li>Pre_Tasks</li>
+<li>Tasks</li>
+<li>Handlers</li>
+</ul>
+<p>And calling the playbook is as simple as:</p>
+<pre tabindex="0"><code class="language-cli" data-lang="cli">
+ansible-playbook play.yml -i hosts.ini --ask-become-pass --ask-vault-pass --tag arrs
+</code></pre><p>The rest of this document will break down each section of my playbook.</p>
+<hr>
+<h2 id="hosts">Hosts<a href="#hosts" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<hr>
+<p>This section defines the hosts you want the playbook to run against:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">hosts</span>: <span style="color:#ae81ff">skynet</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">become</span>: <span style="color:#66d9ef">true</span>
+</span></span></code></pre></div><p>As I&rsquo;m working with multiple hosts, I have them in a group named &lsquo;skynet&rsquo; defined in a <code>hosts.ini</code> file in the same directory as the <code>playbook.yml</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-ini" data-lang="ini"><span style="display:flex;"><span> <span style="color:#66d9ef">[skynet]</span>
+</span></span><span style="display:flex;"><span> <span style="color:#a6e22e">localhost ansible_connection</span><span style="color:#f92672">=</span><span style="color:#e6db74">local ansible_user=redacted
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74"> plex ansible_host=redacted ansible_user=redacted
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74"> saltbox ansible_host=redacted ansible_user=redacted</span>
+</span></span></code></pre></div><p>Of course, if you&rsquo;re just a single machine user you can do away with the group:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">hosts</span>: <span style="color:#ae81ff">localhost</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">become</span>: <span style="color:#66d9ef">true</span>
+</span></span></code></pre></div><hr>
+<h2 id="pre_tasks">Pre_Tasks<a href="#pre_tasks" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<hr>
+<p>Pre-tasks, as the name suggests, always run first during a play. I reserve these for tasks that I will need for all or the majority of my roles:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">pre_tasks</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Gather packages</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.package_facts</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">manager</span>: <span style="color:#ae81ff">auto</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">always</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Gather IP geolocation data</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">community.general.ipinfoio_facts</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">always</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Gather public IP data</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">community.general.ipify_facts</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">timeout</span>: <span style="color:#ae81ff">20</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">register</span>: <span style="color:#ae81ff">public_ip</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">always</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Public IP output</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.debug</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">msg</span>: <span style="color:#e6db74">&#39;{{ ipify_public_ip }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">always</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Set timezone variable</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.set_fact</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">timezone</span>: <span style="color:#e6db74">&#39;{{ ansible_facts.timezone }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">always</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Timezone output</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.debug</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">msg</span>: <span style="color:#e6db74">&#39;{{ timezone }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">always      </span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Set Local IPs</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">not inventory_hostname == &#39;saltbox&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.set_fact</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">local_ip</span>: <span style="color:#e6db74">&#39;{{ ansible_default_ipv4.address | default(ansible_all_ipv4_addresses[0]) }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">always</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Local IP output</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">not inventory_hostname == &#39;saltbox&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.debug</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">msg</span>: <span style="color:#e6db74">&#39;{{ local_ip }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">always</span>
+</span></span></code></pre></div><p>Above, I get package, timezone, and local/public IP information for each host, which is useful when installing packages, deploying services, and dealing with DNS tasks.</p>
+<p>For example, this task relies on information gathered by the <code>Gather packages</code> task:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Include Docker install tasks</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">when</span>: <span style="color:#e6db74">&#39;&#34;docker-ce&#34; not in ansible_facts.packages&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.include_tasks</span>: <span style="color:#e6db74">&#39;sub_tasks/{{ item }}.yml&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">loop</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#ae81ff">install</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#ae81ff">swarm</span>
+</span></span></code></pre></div><hr>
+<h2 id="tasks">Tasks<a href="#tasks" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<hr>
+<p>The tasks section is the bulk of my playbook, and is simply used to include my various roles using the <code>ansible.builtin.include_role</code> module:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">tasks</span>:
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># ARRS</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## Services: `Bazarr` `Lidarr` `Prowlarr` `Radarr/Radarr-4K` `Readarr` `Sonarr/Sonarr-4K` `Whisparr/Whisparr-V3`</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Deploy arrs stack</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">inventory_hostname == &#39;localhost&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.include_role</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#ae81ff">arrs</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">apply</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">arrs</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">arrs</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># BLOG</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## Services: `Hugo` `Obsidian`</span>
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Deploy blog stack</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">inventory_hostname == &#39;localhost&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.include_role</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#ae81ff">blog</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">apply</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">blog</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">blog</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># COMPANIONS</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## Services: `AutoBrr` `Doplarr` `Jellyseerr` `Notifiarr` `Ombi` `Recyclarr` `TheLounge` `ThemePark` `ZNC`</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Retrieve Plex token</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">inventory_hostname == &#39;localhost&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.set_fact</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">plex_auth_token</span>: <span style="color:#e6db74">&#39;{{ lookup(&#34;ini&#34;, &#34;token section=&#34; + plex_name + &#34; file=&#34; + plex_token_location) | regex_replace(&#34;\n&#34;, &#34;&#34;) }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">comps</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Deploy comps stack</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">inventory_hostname == &#39;localhost&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.include_role</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#ae81ff">comps</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">apply</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">comps</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">comps</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># DNS</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## Services: `Technitium`</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Create directories</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">inventory_hostname == &#39;plex&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.file</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ technitium_location }}&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">state</span>: <span style="color:#ae81ff">directory</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">owner</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">group</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">mode</span>: <span style="color:#e6db74">&#39;0755&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">dns</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Fetch node name from plex host</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">inventory_hostname == &#39;plex&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.set_fact</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">plex_worker_node</span>: <span style="color:#e6db74">&#39;{{ ansible_facts[&#34;nodename&#34;] }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">dns</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Set worker node technitium label</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">inventory_hostname == &#39;localhost&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">docker_node</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">hostname</span>: <span style="color:#e6db74">&#39;{{ hostvars[&#34;plex&#34;][&#34;plex_worker_node&#34;] }}&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">labels</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">dns</span>: <span style="color:#ae81ff">technitium</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">labels_state</span>: <span style="color:#ae81ff">merge</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">dns</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Deploy dns stack</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">inventory_hostname == &#39;localhost&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.include_role</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#ae81ff">dns</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">apply</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">dns</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">dns</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Deploy dns stack</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">inventory_hostname == &#39;localhost&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.include_role</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#ae81ff">dns</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">apply</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">dns</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">dns</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># GITEA</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Deploy gitea stack</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">inventory_hostname == &#39;localhost&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.include_role</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#ae81ff">gitea</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">apply</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">gitea</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">gitea</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># MARIADB</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Deploy mariadb stack</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">inventory_hostname == &#39;localhost&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.include_role</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#ae81ff">mariadb</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">apply</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">mariadb</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">mariadb</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># METRICS</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## Services: `Exportarr` `Grafana` `Loki` `Plex-Exporter` `Promtail` `Prometheus` `qBit-Exporter` `Scraparr`</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Deploy metrics stack</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">inventory_hostname == &#39;localhost&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.include_role</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#ae81ff">metrics</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">apply</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">metrics</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">metrics</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># PLEX</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## Services: `ImageMaid` `Kometa` `Plex` `PlexTraktSync` `Posterr` `Tautulli` `Wrapperr`</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Prepare plex token</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">inventory_hostname == &#39;localhost&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.include_role</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#ae81ff">plex</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">apply</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">plex</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">plex</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Prepare plex stack</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">inventory_hostname == &#39;plex&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.include_role</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#ae81ff">plex2</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">apply</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">plex</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">plex</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Deploy plex stack</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">inventory_hostname == &#39;localhost&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.include_role</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#ae81ff">plex3</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">apply</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">plex</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">plex</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># POSTGRES</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## Services: `Adminer` `Postgres`</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Deploy postgres stack</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">inventory_hostname == &#39;localhost&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.include_role</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#ae81ff">postgres</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">apply</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">postgres</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">postgres</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># PROXY</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## Services: `Authelia` `Redis` `Traefik`</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Deploy proxy stack</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">inventory_hostname == &#39;localhost&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.include_role</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#ae81ff">proxy</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">apply</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">proxy</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">proxy</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># TORRENTS</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## Services: `Cross-Seed` `qBittorrent` `qBit-Manage` `Seasonpackarr` `Unpackerr`</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Deploy torrents stack</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">inventory_hostname == &#39;saltbox&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.include_role</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#ae81ff">torrents</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">apply</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">torrents</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">torrents</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># UNIFI</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## Services: `Mongo` `Unifi-Network-Application`</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Deploy unifi stack</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">inventory_hostname == &#39;localhost&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.include_role</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#ae81ff">unifi</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">apply</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">unifi</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">unifi</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># UNIONFS</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## Services: `Cloudplow` `Mergerfs` `RClone`</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Deploy unionfs</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">inventory_hostname == &#39;localhost&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.include_role</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#ae81ff">unionfs</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">apply</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">unionfs</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">unionfs</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># USENET</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## Services: `Sabnzbd` `NZBHydra2`</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Deploy usenet stack</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">inventory_hostname == &#39;localhost&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.include_role</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#ae81ff">usenet</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">apply</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">usenet</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">usenet</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># UTILITIES</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## Services: `Gantry` `HomePage` `IT/Ombi-Tools` `Portainer`</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Retrieve Plex token</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">inventory_hostname == &#39;localhost&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.set_fact</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">plex_auth_token</span>: <span style="color:#e6db74">&#39;{{ lookup(&#34;ini&#34;, &#34;token section=&#34; + plex_name + &#34; file=&#34; + plex_token_location) | regex_replace(&#34;\n&#34;, &#34;&#34;) }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">utilities</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Deploy utilities</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">inventory_hostname == &#39;localhost&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.include_role</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#ae81ff">utilities</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">apply</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">utilities</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">utilities</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># VPN</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## Services: `Gluetun` `JDownloader2` `LibreWolf` `SearXNG`</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Deploy gluetun stack</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">inventory_hostname == &#39;localhost&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.include_role</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#ae81ff">vpn</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">apply</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">vpn</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">vpn</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># UBUNTU</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Ready Ubuntu</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">inventory_hostname == &#39;localhost&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.include_role</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#ae81ff">ubuntu</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">apply</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">ubuntu</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">ubuntu</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Ready Ubuntu for Plex</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">inventory_hostname == &#39;plex&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.include_role</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#ae81ff">ubuntu2</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">apply</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">ubuntu2</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">ubuntu2</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># DOCKER (PVR MACHINE)</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Conduct docker tasks</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">inventory_hostname == &#39;localhost&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.include_role</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#ae81ff">docker1</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">apply</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">docker1</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">docker1</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># DOCKER (PLEX MACHINE)</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Load plex token variable</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">inventory_hostname == &#39;localhost&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.set_fact</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">plex_worker_token</span>: <span style="color:#e6db74">&#39;{{ lookup(&#34;ini&#34;, &#34;plex_token_worker section=&#34; + &#34;docker&#34; + &#34; file=&#34; + &#34;/ansible/vault.ini&#34;) }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">docker2</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Fetch token variable for plex host</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">inventory_hostname == &#39;plex&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.set_fact</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">plex_worker_token</span>: <span style="color:#e6db74">&#39;{{ hostvars[&#34;localhost&#34;][&#34;plex_worker_token&#34;] }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">docker2</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Ready Ubuntu (Plex)</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">inventory_hostname == &#39;plex&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.include_role</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#ae81ff">docker2</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">apply</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">docker2</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">docker2</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Fetch node name from plex host</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">inventory_hostname == &#39;plex&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.set_fact</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">plex_worker_node</span>: <span style="color:#e6db74">&#39;{{ ansible_facts[&#34;nodename&#34;] }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">docker2</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Set worker node label to &#39;plex&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">inventory_hostname == &#39;localhost&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">docker_node</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">hostname</span>: <span style="color:#e6db74">&#39;{{ hostvars[&#34;plex&#34;][&#34;plex_worker_node&#34;] }}&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">labels</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">ansible_host</span>: <span style="color:#ae81ff">plex</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">labels_state</span>: <span style="color:#ae81ff">replace</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">docker2</span>
+</span></span></code></pre></div><p>There&rsquo;s nothing really stopping you from having one gigantic playbook, but I prefer to keep related-relevant tasks within roles.</p>
+<hr>
+<h2 id="conditionals">Conditionals<a href="#conditionals" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<hr>
+<p>Key to the single playbook setup are conditionals, because:</p>
+<ol>
+<li>I typically only want a single role to run at a time (with few exceptions).</li>
+<li>The tasks and roles I have are typically written for a single host</li>
+</ol>
+<p>Thus, each task within the <code>playbook.yml</code> will look like the following:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Ready Ubuntu for Plex</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">inventory_hostname == &#39;plex&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.include_role</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#ae81ff">ubuntu2</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">apply</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">ubuntu2</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">ubuntu2</span>
+</span></span></code></pre></div><p>With the two primary conditionals being hostnames and tags:</p>
+<hr>
+<h3 id="hostnames">Hostnames<a href="#hostnames" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<hr>
+<p>There use of the <code>when: inventory_hostname == 'plex'</code> shown above is simply asking the role to be run on my plex machine. The hostname in this case is what was defined for my plex machine in the <code>hosts.ini</code> file:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-ini" data-lang="ini"><span style="display:flex;"><span> <span style="color:#66d9ef">[skynet]</span>
+</span></span><span style="display:flex;"><span> <span style="color:#a6e22e">localhost ansible_connection</span><span style="color:#f92672">=</span><span style="color:#e6db74">local ansible_user=redacted
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74"> plex ansible_host=redacted ansible_user=redacted
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74"> saltbox ansible_host=redacted ansible_user=redacted</span>
+</span></span></code></pre></div><p>Defining the hostname prevents you having to include sensitive information (i.e, tailscale ips) in the playbook, and it can be whatever you want it to be.</p>
+<p>In a Docker Swarm setup, the use of hosts is important, as you&rsquo;ll often need one host to deploy the services, but will need to do tasks on the worker machine to ready for service deployment. For example:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># PLEX</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Prepare plex token</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">inventory_hostname == &#39;localhost&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.include_role</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#ae81ff">plex</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">apply</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">plex</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">plex</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Prepare plex stack</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">inventory_hostname == &#39;plex&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.include_role</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#ae81ff">plex2</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">apply</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">plex</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">plex</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Deploy plex stack</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">inventory_hostname == &#39;localhost&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.include_role</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#ae81ff">plex3</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">apply</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">plex</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">plex</span>
+</span></span></code></pre></div><hr>
+<h3 id="tags">Tags<a href="#tags" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<hr>
+<p>The tags in my <code>playbook.yml</code> are what I use to determine what jobs to run, and what docker services to deploy. There are two types of tags included, as seen here:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Deploy plex stack</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">inventory_hostname == &#39;localhost&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.include_role</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#ae81ff">plex3</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">apply</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">plex</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">plex</span>
+</span></span></code></pre></div><p>Above, the <code>tags: arrs</code> calls the role during the play, while the <code>apply.tags: arrs</code> applies the tag to all tasks within the role, ensuring these tasks run when the tag is used.</p>
+<p>You can apply as many tags as you require, and can also apply <code>tags: always</code> for those tasks that always need to run, like in my pre_tasks section.</p>
+<p>As seen in the introduction, you simply include your desired tags in the run command:</p>
+<pre tabindex="0"><code class="language-cli" data-lang="cli">
+ansible-playbook play.yml -i hosts.ini --ask-become-pass --ask-vault-pass --tag plex
+</code></pre><hr>
+<h2 id="handlers">Handlers<a href="#handlers" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<hr>
+<p>Handlers are tasks that will only run when notified, will run at the end of each play, and will only run once no matter how many times they&rsquo;re notified.</p>
+<p>A recent example of where I have made use of Handlers was with autofs mounts:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Append desired local mount path to autofs auto.master file</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.lineinfile</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">dest</span>: <span style="color:#e6db74">&#39;{{ autofs_auto_mast_file }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">line</span>: <span style="color:#e6db74">&#39;{{ autofs_local_path }} {{ autofs_nfsdb_file }} --timeout=0 --browse&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">present</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">create</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">owner</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">group</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">mode</span>: <span style="color:#e6db74">&#39;0644&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">notify</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#ae81ff">redo mounts</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Add media mount to auto.nfsdb file</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.lineinfile</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">dest</span>: <span style="color:#e6db74">&#39;{{ autofs_nfsdb_file }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">line</span>: <span style="color:#e6db74">&#39;{{ autofs_media_dir }} {{ autofs_media_opt }} {{ autofs_media_address }}:{{ autofs_media_path }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">present</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">create</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">owner</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">group</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">mode</span>: <span style="color:#e6db74">&#39;0644&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">notify</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#ae81ff">redo mounts</span>
+</span></span></code></pre></div><p>Above, these tasks notify the following handlers that are listening for <code>redo mounts</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># HANDLERS</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## Examples of some handlers I used before moving from autofs to mergerfs</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">handlers</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Stop autofs service</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.service</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#ae81ff">autofs</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">state</span>: <span style="color:#ae81ff">stopped</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">listen</span>: <span style="color:#ae81ff">redo mounts</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Unmount autofs mounts</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.command</span>: <span style="color:#ae81ff">umount -a -t autofs</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">listen</span>: <span style="color:#ae81ff">redo mounts</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Start autofs service</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.service</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#ae81ff">autofs</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">state</span>: <span style="color:#ae81ff">started</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">listen</span>: <span style="color:#ae81ff">redo mounts</span>
+</span></span></code></pre></div><p>Depending on how many handlers you have, you can either define them directly in your playbook, in a handlers folder, or even within individual roles.</p>
+<script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="lebowski89" data-description="Support me on Buy me a coffee!" data-message="Coffee" data-color="#5F7FFF" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
+
+      </div></div>
+
+  
+
+  
+    
+
+  
+</article>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2025 Powered by <a href="https://gohugo.io">Hugo</a></span>
+    
+      <span>:: <a href="https://github.com/panr/hugo-theme-terminal" target="_blank">Theme</a> made by <a href="https://github.com/panr" target="_blank">panr</a></span>
+      </div>
+  </div>
+</footer>
+
+
+
+
+
+
+<script type="text/javascript" src="/bundle.min.js"></script>
+
+
+
+
+
+  
+</div>
+
+</body>
+</html>

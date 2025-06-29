@@ -15,7 +15,7 @@ This blog is dedicated to Ansible, and I will use this to discuss my set-up and 
 
   - Since I started using Ansible, I have grown to love it and am quite addicted to it, but it can be quite daunting for newcomers
   - It is one thing to automate a task and another to do it efficiently and effectively
-  - It can be easy to fall into a rabbit hole of troubleshooting, frustration, and even... dispair. 
+  - It can be easy to fall into a rabbit hole of troubleshooting and frustration.
   
 So with that said, see the Ansible topics in the menus above. It will grow over time when I have time.
 

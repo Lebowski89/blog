@@ -2,21 +2,40 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
+    <loc>http://localhost:1313/common/</loc>
+  </url><url>
+    <loc>http://localhost:1313/misc/</loc>
+  </url><url>
+    <loc>http://localhost:1313/playbook/</loc>
+  </url><url>
+    <loc>http://localhost:1313/roles/</loc>
+  </url><url>
+    <loc>http://localhost:1313/posts/main/</loc>
+  </url><url>
+    <loc>http://localhost:1313/about/</loc>
+    <lastmod>2025-06-24T00:00:00+00:00</lastmod>
+  </url><url>
     <loc>http://localhost:1313/</loc>
     <lastmod>2025-06-24T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/posts/about/</loc>
-  </url><url>
-    <loc>http://localhost:1313/posts/ansible-lives/</loc>
-  </url><url>
-    <loc>http://localhost:1313/posts/ansible/</loc>
-  </url><url>
-    <loc>http://localhost:1313/posts/getting-salty/</loc>
+    <loc>http://localhost:1313/tags/ansible/</loc>
   </url><url>
     <loc>http://localhost:1313/categories/</loc>
   </url><url>
+    <loc>http://localhost:1313/tags/cloudflare/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/common-tasks/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/misc/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/playbook/</loc>
+  </url><url>
     <loc>http://localhost:1313/posts/</loc>
   </url><url>
+    <loc>http://localhost:1313/tags/roles/</loc>
+  </url><url>
     <loc>http://localhost:1313/tags/</loc>
+  </url><url>
+    <loc>http://localhost:1313/tags/traefik/</loc>
   </url>
 </urlset>
