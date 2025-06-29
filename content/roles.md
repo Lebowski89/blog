@@ -740,7 +740,6 @@ One example is my recyclarr config tasks:
 
 The idea is to keep the main tasks file as streamlined as possible.
 
-```
 
 ***
 
@@ -791,7 +790,7 @@ I find templating more powerful than simply copying, as a change in a variable's
 
 ***
 
-Each role will also have a docker compose file, containing the roles docker services.
+Each role will have a compose file, containing the roles services.
 
 **Docker Compose**
 
@@ -884,7 +883,7 @@ services:
 
 ```
 
-In my case, I prefer letting Ansible docker modules handle networks / secrets / volumes, so they're listed as external at the bottom of the compose file, like so:
+In my case, I let ansible tasks handle docker networks / secrets / volumes, so they're listed as external at the bottom, like so:
 
 ```yaml
 

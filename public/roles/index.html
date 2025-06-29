@@ -189,7 +189,7 @@ Group_Vars For my set up, group_vars, is structured like the following:
   <h1 class="post-title">
     <a href="http://localhost:1313/roles/">Structuring your Ansible Roles</a>
   </h1>
-  <div class="post-meta"><span class="post-reading-time">14 min read (2847 words)</span></div>
+  <div class="post-meta"><span class="post-reading-time">14 min read (2832 words)</span></div>
 
   
     <span class="post-tags">
@@ -229,8 +229,10 @@ Group_Vars For my set up, group_vars, is structured like the following:
         <li><a href="#deploy">Deploy</a></li>
       </ul>
     </li>
-    <li><a href="#rolessub-tasks">Roles/Sub-tasks</a>
+    <li><a href="#rolessub-tasks">Roles/Sub-tasks</a></li>
+    <li><a href="#rolestemplates">Roles/Templates</a>
       <ul>
+        <li><a href="#configs">Configs</a></li>
         <li><a href="#compose">Compose</a></li>
       </ul>
     </li>
@@ -814,51 +816,39 @@ Group_Vars For my set up, group_vars, is structured like the following:
 </span></span></span><span style="display:flex;"><span><span style="color:#e6db74">              assign_scores_to:
 </span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - name: Remux + WEB 1080p</span>
 </span></span></code></pre></div><p>The idea is to keep the main tasks file as streamlined as possible.</p>
-<pre tabindex="0"><code>
-***
-
-## Roles/Templates
-
-***
-
-As the name suggests, the roles templates folder is where I keep all the files that will be templated during the play.
-
-***
-
-### Configs
-
-***
-
-Most roles will include at least one config file to be templated during the play. 
-
-I find templating more powerful than simply copying, as a change in a variable&#39;s value will apply to the config template referencing it, negating the need to edit config files individually. 
-
-**Example:**
-
-```yaml
-
-  ## Doplarr&#39;s config (config.edn.j2)
-
-{
- :radarr/url &#34;http://{{ radarr_name }}:{{ radarr_ports_cont }}&#34;
- :radarr/api &#34;{{ radarr_api }}&#34;
- :radarr/quality-profile &#34;{{ radarr_quality_profile }}&#34;
- :radarr/rootfolder &#34;{{ radarr_root_folder }}&#34;
- :sonarr/url &#34;http://{{ sonarr_name }}:{{ sonarr_ports_cont }}&#34;
- :sonarr/api &#34;{{ sonarr_api }}&#34;
- :sonarr/quality-profile &#34;{{ sonarr_quality_profile }}&#34;
- :sonarr/rootfolder &#34;{{ sonarr_root_folder }}&#34;
- :sonarr/season-folders true
- :partial-seasons true
- :discord/token &#34;{{ doplarr_token }}&#34;
- :discord/max-results 25
- :discord/requested-msg-style :plain
- :log-level :trace
- }
-</code></pre><hr>
+<hr>
+<h2 id="rolestemplates">Roles/Templates<a href="#rolestemplates" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<hr>
+<p>As the name suggests, the roles templates folder is where I keep all the files that will be templated during the play.</p>
+<hr>
+<h3 id="configs">Configs<a href="#configs" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<hr>
+<p>Most roles will include at least one config file to be templated during the play.</p>
+<p>I find templating more powerful than simply copying, as a change in a variable&rsquo;s value will apply to the config template referencing it, negating the need to edit config files individually.</p>
+<p><strong>Example:</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## Doplarr&#39;s config (config.edn.j2)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span> :<span style="color:#ae81ff">radarr/url &#34;http://{{ radarr_name }}:{{ radarr_ports_cont }}&#34;</span>
+</span></span><span style="display:flex;"><span> :<span style="color:#ae81ff">radarr/api &#34;{{ radarr_api }}&#34;</span>
+</span></span><span style="display:flex;"><span> :<span style="color:#ae81ff">radarr/quality-profile &#34;{{ radarr_quality_profile }}&#34;</span>
+</span></span><span style="display:flex;"><span> :<span style="color:#ae81ff">radarr/rootfolder &#34;{{ radarr_root_folder }}&#34;</span>
+</span></span><span style="display:flex;"><span> :<span style="color:#ae81ff">sonarr/url &#34;http://{{ sonarr_name }}:{{ sonarr_ports_cont }}&#34;</span>
+</span></span><span style="display:flex;"><span> :<span style="color:#ae81ff">sonarr/api &#34;{{ sonarr_api }}&#34;</span>
+</span></span><span style="display:flex;"><span> :<span style="color:#ae81ff">sonarr/quality-profile &#34;{{ sonarr_quality_profile }}&#34;</span>
+</span></span><span style="display:flex;"><span> :<span style="color:#ae81ff">sonarr/rootfolder &#34;{{ sonarr_root_folder }}&#34;</span>
+</span></span><span style="display:flex;"><span> :<span style="color:#ae81ff">sonarr/season-folders true</span>
+</span></span><span style="display:flex;"><span> :<span style="color:#ae81ff">partial-seasons true</span>
+</span></span><span style="display:flex;"><span> :<span style="color:#ae81ff">discord/token &#34;{{ doplarr_token }}&#34;</span>
+</span></span><span style="display:flex;"><span> :<span style="color:#ae81ff">discord/max-results 25</span>
+</span></span><span style="display:flex;"><span> :<span style="color:#ae81ff">discord/requested-msg-style :plain</span>
+</span></span><span style="display:flex;"><span> :<span style="color:#ae81ff">log-level :trace</span>
+</span></span><span style="display:flex;"><span> }
+</span></span></code></pre></div><hr>
 <h3 id="compose">Compose<a href="#compose" class="hanchor" ariaLabel="Anchor">#</a> </h3>
 <hr>
-<p>Each role will also have a docker compose file, containing the roles docker services.</p>
+<p>Each role will have a compose file, containing the roles services.</p>
 <p><strong>Docker Compose</strong></p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">version</span>: <span style="color:#e6db74">&#39;3.9&#39;</span>
@@ -940,7 +930,7 @@ I find templating more powerful than simply copying, as a change in a variable&#
 </span></span><span style="display:flex;"><span>      <span style="color:#f92672">placement</span>:
 </span></span><span style="display:flex;"><span>        <span style="color:#f92672">constraints</span>: [<span style="color:#ae81ff">node.labels.ansible_host == pvr]</span>
 </span></span><span style="display:flex;"><span>      <span style="color:#f92672">labels</span>: {{ <span style="color:#ae81ff">adguard_defaults_labels }}</span>
-</span></span></code></pre></div><p>In my case, I prefer letting Ansible docker modules handle networks / secrets / volumes, so they&rsquo;re listed as external at the bottom of the compose file, like so:</p>
+</span></span></code></pre></div><p>In my case, I let ansible tasks handle docker networks / secrets / volumes, so they&rsquo;re listed as external at the bottom, like so:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">networks</span>:
 </span></span><span style="display:flex;"><span>  {{ <span style="color:#f92672">network_overlay }}</span>:
