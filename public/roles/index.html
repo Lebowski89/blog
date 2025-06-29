@@ -189,7 +189,7 @@ Group_Vars For my set up, group_vars, is structured like the following:
   <h1 class="post-title">
     <a href="http://localhost:1313/roles/">Structuring your Ansible Roles</a>
   </h1>
-  <div class="post-meta"><span class="post-reading-time">14 min read (2805 words)</span></div>
+  <div class="post-meta"><span class="post-reading-time">14 min read (2855 words)</span></div>
 
   
     <span class="post-tags">
@@ -816,7 +816,6 @@ Group_Vars For my set up, group_vars, is structured like the following:
 <h2 id="rolestemplatesconfigs">Roles/Templates/Configs<a href="#rolestemplatesconfigs" class="hanchor" ariaLabel="Anchor">#</a> </h2>
 <hr>
 <p>Most roles will include at least one config file to be templated.</p>
-<p>I find templating more powerful than copying, as a change in a variable&rsquo;s value will apply to the config template referencing it, reducing the need to manually edit config files.</p>
 <p><strong>Example:</strong></p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e">## Doplarr&#39;s config (config.edn.j2)</span>
@@ -837,7 +836,8 @@ Group_Vars For my set up, group_vars, is structured like the following:
 </span></span><span style="display:flex;"><span> :<span style="color:#ae81ff">discord/requested-msg-style :plain</span>
 </span></span><span style="display:flex;"><span> :<span style="color:#ae81ff">log-level :trace</span>
 </span></span><span style="display:flex;"><span> }
-</span></span></code></pre></div><hr>
+</span></span></code></pre></div><p>I find templating more powerful than copying, as a change in a variable&rsquo;s value will apply to the config template referencing it, reducing the need to manually edit config files. With that said, when templating configs I will not replace an existing config file in the directory by default. It&rsquo;s just a safe guard in case a config file has additional entries not tracked by the Ansible template. I instead will remove the config file and then run the role.</p>
+<hr>
 <h2 id="rolestemplatescompose">Roles/Templates/Compose<a href="#rolestemplatescompose" class="hanchor" ariaLabel="Anchor">#</a> </h2>
 <hr>
 <p>Each role will have a compose file, containing the roles services.</p>

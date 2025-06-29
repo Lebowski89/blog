@@ -749,8 +749,6 @@ The idea is to keep the main tasks file as streamlined as possible.
 
 Most roles will include at least one config file to be templated.
 
-I find templating more powerful than copying, as a change in a variable's value will apply to the config template referencing it, reducing the need to manually edit config files. 
-
 **Example:**
 
 ```yaml
@@ -775,6 +773,8 @@ I find templating more powerful than copying, as a change in a variable's value 
  }
 
  ```
+
+I find templating more powerful than copying, as a change in a variable's value will apply to the config template referencing it, reducing the need to manually edit config files. With that said, when templating configs I will not replace an existing config file in the directory by default. It's just a safe guard in case a config file has additional entries not tracked by the Ansible template. I instead will remove the config file and then run the role.
 
 ***
 
