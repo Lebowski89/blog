@@ -252,7 +252,7 @@ I then create directories and sub-directories required for the role:
 
 ```
 
-Typically, the only thing differing between roles are directory paths, so it's a case of looping over directory paths. However, sometimes I require different permissions (i.e, bitnami), in which I iterate over a list of required hashes, as below:
+Typically, the only thing differing between roles are directory paths, so it's a case of looping over directory paths. However, sometimes I require different permissions (i.e, bitnami), as below:
 
 ```yaml
 
@@ -281,7 +281,7 @@ Above, I loop over `path`, `owner`, `group`. However, you can name them whatever
 
 ***
 
-After creating directories, I deal with files using common tasks for [templates](https://drjoyce.blog/common/#templates) and [copy tasks](https://drjoyce.blog/common/#file-copy).
+I deal with files using common tasks for [templates](https://drjoyce.blog/common/#templates) and [copy tasks](https://drjoyce.blog/common/#file-copy).
 
 ***
 
@@ -289,7 +289,7 @@ After creating directories, I deal with files using common tasks for [templates]
 
 ***
 
-Here I create any required postgres/mariadb databases using relevant ansible modules:
+Here I create postgres/mariadb databases using ansible modules:
 
 
 **MariaDB**
@@ -315,199 +315,7 @@ I have [common tasks defined elsewhere](https://drjoyce.blog/common/).
 
 Both require an existing mariadb/postgres database instance that is up and accepting connections, with all relevant database login details stored in `group_vars/vault`. I deploy my databases via docker, but it doesn't matter if you installed via a different method. Also, since these are ansible module tasks, and are not part of your docker network, they rely on machine ip and host port.
 
-Once the database is created, depending on the services, additional database tasks will be required. These usually revolve around adding your database details to the service config. For me, I prefer defining the database details via the services docker environmental variables, but sometimes this isn't possible. Sometimes I prefer editing the config, which is the case with my arrs stack:
-
-1. I use the `ansible.builtin.include_tasks` to include some common postgres config tasks contained in my `arrs/tasks/sub_tasks` folder:
-
-```yaml
-
-- name: Conduct Postgres config tasks
-  ansible.builtin.include_tasks: sub_tasks/postgres.yml
-  vars:
-    arrs_config_location: '{{ item.location }}'
-    arrs_log_db: '{{ item.logdb }}'
-    arrs_main_db: '{{ item.maindb }}'
-    arrs_cache_db: '{{ item.cachedb }}'
-  loop:
-    - { location: '{{ lidarr_location }}', logdb: 'lidarr-log', maindb: 'lidarr-main', cachedb: '' }
-    - { location: '{{ prowlarr_location }}', logdb: 'prowlarr-log', maindb: 'prowlarr-main', cachedb: '' }
-    - { location: '{{ radarr_location }}', logdb: 'radarr-log', maindb: 'radarr-main', cachedb: '' }
-    - { location: '{{ radarr_4k_location }}', logdb: 'radarr-4k-log', maindb: 'radarr-4k-main', cachedb: '' }
-    - { location: '{{ readarr_location }}', logdb: 'readarr-log', maindb: 'readarr-main', cachedb: 'readarr-cache' }
-    - { location: '{{ sonarr_location }}', logdb: 'sonarr-log', maindb: 'sonarr-main', cachedb: '' }
-    - { location: '{{ sonarr_4k_location }}', logdb: 'sonarr-4k-log', maindb: 'sonarr-4k-main', cachedb: '' }
-    - { location: '{{ whisparr_location }}', logdb: 'whisparr-log', maindb: 'whisparr-main', cachedb: '' }
-    - { location: '{{ whisparr_v3_location }}', logdb: 'whisparr-log-v3', maindb: 'whisparr-main-v3', cachedb: '' }
-
-```
-
-2. The common tasks are conducted using the variables defined above:
-
-```yaml
-
-- name: Lookup PostgresUser value
-  community.general.xml:
-    path: '{{ arrs_config_location }}/config.xml'
-    xpath: /Config/PostgresUser
-    print_match: true
-  register: arrs_xml_postgresuser
-
-- name: Lookup PostgresPassword value
-  community.general.xml:
-    path: '{{ arrs_config_location }}/config.xml'
-    xpath: /Config/PostgresPassword
-    print_match: true
-  register: arrs_xml_postgrespassword
-
-- name: Lookup PostgresPort value
-  community.general.xml:
-    path: '{{ arrs_config_location }}/config.xml'
-    xpath: /Config/PostgresPort
-    print_match: true
-  register: arrs_xml_postgresport
-
-- name: Lookup PostgresHost value
-  community.general.xml:
-    path: '{{ arrs_config_location }}/config.xml'
-    xpath: /Config/PostgresHost
-    print_match: true
-  register: arrs_xml_postgreshost
-
-- name: Lookup PostgresMainDb value
-  community.general.xml:
-    path: '{{ arrs_config_location }}/config.xml'
-    xpath: /Config/PostgresMainDb
-    print_match: true
-  register: arrs_xml_postgresmaindb
-
-- name: Lookup PostgresLogDb value
-  community.general.xml:
-    path: '{{ arrs_config_location }}/config.xml'
-    xpath: /Config/PostgresLogDb
-    print_match: true
-  register: arrs_xml_postgreslogdb
-
-- name: Lookup PostgresCacheDb value
-  community.general.xml:
-    path: '{{ arrs_config_location }}/config.xml'
-    xpath: /Config/PostgresCacheDb
-    print_match: true
-  register: arrs_xml_postgrescachedb
-
-- name: Add PostgresUser
-  when: ((arrs_xml_postgresuser.matches[0].PostgresUser is not defined) or
-         (arrs_xml_postgresuser.matches[0].PostgresUser != postgres_username))
-  community.general.xml:
-    path: '{{ arrs_config_location }}/config.xml'
-    pretty_print: true
-    xpath: /Config/PostgresUser
-    value: '{{ postgres_username }}'
-
-- name: Add PostgresPassword
-  when: ((arrs_xml_postgrespassword.matches[0].PostgresPassword is not defined) or
-         (arrs_xml_postgrespassword.matches[0].PostgresPassword != postgres_password))
-  community.general.xml:
-    path: '{{ arrs_config_location }}/config.xml'
-    pretty_print: true
-    xpath: /Config/PostgresPassword
-    value: '{{ postgres_password }}'
-
-- name: Add PostgresPort
-  when: ((arrs_xml_postgresport.matches[0].PostgresPort is not defined) or
-         (arrs_xml_postgresport.matches[0].PostgresPort != postgres_ports_cont))
-  community.general.xml:
-    path: '{{ arrs_config_location }}/config.xml'
-    pretty_print: true
-    xpath: /Config/PostgresPort
-    value: '{{ postgres_ports_cont }}'
-
-- name: Add PostgresHost
-  when: ((arrs_xml_postgreshost.matches[0].PostgresHost is not defined) or
-         (arrs_xml_postgreshost.matches[0].PostgresHost != postgres_name))
-  community.general.xml:
-    path: '{{ arrs_config_location }}/config.xml'
-    pretty_print: true
-    xpath: /Config/PostgresHost
-    value: '{{ postgres_name }}'
-
-- name: Add PostgresMainDb
-  when: ((arrs_xml_postgresmaindb.matches[0].PostgresMainDb is not defined) or
-         (arrs_xml_postgresmaindb.matches[0].PostgresMainDb != arrs_main_db))
-  community.general.xml:
-    path: '{{ arrs_config_location }}/config.xml'
-    pretty_print: true
-    xpath: /Config/PostgresMainDb
-    value: '{{ arrs_main_db }}'
-
-- name: Add PostgresLogDb
-  when: ((arrs_xml_postgreslogdb.matches[0].PostgresLogDb is not defined) or
-         (arrs_xml_postgreslogdb.matches[0].PostgresLogDb != arrs_log_db))
-  community.general.xml:
-    path: '{{ arrs_config_location }}/config.xml'
-    pretty_print: true
-    xpath: /Config/PostgresLogDb
-    value: '{{ arrs_log_db }}'
-
-- name: Add PostgresCacheDb
-  when: (arrs_cache_db is not none) and (arrs_cache_db | trim | length > 0)
-  block:
-    - name: Add PostgresCacheDb
-      when: ((arrs_xml_postgrescachedb.matches[0].PostgresCacheDb is not defined) or
-             (arrs_xml_postgrescachedb.matches[0].PostgresCacheDb != arrs_cache_db))
-      community.general.xml:
-        path: '{{ arrs_config_location }}/config.xml'
-        pretty_print: true
-        xpath: /Config/PostgresCacheDb
-        value: '{{ arrs_cache_db }}'
-
-```
-
-3. I then have tasks to delete any existing sqlite databases in the arrs folder:
-
-```yaml
-
-- name: Remove sqlite files
-  ansible.builtin.include_tasks: sub_tasks/sqlite.yml
-  vars:
-    sqlite_location: '{{ item.location }}'
-    sqlite_name: '{{ item.name }}'
-    backups_location: '{{ item.backups }}'
-  loop:
-    - { location: '{{ bazarr_location }}/db', name: 'bazarr', backups: '{{ bazarr_location }}/backup' }
-    - { location: '{{ lidarr_location }}', name: 'lidarr', backups: '{{ lidarr_location }}/Backups' }
-    - { location: '{{ prowlarr_location }}', name: 'prowlarr', backups: '{{ prowlarr_location }}/Backups' }
-    - { location: '{{ radarr_location }}', name: 'radarr', backups: '{{ radarr_location }}/Backups' }
-    - { location: '{{ radarr_4k_location }}', name: 'radarr', backups: '{{ radarr_4k_location }}/Backups' }
-    - { location: '{{ readarr_location }}', name: 'readarr', backups: '{{ readarr_location }}/Backups' }
-    - { location: '{{ sonarr_location }}', name: 'sonarr', backups: '{{ sonarr_location }}/Backups' }
-    - { location: '{{ sonarr_4k_location }}', name: 'sonarr', backups: '{{ sonarr_4k_location }}/Backups' }
-    - { location: '{{ whisparr_location }}', name: 'whisparr', backups: '{{ whisparr_location }}/Backups' }
-    - { location: '{{ whisparr_v3_location }}', name: 'whisparr', backups: '{{ whisparr_v3_location }}/Backups' }
-
-```
-
-```yaml
-
-- name: Remove sqlite files
-  ansible.builtin.file:
-    path: '{{ item }}'
-    state: absent
-  loop:
-    - '{{ sqlite_location }}/logs.db'
-    - '{{ sqlite_location }}/logs.db-shm'
-    - '{{ sqlite_location }}/logs.db-wal'
-    - '{{ sqlite_location }}/{{ sqlite_name }}.db'
-    - '{{ sqlite_location }}/{{ sqlite_name }}.db-shm'
-    - '{{ sqlite_location }}/{{ sqlite_name }}.db-wal'
-
-- name: Remove sqlite backups folders
-  ansible.builtin.file:
-    path: '{{ backups_location }}'
-    state: absent
-
-```
-
-Of course, if you still need your sqlite databases you wouldn't use these. But for me, I've already fully migrated to postgres, so the only time an sqlite file would show up is if something went wrong with the role. 
+Once the database is created, depending on the services, additional database tasks will be required. These usually revolve around adding your database details to the service config. For me, I prefer defining the database details via the services docker environmental variables, but sometimes this isn't possible. Sometimes I prefer editing the config, which is the case with my arrs stack.
 
 ***
 

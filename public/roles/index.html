@@ -189,7 +189,7 @@ Group_Vars For my set up, group_vars, is structured like the following:
   <h1 class="post-title">
     <a href="http://localhost:1313/roles/">Structuring your Ansible Roles</a>
   </h1>
-  <div class="post-meta"><span class="post-reading-time">14 min read (2813 words)</span></div>
+  <div class="post-meta"><span class="post-reading-time">10 min read (2055 words)</span></div>
 
   
     <span class="post-tags">
@@ -409,7 +409,7 @@ Group_Vars For my set up, group_vars, is structured like the following:
 </span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ sonarr_4k_location }}&#39;</span>
 </span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ whisparr_location }}&#39;</span>
 </span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ whisparr_v3_location }}&#39;</span>
-</span></span></code></pre></div><p>Typically, the only thing differing between roles are directory paths, so it&rsquo;s a case of looping over directory paths. However, sometimes I require different permissions (i.e, bitnami), in which I iterate over a list of required hashes, as below:</p>
+</span></span></code></pre></div><p>Typically, the only thing differing between roles are directory paths, so it&rsquo;s a case of looping over directory paths. However, sometimes I require different permissions (i.e, bitnami), as below:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Create directories</span>
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.file</span>:
@@ -429,11 +429,11 @@ Group_Vars For my set up, group_vars, is structured like the following:
 <hr>
 <h3 id="files">Files<a href="#files" class="hanchor" ariaLabel="Anchor">#</a> </h3>
 <hr>
-<p>After creating directories, I deal with files using common tasks for <a href="https://drjoyce.blog/common/#templates">templates</a> and <a href="https://drjoyce.blog/common/#file-copy">copy tasks</a>.</p>
+<p>I deal with files using common tasks for <a href="https://drjoyce.blog/common/#templates">templates</a> and <a href="https://drjoyce.blog/common/#file-copy">copy tasks</a>.</p>
 <hr>
 <h3 id="databases">Databases<a href="#databases" class="hanchor" ariaLabel="Anchor">#</a> </h3>
 <hr>
-<p>Here I create any required postgres/mariadb databases using relevant ansible modules:</p>
+<p>Here I create postgres/mariadb databases using ansible modules:</p>
 <p><strong>MariaDB</strong></p>
 <p>I have a single task that checks for a database and creates one if none exists.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
@@ -448,185 +448,7 @@ Group_Vars For my set up, group_vars, is structured like the following:
 </span></span></code></pre></div><p><strong>Postgres</strong></p>
 <p>I have <a href="https://drjoyce.blog/common/">common tasks defined elsewhere</a>.</p>
 <p>Both require an existing mariadb/postgres database instance that is up and accepting connections, with all relevant database login details stored in <code>group_vars/vault</code>. I deploy my databases via docker, but it doesn&rsquo;t matter if you installed via a different method. Also, since these are ansible module tasks, and are not part of your docker network, they rely on machine ip and host port.</p>
-<p>Once the database is created, depending on the services, additional database tasks will be required. These usually revolve around adding your database details to the service config. For me, I prefer defining the database details via the services docker environmental variables, but sometimes this isn&rsquo;t possible. Sometimes I prefer editing the config, which is the case with my arrs stack:</p>
-<ol>
-<li>I use the <code>ansible.builtin.include_tasks</code> to include some common postgres config tasks contained in my <code>arrs/tasks/sub_tasks</code> folder:</li>
-</ol>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Conduct Postgres config tasks</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.include_tasks</span>: <span style="color:#ae81ff">sub_tasks/postgres.yml</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">vars</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">arrs_config_location</span>: <span style="color:#e6db74">&#39;{{ item.location }}&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">arrs_log_db</span>: <span style="color:#e6db74">&#39;{{ item.logdb }}&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">arrs_main_db</span>: <span style="color:#e6db74">&#39;{{ item.maindb }}&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">arrs_cache_db</span>: <span style="color:#e6db74">&#39;{{ item.cachedb }}&#39;</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">loop</span>:
-</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">location</span>: <span style="color:#e6db74">&#39;{{ lidarr_location }}&#39;</span><span style="color:#f92672">, logdb: &#39;lidarr-log&#39;, maindb: &#39;lidarr-main&#39;, cachedb</span>: <span style="color:#e6db74">&#39;&#39;</span> }
-</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">location</span>: <span style="color:#e6db74">&#39;{{ prowlarr_location }}&#39;</span><span style="color:#f92672">, logdb: &#39;prowlarr-log&#39;, maindb: &#39;prowlarr-main&#39;, cachedb</span>: <span style="color:#e6db74">&#39;&#39;</span> }
-</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">location</span>: <span style="color:#e6db74">&#39;{{ radarr_location }}&#39;</span><span style="color:#f92672">, logdb: &#39;radarr-log&#39;, maindb: &#39;radarr-main&#39;, cachedb</span>: <span style="color:#e6db74">&#39;&#39;</span> }
-</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">location</span>: <span style="color:#e6db74">&#39;{{ radarr_4k_location }}&#39;</span><span style="color:#f92672">, logdb: &#39;radarr-4k-log&#39;, maindb: &#39;radarr-4k-main&#39;, cachedb</span>: <span style="color:#e6db74">&#39;&#39;</span> }
-</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">location</span>: <span style="color:#e6db74">&#39;{{ readarr_location }}&#39;</span><span style="color:#f92672">, logdb: &#39;readarr-log&#39;, maindb: &#39;readarr-main&#39;, cachedb</span>: <span style="color:#e6db74">&#39;readarr-cache&#39;</span> }
-</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">location</span>: <span style="color:#e6db74">&#39;{{ sonarr_location }}&#39;</span><span style="color:#f92672">, logdb: &#39;sonarr-log&#39;, maindb: &#39;sonarr-main&#39;, cachedb</span>: <span style="color:#e6db74">&#39;&#39;</span> }
-</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">location</span>: <span style="color:#e6db74">&#39;{{ sonarr_4k_location }}&#39;</span><span style="color:#f92672">, logdb: &#39;sonarr-4k-log&#39;, maindb: &#39;sonarr-4k-main&#39;, cachedb</span>: <span style="color:#e6db74">&#39;&#39;</span> }
-</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">location</span>: <span style="color:#e6db74">&#39;{{ whisparr_location }}&#39;</span><span style="color:#f92672">, logdb: &#39;whisparr-log&#39;, maindb: &#39;whisparr-main&#39;, cachedb</span>: <span style="color:#e6db74">&#39;&#39;</span> }
-</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">location</span>: <span style="color:#e6db74">&#39;{{ whisparr_v3_location }}&#39;</span><span style="color:#f92672">, logdb: &#39;whisparr-log-v3&#39;, maindb: &#39;whisparr-main-v3&#39;, cachedb</span>: <span style="color:#e6db74">&#39;&#39;</span> }
-</span></span></code></pre></div><ol start="2">
-<li>The common tasks are conducted using the variables defined above:</li>
-</ol>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Lookup PostgresUser value</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.general.xml</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ arrs_config_location }}/config.xml&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">xpath</span>: <span style="color:#ae81ff">/Config/PostgresUser</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">print_match</span>: <span style="color:#66d9ef">true</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">register</span>: <span style="color:#ae81ff">arrs_xml_postgresuser</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Lookup PostgresPassword value</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.general.xml</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ arrs_config_location }}/config.xml&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">xpath</span>: <span style="color:#ae81ff">/Config/PostgresPassword</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">print_match</span>: <span style="color:#66d9ef">true</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">register</span>: <span style="color:#ae81ff">arrs_xml_postgrespassword</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Lookup PostgresPort value</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.general.xml</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ arrs_config_location }}/config.xml&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">xpath</span>: <span style="color:#ae81ff">/Config/PostgresPort</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">print_match</span>: <span style="color:#66d9ef">true</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">register</span>: <span style="color:#ae81ff">arrs_xml_postgresport</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Lookup PostgresHost value</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.general.xml</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ arrs_config_location }}/config.xml&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">xpath</span>: <span style="color:#ae81ff">/Config/PostgresHost</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">print_match</span>: <span style="color:#66d9ef">true</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">register</span>: <span style="color:#ae81ff">arrs_xml_postgreshost</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Lookup PostgresMainDb value</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.general.xml</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ arrs_config_location }}/config.xml&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">xpath</span>: <span style="color:#ae81ff">/Config/PostgresMainDb</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">print_match</span>: <span style="color:#66d9ef">true</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">register</span>: <span style="color:#ae81ff">arrs_xml_postgresmaindb</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Lookup PostgresLogDb value</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.general.xml</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ arrs_config_location }}/config.xml&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">xpath</span>: <span style="color:#ae81ff">/Config/PostgresLogDb</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">print_match</span>: <span style="color:#66d9ef">true</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">register</span>: <span style="color:#ae81ff">arrs_xml_postgreslogdb</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Lookup PostgresCacheDb value</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.general.xml</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ arrs_config_location }}/config.xml&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">xpath</span>: <span style="color:#ae81ff">/Config/PostgresCacheDb</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">print_match</span>: <span style="color:#66d9ef">true</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">register</span>: <span style="color:#ae81ff">arrs_xml_postgrescachedb</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Add PostgresUser</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">when</span>: <span style="color:#ae81ff">((arrs_xml_postgresuser.matches[0].PostgresUser is not defined) or</span>
-</span></span><span style="display:flex;"><span>         <span style="color:#ae81ff">(arrs_xml_postgresuser.matches[0].PostgresUser != postgres_username))</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.general.xml</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ arrs_config_location }}/config.xml&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">pretty_print</span>: <span style="color:#66d9ef">true</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">xpath</span>: <span style="color:#ae81ff">/Config/PostgresUser</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">value</span>: <span style="color:#e6db74">&#39;{{ postgres_username }}&#39;</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Add PostgresPassword</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">when</span>: <span style="color:#ae81ff">((arrs_xml_postgrespassword.matches[0].PostgresPassword is not defined) or</span>
-</span></span><span style="display:flex;"><span>         <span style="color:#ae81ff">(arrs_xml_postgrespassword.matches[0].PostgresPassword != postgres_password))</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.general.xml</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ arrs_config_location }}/config.xml&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">pretty_print</span>: <span style="color:#66d9ef">true</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">xpath</span>: <span style="color:#ae81ff">/Config/PostgresPassword</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">value</span>: <span style="color:#e6db74">&#39;{{ postgres_password }}&#39;</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Add PostgresPort</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">when</span>: <span style="color:#ae81ff">((arrs_xml_postgresport.matches[0].PostgresPort is not defined) or</span>
-</span></span><span style="display:flex;"><span>         <span style="color:#ae81ff">(arrs_xml_postgresport.matches[0].PostgresPort != postgres_ports_cont))</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.general.xml</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ arrs_config_location }}/config.xml&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">pretty_print</span>: <span style="color:#66d9ef">true</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">xpath</span>: <span style="color:#ae81ff">/Config/PostgresPort</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">value</span>: <span style="color:#e6db74">&#39;{{ postgres_ports_cont }}&#39;</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Add PostgresHost</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">when</span>: <span style="color:#ae81ff">((arrs_xml_postgreshost.matches[0].PostgresHost is not defined) or</span>
-</span></span><span style="display:flex;"><span>         <span style="color:#ae81ff">(arrs_xml_postgreshost.matches[0].PostgresHost != postgres_name))</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.general.xml</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ arrs_config_location }}/config.xml&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">pretty_print</span>: <span style="color:#66d9ef">true</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">xpath</span>: <span style="color:#ae81ff">/Config/PostgresHost</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">value</span>: <span style="color:#e6db74">&#39;{{ postgres_name }}&#39;</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Add PostgresMainDb</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">when</span>: <span style="color:#ae81ff">((arrs_xml_postgresmaindb.matches[0].PostgresMainDb is not defined) or</span>
-</span></span><span style="display:flex;"><span>         <span style="color:#ae81ff">(arrs_xml_postgresmaindb.matches[0].PostgresMainDb != arrs_main_db))</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.general.xml</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ arrs_config_location }}/config.xml&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">pretty_print</span>: <span style="color:#66d9ef">true</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">xpath</span>: <span style="color:#ae81ff">/Config/PostgresMainDb</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">value</span>: <span style="color:#e6db74">&#39;{{ arrs_main_db }}&#39;</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Add PostgresLogDb</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">when</span>: <span style="color:#ae81ff">((arrs_xml_postgreslogdb.matches[0].PostgresLogDb is not defined) or</span>
-</span></span><span style="display:flex;"><span>         <span style="color:#ae81ff">(arrs_xml_postgreslogdb.matches[0].PostgresLogDb != arrs_log_db))</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.general.xml</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ arrs_config_location }}/config.xml&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">pretty_print</span>: <span style="color:#66d9ef">true</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">xpath</span>: <span style="color:#ae81ff">/Config/PostgresLogDb</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">value</span>: <span style="color:#e6db74">&#39;{{ arrs_log_db }}&#39;</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Add PostgresCacheDb</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">when</span>: <span style="color:#ae81ff">(arrs_cache_db is not none) and (arrs_cache_db | trim | length &gt; 0)</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">block</span>:
-</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Add PostgresCacheDb</span>
-</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">((arrs_xml_postgrescachedb.matches[0].PostgresCacheDb is not defined) or</span>
-</span></span><span style="display:flex;"><span>             <span style="color:#ae81ff">(arrs_xml_postgrescachedb.matches[0].PostgresCacheDb != arrs_cache_db))</span>
-</span></span><span style="display:flex;"><span>      <span style="color:#f92672">community.general.xml</span>:
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ arrs_config_location }}/config.xml&#39;</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">pretty_print</span>: <span style="color:#66d9ef">true</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">xpath</span>: <span style="color:#ae81ff">/Config/PostgresCacheDb</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">value</span>: <span style="color:#e6db74">&#39;{{ arrs_cache_db }}&#39;</span>
-</span></span></code></pre></div><ol start="3">
-<li>I then have tasks to delete any existing sqlite databases in the arrs folder:</li>
-</ol>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Remove sqlite files</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.include_tasks</span>: <span style="color:#ae81ff">sub_tasks/sqlite.yml</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">vars</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">sqlite_location</span>: <span style="color:#e6db74">&#39;{{ item.location }}&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">sqlite_name</span>: <span style="color:#e6db74">&#39;{{ item.name }}&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">backups_location</span>: <span style="color:#e6db74">&#39;{{ item.backups }}&#39;</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">loop</span>:
-</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">location</span>: <span style="color:#e6db74">&#39;{{ bazarr_location }}/db&#39;</span><span style="color:#f92672">, name: &#39;bazarr&#39;, backups</span>: <span style="color:#e6db74">&#39;{{ bazarr_location }}/backup&#39;</span> }
-</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">location</span>: <span style="color:#e6db74">&#39;{{ lidarr_location }}&#39;</span><span style="color:#f92672">, name: &#39;lidarr&#39;, backups</span>: <span style="color:#e6db74">&#39;{{ lidarr_location }}/Backups&#39;</span> }
-</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">location</span>: <span style="color:#e6db74">&#39;{{ prowlarr_location }}&#39;</span><span style="color:#f92672">, name: &#39;prowlarr&#39;, backups</span>: <span style="color:#e6db74">&#39;{{ prowlarr_location }}/Backups&#39;</span> }
-</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">location</span>: <span style="color:#e6db74">&#39;{{ radarr_location }}&#39;</span><span style="color:#f92672">, name: &#39;radarr&#39;, backups</span>: <span style="color:#e6db74">&#39;{{ radarr_location }}/Backups&#39;</span> }
-</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">location</span>: <span style="color:#e6db74">&#39;{{ radarr_4k_location }}&#39;</span><span style="color:#f92672">, name: &#39;radarr&#39;, backups</span>: <span style="color:#e6db74">&#39;{{ radarr_4k_location }}/Backups&#39;</span> }
-</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">location</span>: <span style="color:#e6db74">&#39;{{ readarr_location }}&#39;</span><span style="color:#f92672">, name: &#39;readarr&#39;, backups</span>: <span style="color:#e6db74">&#39;{{ readarr_location }}/Backups&#39;</span> }
-</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">location</span>: <span style="color:#e6db74">&#39;{{ sonarr_location }}&#39;</span><span style="color:#f92672">, name: &#39;sonarr&#39;, backups</span>: <span style="color:#e6db74">&#39;{{ sonarr_location }}/Backups&#39;</span> }
-</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">location</span>: <span style="color:#e6db74">&#39;{{ sonarr_4k_location }}&#39;</span><span style="color:#f92672">, name: &#39;sonarr&#39;, backups</span>: <span style="color:#e6db74">&#39;{{ sonarr_4k_location }}/Backups&#39;</span> }
-</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">location</span>: <span style="color:#e6db74">&#39;{{ whisparr_location }}&#39;</span><span style="color:#f92672">, name: &#39;whisparr&#39;, backups</span>: <span style="color:#e6db74">&#39;{{ whisparr_location }}/Backups&#39;</span> }
-</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">location</span>: <span style="color:#e6db74">&#39;{{ whisparr_v3_location }}&#39;</span><span style="color:#f92672">, name: &#39;whisparr&#39;, backups</span>: <span style="color:#e6db74">&#39;{{ whisparr_v3_location }}/Backups&#39;</span> }
-</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Remove sqlite files</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.file</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ item }}&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">absent</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">loop</span>:
-</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ sqlite_location }}/logs.db&#39;</span>
-</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ sqlite_location }}/logs.db-shm&#39;</span>
-</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ sqlite_location }}/logs.db-wal&#39;</span>
-</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ sqlite_location }}/{{ sqlite_name }}.db&#39;</span>
-</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ sqlite_location }}/{{ sqlite_name }}.db-shm&#39;</span>
-</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ sqlite_location }}/{{ sqlite_name }}.db-wal&#39;</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Remove sqlite backups folders</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.file</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ backups_location }}&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">absent</span>
-</span></span></code></pre></div><p>Of course, if you still need your sqlite databases you wouldn&rsquo;t use these. But for me, I&rsquo;ve already fully migrated to postgres, so the only time an sqlite file would show up is if something went wrong with the role.</p>
+<p>Once the database is created, depending on the services, additional database tasks will be required. These usually revolve around adding your database details to the service config. For me, I prefer defining the database details via the services docker environmental variables, but sometimes this isn&rsquo;t possible. Sometimes I prefer editing the config, which is the case with my arrs stack.</p>
 <hr>
 <h3 id="dns">DNS<a href="#dns" class="hanchor" ariaLabel="Anchor">#</a> </h3>
 <hr>
