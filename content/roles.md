@@ -252,7 +252,7 @@ I then create directories and sub-directories required for the role:
 
 ```
 
-Typically, the only thing differing between roles are directory paths, so it's a case of looping over directory paths. However, sometimes I may require different permissions (i.e, bitnami services). In these cases, you can iterate over a list of required hashes, as below:
+Typically, the only thing differing between roles are directory paths, so it's a case of looping over directory paths. However, sometimes I require different permissions (i.e, bitnami), in which I iterate over a list of required hashes, as below:
 
 ```yaml
 
@@ -277,16 +277,63 @@ Above, I loop over `path`, `owner`, `group`. However, you can name them whatever
 
 ***
 
+### Files
+
+***
+
+After creating the directory, I typically deal with files via template and copy tasks.
+
+**Copy**
+
+For copies, [I have common tasks](https://drjoyce.blog/common/#file-copy) that get called
+
+```yaml
+
+- name: Copy Hugo Terminal Themes files
+  ansible.builtin.include_tasks: /ansible/common/copy.yml
+  vars:
+    copy_source: '{{ item.source }}'
+    copy_destination: '{{ item.destination }}'
+  loop:
+    - { source: '{{ role_path }}/files/favicon.png', destination: '/{{ hugo_site_name }}/static/favicon.png' }
+    - { source: '{{ role_path }}/files/og-image.png', destination: '/{{ hugo_site_name }}/static/og-image.png' }
+    - { source: '{{ role_path }}/files/terminal.css', destination: '/{{ hugo_site_name }}/static/terminal.css' }
+
+```
+
+**Templates**
+
+For templates, like copies, [I have common tasks](https://drjoyce.blog/common/#templates) that get called:
+
+```yaml
+
+- name: Conduct template tasks
+  ansible.builtin.include_tasks: '/ansible/common/template.yml'
+  vars:
+    template_location: '{{ item.template }}'
+    file_location: '{{ item.file }}'
+  loop:
+    - { template: '{{ role_path }}/templates/configs/prometheus.yml.j2', file: '{{ prometheus_location }}/prometheus.yml' }
+    - { template: '{{ role_path }}/templates/configs/loki-config.yaml.j2', file: '{{ loki_location }}/loki-config.yaml' }
+    - { template: '{{ role_path }}/templates/configs/promtail-config.yaml.j2', file: '{{ promtail_location }}/promtail.yaml' }
+    - { template: '{{ role_path }}/templates/configs/scraparr-config.yaml.j2', file: '{{ scraparr_location }}/config.yaml' }
+
+```
+
+Templates make up the majority of my files tasks, and it's how I handle config files for services.
+
+***
+
 ### Databases
 
 ***
 
-In this section I create any required postgres or mariadb databases using the relevant ansible modules:
+In this section I create any required postgres/mariadb databases using relevant ansible modules:
 
 
 **MariaDB**
 
-For MariaDB, I have a single task within the role that checks for a database and creates one if none exists.
+For MariaDB, I have a single task that checks for a database and creates one if none exists.
 
 ```yaml
 
@@ -303,7 +350,7 @@ For MariaDB, I have a single task within the role that checks for a database and
 
 **Postgres**
 
-For Postgres I have a set of [common tasks defined elsewhere](https://drjoyce.blog/common/) that is included using `ansible.builtin.include_tasks`. All that is required here are the name of the databases.
+For Postgres I have [common tasks defined elsewhere](https://drjoyce.blog/common/) that is included using `ansible.builtin.include_tasks`. All that is required are the name of the databases.
 
 ```yaml
 
@@ -335,11 +382,11 @@ For Postgres I have a set of [common tasks defined elsewhere](https://drjoyce.bl
 
 ```
 
-In both cases, an existing mariadb/postgres database instance is up and accepting connections, and all relevant database login details are stored in `group_vars/vault` prior to running these tasks. I deploy my databases via docker, but it doesn't matter if you installed via a different method. Also, since these are ansible module tasks, and are not part of your docker network, they rely on your machine ip (gathered in pre-tasks) and host port.
+Both cases require an existing mariadb/postgres database instance that is up and accepting connections, with all relevant database login details stored in `group_vars/vault`. I deploy my databases via docker, but it doesn't matter if you installed via a different method. Also, since these are ansible module tasks, and are not part of your docker network, they rely on your machine ip (gathered in pre-tasks) and host port.
 
-Once the database is created, sometimes, depending on the services, additional database tasks will be required. These usually revolve around adding your database details to the service config. For me, I prefer defining the database details via the services docker environmental variables, but sometimes this isn't possible. Sometimes I prefer editing the config, which is the case with my arrs stack:
+Once the database is created, depending on the services, additional database tasks will be required. These usually revolve around adding your database details to the service config. For me, I prefer defining the database details via the services docker environmental variables, but sometimes this isn't possible. Sometimes I prefer editing the config, which is the case with my arrs stack:
 
-1. After creating the database, I use the `ansible.builtin.include_tasks` to include some common postgres config tasks contained in my `arrs/tasks/sub_tasks` folder:
+1. I use the `ansible.builtin.include_tasks` to include some common postgres config tasks contained in my `arrs/tasks/sub_tasks` folder:
 
 ```yaml
 
@@ -363,7 +410,7 @@ Once the database is created, sometimes, depending on the services, additional d
 
 ```
 
-2. The common tasks are then conducted using the relevant variables defined above:
+2. The common tasks are conducted using the variables defined above:
 
 ```yaml
 
@@ -531,19 +578,131 @@ Once the database is created, sometimes, depending on the services, additional d
 
 Of course, if you still need your sqlite databases you wouldn't use these. But for me, I've already fully migrated to postgres, so the only time an sqlite file would show up is if something went wrong with the role. 
 
+***
+
+### DNS
+
+***
+
+In this section, I add cloudflare DNS records for any services that require it via [common tasks](https://drjoyce.blog/common/#cloudflare-dns)
+
+```yaml
+
+- name: Add DNS records
+  ansible.builtin.include_tasks: /ansible/common/cloudflare.yml
+  vars:
+    cloudflare_domain: '{{ local_domain }}'
+    cloudflare_record: '{{ item }}'
+    cloudflare_type: 'A'
+    cloudflare_value: '{{ ipify_public_ip }}'
+    cloudflare_proxy: 'false'
+    cloudflare_solo: 'true'
+    cloudflare_remove_existing: 'true'
+  loop:
+    - '{{ prometheus_name }}'
+    - '{{ sabnzbd_name }}'
+
+```
+
+Prior to moving to common tasks, I would define the cloudflare tasks in role sub_tasks, like so:
+
+```yaml
+
+################################
+# CLOUDFLARE
+################################
+
+- name: Perform Cloudflare DNS tasks
+  block:
+    - name: Remove existing CNAME DNS record
+      community.general.cloudflare_dns:
+        api_token: '{{ cloudflare_api }}'
+        zone: '{{ local_domain }}'
+        state: 'absent'
+        type: 'CNAME'
+        record: '{{ ombi_name }}'
+
+    - name: Remove existing A DNS record
+      community.general.cloudflare_dns:
+        api_token: '{{ cloudflare_api }}'
+        zone: '{{ local_domain }}'
+        state: 'absent'
+        type: 'A'
+        record: '{{ ombi_name }}'
+
+    - name: Add DNS record
+      community.general.cloudflare_dns:
+        api_token: '{{ cloudflare_api }}'
+        zone: '{{ local_domain }}'
+        state: 'present'
+        solo: true
+        proxied: '{{ cloudflare_proxy }}'
+        type: '{{ cloudflare_record }}'
+        value: '{{ ipify_public_ip }}'
+        record: '{{ ombi_name }}'
+      register: ombi_cloudflare_record_creation_status
+
+    - name: Tasks on success
+      when: ombi_cloudflare_record_creation_status is succeeded
+      block:
+        - name: Set 'dns_record_print' variable
+          ansible.builtin.set_fact:
+            ombi_cloudflare_record_print: '{{ (ombi_name == local_domain) | ternary(local_domain, ombi_name + "." + local_domain) }}'
+
+        - name: Display DNS record creation status
+          ansible.builtin.debug:
+            msg: 'DNS A Record for "{{ ombi_cloudflare_record_print }}" set to "{{ ipify_public_ip }}" was added. Proxy: {{ cloudflare_proxy }}'
+
+```
+
+***
+
+### Traefik
+
+***
+
+In this section, include [common tasks](https://drjoyce.blog/common/#traefik-labels) to set Traefik labels for each services requiring them:
+
+```yaml
+
+- name: Set traefik Labels
+  ansible.builtin.include_tasks: /ansible/common/labels.yml
+  vars:
+    router_variable: '{{ item.var }}'
+    router_network: '{{ network_overlay }}'
+    router_name: '{{ item.name }}'
+    router_port: '{{ item.port }}'
+    router_api: '{{ item.api }}'
+    router_domain: '{{ local_domain }}'
+    router_entrypoint: 'http'  ## web if saltbox
+    router_secure_entrypoint: 'https'  ## websecure if saltbox
+    router_tls_certresolver: 'dns-cloudflare'  ## cfdns if saltbox
+    router_tls_options: 'tls-opts@file'  ## securetls@file if saltbox
+    router_themepark_app: '{{ item.tp_app }}'
+    router_themepark_theme: 'hotpink'
+    router_http_middlewares: '{{ traefik_http_middlewares + item.sso + item.tp }}'
+    router_https_middlewares: '{{ traefik_https_middlewares + item.sso + item.tp }}'
+  loop:
+    ## grafana
+    - { var: 'grafana_labels',
+        name: '{{ grafana_name }}',
+        port: '{{ grafana_ports_cont }}',
+        api: '',
+        sso: ',authelia@swarm',
+        tp: '',
+        tp_app: '' }
+    ## prometheus
+    - { var: 'prometheus_labels',
+        name: '{{ prometheus_name }}',
+        port: '{{ prometheus_ports_cont }}',
+        api: '',
+        sso: ',authelia@swarm',
+        tp: '',
+        tp_app: '' }
+
+```
 
 
-
-
-
-
-
-
-   - Files
-   - Volumes
-   - Database
-   - DNS
-   - Traefik
    - Deploy
 
 
@@ -619,111 +778,8 @@ Sub_tasks prepare a docker swarm service to run, including:
   * Creating cloudflare A/CNAME DNS records
   and so on...
 
-**Example:**
 
-```
-## companions/tasks/sub_tasks/ombi.yml
 
-################################
-# DIRECTORY
-################################
-
-- name: Create appdata directories
-  ansible.builtin.file:
-    path: '{{ item }}'
-    state: directory
-    owner: '{{ puid }}'
-    group: '{{ pgid }}'
-    mode: '0755'
-  loop:
-    - '{{ ombi_defaults_location }}'
-    - '{{ ombi_defaults_location }}/config'
-
-################################
-# POSTGRES
-################################
-
-- name: Ping for existing database
-  community.postgresql.postgresql_ping:
-    login_host: '{{ pvr_machine }}'
-    login_user: '{{ postgres_username }}'
-    login_password: '{{ postgres_password }}'
-    port: '{{ postgres_ports_host }}'
-    login_db: 'Ombi'
-  register: ombi_postgres_db
-
-- name: Create postgres database
-  when: not ombi_postgres_db == true
-  community.postgresql.postgresql_db:
-    login_host: '{{ pvr_machine }}'
-    login_user: '{{ postgres_username }}'
-    login_password: '{{ postgres_password }}'
-    port: '{{ postgres_ports_host }}'
-    name: 'Ombi'
-    state: present
-
-- name: Import ombi database.json
-  ansible.builtin.template:
-    src: '{{ role_path }}/templates/configs/ombi_database.json.j2'
-    dest: '{{ ombi_defaults_location }}/config/database.json'
-    force: true
-    owner: '{{ puid }}'
-    group: '{{ pgid }}'
-    mode: '0664'
-
-- name: Remove sqlite database files
-  ansible.builtin.file:
-    path: '{{ ombi_defaults_location }}/{{ item }}'
-    state: absent
-  loop:
-    - Ombi.db
-    - OmbiExternal.db
-    - OmbiSettings.db
-
-################################
-# CLOUDFLARE
-################################
-
-- name: Perform Cloudflare DNS tasks
-  block:
-    - name: Remove existing CNAME DNS record
-      community.general.cloudflare_dns:
-        api_token: '{{ cloudflare_api }}'
-        zone: '{{ local_domain }}'
-        state: 'absent'
-        type: 'CNAME'
-        record: '{{ ombi_name }}'
-
-    - name: Remove existing A DNS record
-      community.general.cloudflare_dns:
-        api_token: '{{ cloudflare_api }}'
-        zone: '{{ local_domain }}'
-        state: 'absent'
-        type: 'A'
-        record: '{{ ombi_name }}'
-
-    - name: Add DNS record
-      community.general.cloudflare_dns:
-        api_token: '{{ cloudflare_api }}'
-        zone: '{{ local_domain }}'
-        state: 'present'
-        solo: true
-        proxied: '{{ cloudflare_proxy }}'
-        type: '{{ cloudflare_record }}'
-        value: '{{ ipify_public_ip }}'
-        record: '{{ ombi_name }}'
-      register: ombi_cloudflare_record_creation_status
-
-    - name: Tasks on success
-      when: ombi_cloudflare_record_creation_status is succeeded
-      block:
-        - name: Set 'dns_record_print' variable
-          ansible.builtin.set_fact:
-            ombi_cloudflare_record_print: '{{ (ombi_name == local_domain) | ternary(local_domain, ombi_name + "." + local_domain) }}'
-
-        - name: Display DNS record creation status
-          ansible.builtin.debug:
-            msg: 'DNS A Record for "{{ ombi_cloudflare_record_print }}" set to "{{ ipify_public_ip }}" was added. Proxy: {{ cloudflare_proxy }}'
 ```
 
 ***

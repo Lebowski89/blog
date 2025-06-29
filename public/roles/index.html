@@ -189,7 +189,7 @@ Group_Vars For my set up, group_vars, is structured like the following:
   <h1 class="post-title">
     <a href="http://localhost:1313/roles/">Structuring your Ansible Roles</a>
   </h1>
-  <div class="post-meta"><span class="post-reading-time">15 min read (3026 words)</span></div>
+  <div class="post-meta"><span class="post-reading-time">16 min read (3222 words)</span></div>
 
   
     <span class="post-tags">
@@ -221,16 +221,14 @@ Group_Vars For my set up, group_vars, is structured like the following:
       <ul>
         <li><a href="#clean-up">Clean Up</a></li>
         <li><a href="#directories">Directories</a></li>
+        <li><a href="#files">Files</a></li>
         <li><a href="#databases">Databases</a></li>
+        <li><a href="#dns">DNS</a></li>
+        <li><a href="#traefik">Traefik</a></li>
         <li><a href="#sub-tasks">Sub-tasks</a></li>
       </ul>
     </li>
-    <li><a href="#templates">Templates</a>
-      <ul>
-        <li><a href="#configs">Configs</a></li>
-        <li><a href="#compose">Compose</a></li>
-      </ul>
-    </li>
+    <li><a href="#doplarrs-config-configednj2">Doplarr&rsquo;s config (config.edn.j2)</a></li>
   </ul>
 </nav>
     </div>
@@ -410,7 +408,7 @@ Group_Vars For my set up, group_vars, is structured like the following:
 </span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ sonarr_4k_location }}&#39;</span>
 </span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ whisparr_location }}&#39;</span>
 </span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ whisparr_v3_location }}&#39;</span>
-</span></span></code></pre></div><p>Typically, the only thing differing between roles are directory paths, so it&rsquo;s a case of looping over directory paths. However, sometimes I may require different permissions (i.e, bitnami services). In these cases, you can iterate over a list of required hashes, as below:</p>
+</span></span></code></pre></div><p>Typically, the only thing differing between roles are directory paths, so it&rsquo;s a case of looping over directory paths. However, sometimes I require different permissions (i.e, bitnami), in which I iterate over a list of required hashes, as below:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Create directories</span>
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.file</span>:
@@ -428,11 +426,41 @@ Group_Vars For my set up, group_vars, is structured like the following:
 </span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ traefik_logs_location }}&#39;</span><span style="color:#f92672">, owner</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span><span style="color:#f92672">, group</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span> }
 </span></span></code></pre></div><p>Above, I loop over <code>path</code>, <code>owner</code>, <code>group</code>. However, you can name them whatever you want, as long as it matches up with the value after <code>item.</code>.</p>
 <hr>
+<h3 id="files">Files<a href="#files" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<hr>
+<p>After creating the directory, I typically deal with files via template and copy tasks.</p>
+<p><strong>Copy</strong></p>
+<p>For copies, <a href="https://drjoyce.blog/common/#file-copy">I have common tasks</a> that get called</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Copy Hugo Terminal Themes files</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.include_tasks</span>: <span style="color:#ae81ff">/ansible/common/copy.yml</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">vars</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">copy_source</span>: <span style="color:#e6db74">&#39;{{ item.source }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">copy_destination</span>: <span style="color:#e6db74">&#39;{{ item.destination }}&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">loop</span>:
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">source</span>: <span style="color:#e6db74">&#39;{{ role_path }}/files/favicon.png&#39;</span><span style="color:#f92672">, destination</span>: <span style="color:#e6db74">&#39;/{{ hugo_site_name }}/static/favicon.png&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">source</span>: <span style="color:#e6db74">&#39;{{ role_path }}/files/og-image.png&#39;</span><span style="color:#f92672">, destination</span>: <span style="color:#e6db74">&#39;/{{ hugo_site_name }}/static/og-image.png&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">source</span>: <span style="color:#e6db74">&#39;{{ role_path }}/files/terminal.css&#39;</span><span style="color:#f92672">, destination</span>: <span style="color:#e6db74">&#39;/{{ hugo_site_name }}/static/terminal.css&#39;</span> }
+</span></span></code></pre></div><p><strong>Templates</strong></p>
+<p>For templates, like copies, <a href="https://drjoyce.blog/common/#templates">I have common tasks</a> that get called:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Conduct template tasks</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.include_tasks</span>: <span style="color:#e6db74">&#39;/ansible/common/template.yml&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">vars</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">template_location</span>: <span style="color:#e6db74">&#39;{{ item.template }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">file_location</span>: <span style="color:#e6db74">&#39;{{ item.file }}&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">loop</span>:
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">template</span>: <span style="color:#e6db74">&#39;{{ role_path }}/templates/configs/prometheus.yml.j2&#39;</span><span style="color:#f92672">, file</span>: <span style="color:#e6db74">&#39;{{ prometheus_location }}/prometheus.yml&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">template</span>: <span style="color:#e6db74">&#39;{{ role_path }}/templates/configs/loki-config.yaml.j2&#39;</span><span style="color:#f92672">, file</span>: <span style="color:#e6db74">&#39;{{ loki_location }}/loki-config.yaml&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">template</span>: <span style="color:#e6db74">&#39;{{ role_path }}/templates/configs/promtail-config.yaml.j2&#39;</span><span style="color:#f92672">, file</span>: <span style="color:#e6db74">&#39;{{ promtail_location }}/promtail.yaml&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">template</span>: <span style="color:#e6db74">&#39;{{ role_path }}/templates/configs/scraparr-config.yaml.j2&#39;</span><span style="color:#f92672">, file</span>: <span style="color:#e6db74">&#39;{{ scraparr_location }}/config.yaml&#39;</span> }
+</span></span></code></pre></div><p>Templates make up the majority of my files tasks, and it&rsquo;s how I handle config files for services.</p>
+<hr>
 <h3 id="databases">Databases<a href="#databases" class="hanchor" ariaLabel="Anchor">#</a> </h3>
 <hr>
-<p>In this section I create any required postgres or mariadb databases using the relevant ansible modules:</p>
+<p>In this section I create any required postgres/mariadb databases using relevant ansible modules:</p>
 <p><strong>MariaDB</strong></p>
-<p>For MariaDB, I have a single task within the role that checks for a database and creates one if none exists.</p>
+<p>For MariaDB, I have a single task that checks for a database and creates one if none exists.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Create mariadb database</span>
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.mysql.mysql_db</span>:
@@ -443,7 +471,7 @@ Group_Vars For my set up, group_vars, is structured like the following:
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#39;wordpress&#39;</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">present</span>
 </span></span></code></pre></div><p><strong>Postgres</strong></p>
-<p>For Postgres I have a set of <a href="https://drjoyce.blog/common/">common tasks defined elsewhere</a> that is included using <code>ansible.builtin.include_tasks</code>. All that is required here are the name of the databases.</p>
+<p>For Postgres I have <a href="https://drjoyce.blog/common/">common tasks defined elsewhere</a> that is included using <code>ansible.builtin.include_tasks</code>. All that is required are the name of the databases.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Conduct Postgres DB tasks</span>
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.include_tasks</span>: <span style="color:#ae81ff">/ansible/common/postgres.yml</span>
@@ -470,10 +498,10 @@ Group_Vars For my set up, group_vars, is structured like the following:
 </span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;whisparr-log&#39;</span>
 </span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;whisparr-main-v3&#39;</span>
 </span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;whisparr-log-v3&#39;</span>
-</span></span></code></pre></div><p>In both cases, an existing mariadb/postgres database instance is up and accepting connections, and all relevant database login details are stored in <code>group_vars/vault</code> prior to running these tasks. I deploy my databases via docker, but it doesn&rsquo;t matter if you installed via a different method. Also, since these are ansible module tasks, and are not part of your docker network, they rely on your machine ip (gathered in pre-tasks) and host port.</p>
-<p>Once the database is created, sometimes, depending on the services, additional database tasks will be required. These usually revolve around adding your database details to the service config. For me, I prefer defining the database details via the services docker environmental variables, but sometimes this isn&rsquo;t possible. Sometimes I prefer editing the config, which is the case with my arrs stack:</p>
+</span></span></code></pre></div><p>Both cases require an existing mariadb/postgres database instance that is up and accepting connections, with all relevant database login details stored in <code>group_vars/vault</code>. I deploy my databases via docker, but it doesn&rsquo;t matter if you installed via a different method. Also, since these are ansible module tasks, and are not part of your docker network, they rely on your machine ip (gathered in pre-tasks) and host port.</p>
+<p>Once the database is created, depending on the services, additional database tasks will be required. These usually revolve around adding your database details to the service config. For me, I prefer defining the database details via the services docker environmental variables, but sometimes this isn&rsquo;t possible. Sometimes I prefer editing the config, which is the case with my arrs stack:</p>
 <ol>
-<li>After creating the database, I use the <code>ansible.builtin.include_tasks</code> to include some common postgres config tasks contained in my <code>arrs/tasks/sub_tasks</code> folder:</li>
+<li>I use the <code>ansible.builtin.include_tasks</code> to include some common postgres config tasks contained in my <code>arrs/tasks/sub_tasks</code> folder:</li>
 </ol>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Conduct Postgres config tasks</span>
@@ -494,7 +522,7 @@ Group_Vars For my set up, group_vars, is structured like the following:
 </span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">location</span>: <span style="color:#e6db74">&#39;{{ whisparr_location }}&#39;</span><span style="color:#f92672">, logdb: &#39;whisparr-log&#39;, maindb: &#39;whisparr-main&#39;, cachedb</span>: <span style="color:#e6db74">&#39;&#39;</span> }
 </span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">location</span>: <span style="color:#e6db74">&#39;{{ whisparr_v3_location }}&#39;</span><span style="color:#f92672">, logdb: &#39;whisparr-log-v3&#39;, maindb: &#39;whisparr-main-v3&#39;, cachedb</span>: <span style="color:#e6db74">&#39;&#39;</span> }
 </span></span></code></pre></div><ol start="2">
-<li>The common tasks are then conducted using the relevant variables defined above:</li>
+<li>The common tasks are conducted using the variables defined above:</li>
 </ol>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Lookup PostgresUser value</span>
@@ -650,12 +678,110 @@ Group_Vars For my set up, group_vars, is structured like the following:
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ backups_location }}&#39;</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">absent</span>
 </span></span></code></pre></div><p>Of course, if you still need your sqlite databases you wouldn&rsquo;t use these. But for me, I&rsquo;ve already fully migrated to postgres, so the only time an sqlite file would show up is if something went wrong with the role.</p>
-<ul>
-<li>Files</li>
-<li>Volumes</li>
-<li>Database</li>
-<li>DNS</li>
-<li>Traefik</li>
+<hr>
+<h3 id="dns">DNS<a href="#dns" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<hr>
+<p>In this section, I add cloudflare DNS records for any services that require it via <a href="https://drjoyce.blog/common/#cloudflare-dns">common tasks</a></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Add DNS records</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.include_tasks</span>: <span style="color:#ae81ff">/ansible/common/cloudflare.yml</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">vars</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_domain</span>: <span style="color:#e6db74">&#39;{{ local_domain }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_record</span>: <span style="color:#e6db74">&#39;{{ item }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_type</span>: <span style="color:#e6db74">&#39;A&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_value</span>: <span style="color:#e6db74">&#39;{{ ipify_public_ip }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_proxy</span>: <span style="color:#e6db74">&#39;false&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_solo</span>: <span style="color:#e6db74">&#39;true&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_remove_existing</span>: <span style="color:#e6db74">&#39;true&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">loop</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ prometheus_name }}&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ sabnzbd_name }}&#39;</span>
+</span></span></code></pre></div><p>Prior to moving to common tasks, I would define the cloudflare tasks in role sub_tasks, like so:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># CLOUDFLARE</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Perform Cloudflare DNS tasks</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">block</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Remove existing CNAME DNS record</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">community.general.cloudflare_dns</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">api_token</span>: <span style="color:#e6db74">&#39;{{ cloudflare_api }}&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">zone</span>: <span style="color:#e6db74">&#39;{{ local_domain }}&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">state</span>: <span style="color:#e6db74">&#39;absent&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#39;CNAME&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">record</span>: <span style="color:#e6db74">&#39;{{ ombi_name }}&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Remove existing A DNS record</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">community.general.cloudflare_dns</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">api_token</span>: <span style="color:#e6db74">&#39;{{ cloudflare_api }}&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">zone</span>: <span style="color:#e6db74">&#39;{{ local_domain }}&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">state</span>: <span style="color:#e6db74">&#39;absent&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#39;A&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">record</span>: <span style="color:#e6db74">&#39;{{ ombi_name }}&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Add DNS record</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">community.general.cloudflare_dns</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">api_token</span>: <span style="color:#e6db74">&#39;{{ cloudflare_api }}&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">zone</span>: <span style="color:#e6db74">&#39;{{ local_domain }}&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">state</span>: <span style="color:#e6db74">&#39;present&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">solo</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">proxied</span>: <span style="color:#e6db74">&#39;{{ cloudflare_proxy }}&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">type</span>: <span style="color:#e6db74">&#39;{{ cloudflare_record }}&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">value</span>: <span style="color:#e6db74">&#39;{{ ipify_public_ip }}&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">record</span>: <span style="color:#e6db74">&#39;{{ ombi_name }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">register</span>: <span style="color:#ae81ff">ombi_cloudflare_record_creation_status</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Tasks on success</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">ombi_cloudflare_record_creation_status is succeeded</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">block</span>:
+</span></span><span style="display:flex;"><span>        - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Set &#39;dns_record_print&#39; variable</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">ansible.builtin.set_fact</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">ombi_cloudflare_record_print</span>: <span style="color:#e6db74">&#39;{{ (ombi_name == local_domain) | ternary(local_domain, ombi_name + &#34;.&#34; + local_domain) }}&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Display DNS record creation status</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">ansible.builtin.debug</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">msg</span>: <span style="color:#e6db74">&#39;DNS A Record for &#34;{{ ombi_cloudflare_record_print }}&#34; set to &#34;{{ ipify_public_ip }}&#34; was added. Proxy: {{ cloudflare_proxy }}&#39;</span>
+</span></span></code></pre></div><hr>
+<h3 id="traefik">Traefik<a href="#traefik" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<hr>
+<p>In this section, include <a href="https://drjoyce.blog/common/#traefik-labels">common tasks</a> to set Traefik labels for each services requiring them:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Set traefik Labels</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.include_tasks</span>: <span style="color:#ae81ff">/ansible/common/labels.yml</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">vars</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_variable</span>: <span style="color:#e6db74">&#39;{{ item.var }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_network</span>: <span style="color:#e6db74">&#39;{{ network_overlay }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_name</span>: <span style="color:#e6db74">&#39;{{ item.name }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_port</span>: <span style="color:#e6db74">&#39;{{ item.port }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_api</span>: <span style="color:#e6db74">&#39;{{ item.api }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_domain</span>: <span style="color:#e6db74">&#39;{{ local_domain }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_entrypoint</span>: <span style="color:#e6db74">&#39;http&#39;</span>  <span style="color:#75715e">## web if saltbox</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_secure_entrypoint</span>: <span style="color:#e6db74">&#39;https&#39;</span>  <span style="color:#75715e">## websecure if saltbox</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_tls_certresolver</span>: <span style="color:#e6db74">&#39;dns-cloudflare&#39;</span>  <span style="color:#75715e">## cfdns if saltbox</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_tls_options</span>: <span style="color:#e6db74">&#39;tls-opts@file&#39;</span>  <span style="color:#75715e">## securetls@file if saltbox</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_themepark_app</span>: <span style="color:#e6db74">&#39;{{ item.tp_app }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_themepark_theme</span>: <span style="color:#e6db74">&#39;hotpink&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_http_middlewares</span>: <span style="color:#e6db74">&#39;{{ traefik_http_middlewares + item.sso + item.tp }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_https_middlewares</span>: <span style="color:#e6db74">&#39;{{ traefik_https_middlewares + item.sso + item.tp }}&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">loop</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">## grafana</span>
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">var</span>: <span style="color:#e6db74">&#39;grafana_labels&#39;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#39;{{ grafana_name }}&#39;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">port</span>: <span style="color:#e6db74">&#39;{{ grafana_ports_cont }}&#39;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">api</span>: <span style="color:#e6db74">&#39;&#39;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">sso</span>: <span style="color:#e6db74">&#39;,authelia@swarm&#39;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">tp</span>: <span style="color:#e6db74">&#39;&#39;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">tp_app</span>: <span style="color:#e6db74">&#39;&#39;</span> }
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">## prometheus</span>
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">var</span>: <span style="color:#e6db74">&#39;prometheus_labels&#39;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#39;{{ prometheus_name }}&#39;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">port</span>: <span style="color:#e6db74">&#39;{{ prometheus_ports_cont }}&#39;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">api</span>: <span style="color:#e6db74">&#39;&#39;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">sso</span>: <span style="color:#e6db74">&#39;,authelia@swarm&#39;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">tp</span>: <span style="color:#e6db74">&#39;&#39;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">tp_app</span>: <span style="color:#e6db74">&#39;&#39;</span> }
+</span></span></code></pre></div><ul>
 <li>Deploy</li>
 </ul>
 <p>Removes existing stacks, retrieves common vault variables, includes sub_tasks, and then deploys the stack.</p>
@@ -711,262 +837,207 @@ Group_Vars For my set up, group_vars, is structured like the following:
 <li>Creating cloudflare A/CNAME DNS records
 and so on&hellip;</li>
 </ul>
-<p><strong>Example:</strong></p>
-<pre tabindex="0"><code>## companions/tasks/sub_tasks/ombi.yml
+<pre tabindex="0"><code>
+***
 
-################################
-# DIRECTORY
-################################
+## Templates
 
-- name: Create appdata directories
-  ansible.builtin.file:
-    path: &#39;{{ item }}&#39;
-    state: directory
-    owner: &#39;{{ puid }}&#39;
-    group: &#39;{{ pgid }}&#39;
-    mode: &#39;0755&#39;
-  loop:
-    - &#39;{{ ombi_defaults_location }}&#39;
-    - &#39;{{ ombi_defaults_location }}/config&#39;
+***
 
-################################
-# POSTGRES
-################################
 
-- name: Ping for existing database
-  community.postgresql.postgresql_ping:
-    login_host: &#39;{{ pvr_machine }}&#39;
-    login_user: &#39;{{ postgres_username }}&#39;
-    login_password: &#39;{{ postgres_password }}&#39;
-    port: &#39;{{ postgres_ports_host }}&#39;
-    login_db: &#39;Ombi&#39;
-  register: ombi_postgres_db
 
-- name: Create postgres database
-  when: not ombi_postgres_db == true
-  community.postgresql.postgresql_db:
-    login_host: &#39;{{ pvr_machine }}&#39;
-    login_user: &#39;{{ postgres_username }}&#39;
-    login_password: &#39;{{ postgres_password }}&#39;
-    port: &#39;{{ postgres_ports_host }}&#39;
-    name: &#39;Ombi&#39;
-    state: present
+***
 
-- name: Import ombi database.json
-  ansible.builtin.template:
-    src: &#39;{{ role_path }}/templates/configs/ombi_database.json.j2&#39;
-    dest: &#39;{{ ombi_defaults_location }}/config/database.json&#39;
-    force: true
-    owner: &#39;{{ puid }}&#39;
-    group: &#39;{{ pgid }}&#39;
-    mode: &#39;0664&#39;
+### Configs
 
-- name: Remove sqlite database files
-  ansible.builtin.file:
-    path: &#39;{{ ombi_defaults_location }}/{{ item }}&#39;
-    state: absent
-  loop:
-    - Ombi.db
-    - OmbiExternal.db
-    - OmbiSettings.db
+***
 
-################################
-# CLOUDFLARE
-################################
 
-- name: Perform Cloudflare DNS tasks
-  block:
-    - name: Remove existing CNAME DNS record
-      community.general.cloudflare_dns:
-        api_token: &#39;{{ cloudflare_api }}&#39;
-        zone: &#39;{{ local_domain }}&#39;
-        state: &#39;absent&#39;
-        type: &#39;CNAME&#39;
-        record: &#39;{{ ombi_name }}&#39;
 
-    - name: Remove existing A DNS record
-      community.general.cloudflare_dns:
-        api_token: &#39;{{ cloudflare_api }}&#39;
-        zone: &#39;{{ local_domain }}&#39;
-        state: &#39;absent&#39;
-        type: &#39;A&#39;
-        record: &#39;{{ ombi_name }}&#39;
+Contains nearly all my service config files, ready to be called upon during play. I find templating more powerful than simply copying, as a change in a variable&#39;s value will apply to all templates referencing it - no need to edit every config file individually. 
 
-    - name: Add DNS record
-      community.general.cloudflare_dns:
-        api_token: &#39;{{ cloudflare_api }}&#39;
-        zone: &#39;{{ local_domain }}&#39;
-        state: &#39;present&#39;
-        solo: true
-        proxied: &#39;{{ cloudflare_proxy }}&#39;
-        type: &#39;{{ cloudflare_record }}&#39;
-        value: &#39;{{ ipify_public_ip }}&#39;
-        record: &#39;{{ ombi_name }}&#39;
-      register: ombi_cloudflare_record_creation_status
+**Example:**
+</code></pre><h2 id="doplarrs-config-configednj2">Doplarr&rsquo;s config (config.edn.j2)<a href="#doplarrs-config-configednj2" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<p>{
+:radarr/url &ldquo;http://{{ radarr_name }}:{{ radarr_ports_cont }}&rdquo;
+:radarr/api &ldquo;{{ radarr_api }}&rdquo;
+:radarr/quality-profile &ldquo;{{ radarr_quality_profile }}&rdquo;
+:radarr/rootfolder &ldquo;{{ radarr_root_folder }}&rdquo;
+:sonarr/url &ldquo;http://{{ sonarr_name }}:{{ sonarr_ports_cont }}&rdquo;
+:sonarr/api &ldquo;{{ sonarr_api }}&rdquo;
+:sonarr/quality-profile &ldquo;{{ sonarr_quality_profile }}&rdquo;
+:sonarr/rootfolder &ldquo;{{ sonarr_root_folder }}&rdquo;
+:sonarr/season-folders true
+:partial-seasons true
+:discord/token &ldquo;{{ doplarr_token }}&rdquo;
+:discord/max-results 25
+:discord/requested-msg-style :plain
+:log-level :trace
+}</p>
+<pre tabindex="0"><code>
+**Which is then called with the following tasks:**
+</code></pre><p>################################</p>
+<h1 id="config">CONFIG<a href="#config" class="hanchor" ariaLabel="Anchor">#</a> </h1>
+<p>################################</p>
+<ul>
+<li>
+<p>name: Check if doplarr config.edn exists
+ansible.builtin.stat:
+path: &lsquo;{{ doplarr_defaults_location }}/config.edn&rsquo;
+register: doplarr_config_edn</p>
+</li>
+<li>
+<p>name: Load doplarr vault variable
+when: not doplarr_config_edn.stat.exists
+ansible.builtin.set_fact:
+doplarr_token: &lsquo;{{ lookup(&ldquo;ini&rdquo;, &ldquo;doplarr_token section=&rdquo; + &ldquo;companions&rdquo; + &quot; file=&quot; + &ldquo;/ansible/vault.ini&rdquo;) }}&rsquo;</p>
+</li>
+<li>
+<p>name: Create doplarr config.edn file
+when: not doplarr_config_edn.stat.exists
+block:</p>
+<ul>
+<li>
+<p>name: Import config file
+ansible.builtin.template:
+src: &lsquo;{{ role_path }}/templates/configs/doplarr_config.edn.j2&rsquo;
+dest: &lsquo;{{ doplarr_defaults_location }}/config.edn&rsquo;
+force: true
+owner: &lsquo;{{ puid }}&rsquo;
+group: &lsquo;{{ pgid }}&rsquo;
+mode: &lsquo;0664&rsquo;</p>
+</li>
+<li>
+<p>name: Wait for &lsquo;config.edn&rsquo; to be created
+ansible.builtin.wait_for:
+path: &lsquo;{{ doplarr_defaults_location }}/config.edn&rsquo;
+state: present</p>
+</li>
+</ul>
+</li>
+</ul>
+<pre tabindex="0"><code>
+***
 
-    - name: Tasks on success
-      when: ombi_cloudflare_record_creation_status is succeeded
-      block:
-        - name: Set &#39;dns_record_print&#39; variable
-          ansible.builtin.set_fact:
-            ombi_cloudflare_record_print: &#39;{{ (ombi_name == local_domain) | ternary(local_domain, ombi_name + &#34;.&#34; + local_domain) }}&#39;
+### Compose
 
-        - name: Display DNS record creation status
-          ansible.builtin.debug:
-            msg: &#39;DNS A Record for &#34;{{ ombi_cloudflare_record_print }}&#34; set to &#34;{{ ipify_public_ip }}&#34; was added. Proxy: {{ cloudflare_proxy }}&#39;
-</code></pre><hr>
-<h2 id="templates">Templates<a href="#templates" class="hanchor" ariaLabel="Anchor">#</a> </h2>
-<hr>
-<hr>
-<h3 id="configs">Configs<a href="#configs" class="hanchor" ariaLabel="Anchor">#</a> </h3>
-<hr>
-<p>Contains nearly all my service config files, ready to be called upon during play. I find templating more powerful than simply copying, as a change in a variable&rsquo;s value will apply to all templates referencing it - no need to edit every config file individually.</p>
-<p><strong>Example:</strong></p>
-<pre tabindex="0"><code>## Doplarr&#39;s config (config.edn.j2)
+***
 
-{
- :radarr/url &#34;http://{{ radarr_name }}:{{ radarr_ports_cont }}&#34;
- :radarr/api &#34;{{ radarr_api }}&#34;
- :radarr/quality-profile &#34;{{ radarr_quality_profile }}&#34;
- :radarr/rootfolder &#34;{{ radarr_root_folder }}&#34;
- :sonarr/url &#34;http://{{ sonarr_name }}:{{ sonarr_ports_cont }}&#34;
- :sonarr/api &#34;{{ sonarr_api }}&#34;
- :sonarr/quality-profile &#34;{{ sonarr_quality_profile }}&#34;
- :sonarr/rootfolder &#34;{{ sonarr_root_folder }}&#34;
- :sonarr/season-folders true
- :partial-seasons true
- :discord/token &#34;{{ doplarr_token }}&#34;
- :discord/max-results 25
- :discord/requested-msg-style :plain
- :log-level :trace
- }
-</code></pre><p><strong>Which is then called with the following tasks:</strong></p>
-<pre tabindex="0"><code>################################
-# CONFIG
-################################
+Aside from the configs, the docker compose file is also templated, containing relevant (to the role) and related docker services.
 
-- name: Check if doplarr config.edn exists
-  ansible.builtin.stat:
-    path: &#39;{{ doplarr_defaults_location }}/config.edn&#39;
-  register: doplarr_config_edn
-
-- name: Load doplarr vault variable
-  when: not doplarr_config_edn.stat.exists
-  ansible.builtin.set_fact:
-    doplarr_token: &#39;{{ lookup(&#34;ini&#34;, &#34;doplarr_token section=&#34; + &#34;companions&#34; + &#34; file=&#34; + &#34;/ansible/vault.ini&#34;) }}&#39;
-
-- name: Create doplarr config.edn file
-  when: not doplarr_config_edn.stat.exists
-  block:
-    - name: Import config file
-      ansible.builtin.template:
-        src: &#39;{{ role_path }}/templates/configs/doplarr_config.edn.j2&#39;
-        dest: &#39;{{ doplarr_defaults_location }}/config.edn&#39;
-        force: true
-        owner: &#39;{{ puid }}&#39;
-        group: &#39;{{ pgid }}&#39;
-        mode: &#39;0664&#39;
-
-    - name: Wait for &#39;config.edn&#39; to be created
-      ansible.builtin.wait_for:
-        path: &#39;{{ doplarr_defaults_location }}/config.edn&#39;
-        state: present
-</code></pre><hr>
-<h3 id="compose">Compose<a href="#compose" class="hanchor" ariaLabel="Anchor">#</a> </h3>
-<hr>
-<p>Aside from the configs, the docker compose file is also templated, containing relevant (to the role) and related docker services.</p>
-<p><strong>Example:</strong></p>
-<pre tabindex="0"><code>version: &#39;3.9&#39;
-
-services:
-  {{ adguard_defaults_name }}:
-    image: {{ adguard_defaults_image_repo }}:{{ adguard_defaults_image_tag }}
-    networks:
-      - {{ network_overlay }}
-    environment:
-      PUID: &#39;{{ puid }}&#39;
-      PGID: &#39;{{ pgid }}&#39;
-      TZ: &#39;{{ timezone }}&#39;
-    ports:
-      - target: {{ adguard_defaults_ports_cont }}
-        published: {{ adguard_defaults_ports_host }}
-        protocol: tcp
-        mode: ingress
-      - target: {{ adguard_defaults_ports_dns_cont }}
-        published: {{ adguard_defaults_ports_dns_host }}
-        protocol: tcp
-        mode: ingress
-      - target: {{ adguard_defaults_ports_dns_cont }}
-        published: {{ adguard_defaults_ports_dns_host }}
-        protocol: udp
-        mode: ingress
-    volumes:
-      - type: bind
-        source: {{ adguard_defaults_location }}/work
-        target: /opt/adguardhome/work
-      - type: bind
-        source: {{ adguard_defaults_location }}/conf
-        target: /opt/adguardhome/conf
-    deploy:
-      mode: replicated
-      replicas: 1
-      placement:
-        constraints: [node.labels.ansible_host == pvr]
-      labels: {{ adguard_defaults_labels }}
-
+**Example:**
+</code></pre><p>version: &lsquo;3.9&rsquo;</p>
+<p>services:
+{{ adguard_defaults_name }}:
+image: {{ adguard_defaults_image_repo }}:{{ adguard_defaults_image_tag }}
 networks:
-  {{ network_overlay }}:
-    external: true
-</code></pre><p>With the compose files, you can either create and define networks, volumes, secrets within the file, or you can let ansible handle it and then use &rsquo;external: true&rsquo;. I prefer the latter and use various docker ansible modules to automate their creation:</p>
-<p><strong>Networks:</strong></p>
-<pre tabindex="0"><code>- name: Conduct overlay network tasks
-  when: inventory_hostname == &#39;localhost&#39;
-  block:
-    - name: Register overlay network
-      community.docker.docker_network_info:
-        name: &#39;{{ network_overlay }}&#39;
-      register: network_overlay_result
+- {{ network_overlay }}
+environment:
+PUID: &lsquo;{{ puid }}&rsquo;
+PGID: &lsquo;{{ pgid }}&rsquo;
+TZ: &lsquo;{{ timezone }}&rsquo;
+ports:
+- target: {{ adguard_defaults_ports_cont }}
+published: {{ adguard_defaults_ports_host }}
+protocol: tcp
+mode: ingress
+- target: {{ adguard_defaults_ports_dns_cont }}
+published: {{ adguard_defaults_ports_dns_host }}
+protocol: tcp
+mode: ingress
+- target: {{ adguard_defaults_ports_dns_cont }}
+published: {{ adguard_defaults_ports_dns_host }}
+protocol: udp
+mode: ingress
+volumes:
+- type: bind
+source: {{ adguard_defaults_location }}/work
+target: /opt/adguardhome/work
+- type: bind
+source: {{ adguard_defaults_location }}/conf
+target: /opt/adguardhome/conf
+deploy:
+mode: replicated
+replicas: 1
+placement:
+constraints: [node.labels.ansible_host == pvr]
+labels: {{ adguard_defaults_labels }}</p>
+<p>networks:
+{{ network_overlay }}:
+external: true</p>
+<pre tabindex="0"><code>
+With the compose files, you can either create and define networks, volumes, secrets within the file, or you can let ansible handle it and then use &#39;external: true&#39;. I prefer the latter and use various docker ansible modules to automate their creation:
 
-    - name: Create overlay network
-      when: not network_overlay_result.exists
-      community.docker.docker_network:
-        name: &#39;{{ network_overlay }}&#39;
-        driver: &#39;{{ network_overlay_driver }}&#39;
-        attachable: true 
-        ipam_config:
-          - subnet: &#39;{{ network_overlay_subnet }}&#39;
-</code></pre><p><strong>Volumes:</strong></p>
-<pre tabindex="0"><code>- name: Create media volume
-  community.docker.docker_volume:
-    volume_name: &#39;{{ media_volume }}&#39;
-    state: present
-    recreate: options-changed
-    driver: local
-    driver_options:
-      type: nfs
-      o: &#39;addr={{ media_volume_address }},rw,nfsvers=4.2&#39;
-      device: &#39;{{ media_volume_device }}&#39;
-</code></pre><p><strong>Secrets:</strong></p>
-<pre tabindex="0"><code>- name: Prepare docker secrets
-  block:
-    - name: Unifi db user secret
-      community.docker.docker_secret:
-        name: unifi_user_secret
-        data: &#39;{{ unifi_db_user }}&#39;
-        state: present
-
-    - name: Unifi db password secret
-      community.docker.docker_secret:
-        name: unifi_pass_secret
-        data: &#39;{{ unifi_db_pass }}&#39;
-        state: present
-
-    - name: Unifi db root password secret
-      community.docker.docker_secret:
-        name: unifi_root_pass_secret
-        data: &#39;{{ unifi_db_root_pass }}&#39;
-        state: present
-</code></pre>
+  **Networks:**
+</code></pre><ul>
+<li>name: Conduct overlay network tasks
+when: inventory_hostname == &rsquo;localhost&rsquo;
+block:
+<ul>
+<li>
+<p>name: Register overlay network
+community.docker.docker_network_info:
+name: &lsquo;{{ network_overlay }}&rsquo;
+register: network_overlay_result</p>
+</li>
+<li>
+<p>name: Create overlay network
+when: not network_overlay_result.exists
+community.docker.docker_network:
+name: &lsquo;{{ network_overlay }}&rsquo;
+driver: &lsquo;{{ network_overlay_driver }}&rsquo;
+attachable: true
+ipam_config:
+- subnet: &lsquo;{{ network_overlay_subnet }}&rsquo;</p>
+</li>
+</ul>
+</li>
+</ul>
+<pre tabindex="0"><code>
+  **Volumes:**
+</code></pre><ul>
+<li>name: Create media volume
+community.docker.docker_volume:
+volume_name: &lsquo;{{ media_volume }}&rsquo;
+state: present
+recreate: options-changed
+driver: local
+driver_options:
+type: nfs
+o: &lsquo;addr={{ media_volume_address }},rw,nfsvers=4.2&rsquo;
+device: &lsquo;{{ media_volume_device }}&rsquo;</li>
+</ul>
+<pre tabindex="0"><code>
+  **Secrets:**
+</code></pre><ul>
+<li>name: Prepare docker secrets
+block:
+<ul>
+<li>
+<p>name: Unifi db user secret
+community.docker.docker_secret:
+name: unifi_user_secret
+data: &lsquo;{{ unifi_db_user }}&rsquo;
+state: present</p>
+</li>
+<li>
+<p>name: Unifi db password secret
+community.docker.docker_secret:
+name: unifi_pass_secret
+data: &lsquo;{{ unifi_db_pass }}&rsquo;
+state: present</p>
+</li>
+<li>
+<p>name: Unifi db root password secret
+community.docker.docker_secret:
+name: unifi_root_pass_secret
+data: &lsquo;{{ unifi_db_root_pass }}&rsquo;
+state: present</p>
+</li>
+</ul>
+</li>
+</ul>
+<pre tabindex="0"><code></code></pre>
       </div></div>
 
   
