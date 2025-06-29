@@ -144,7 +144,7 @@ When I want to copy a file for a service, I include them in the role/files folde
 
 ```
 
-Above, I have themes files for my Hugo blog which are copied during the play to the hugo/static folder. Generally, I prefer to template files during the play, but in cases, such as the above, I don't need to change or edit the files and simply need them copied. 
+Above, I have themes files for my Hugo blog which are copied during the play to the hugo/static folder. Generally, I prefer to template files during the play, but in cases, such as the above, I don't need to change or edit the files.
 
 ***
 
@@ -152,7 +152,7 @@ Above, I have themes files for my Hugo blog which are copied during the play to 
 
 ***
 
-The role tasks contain everything required to automate what I need, with idempotence (that is, to be able to run the role as many times as I want and have it fulfill the tasks I set it out to do without fail). What I have found works best is to have as many tasks follow a streamlined and common structure as possible whenever you make a role. When deploying docker services, I have the following set of tasks:
+Role tasks contain everything required to automate what I need, with idempotence (that is, to be able to run the role as many times as I want and have it fulfill the tasks I set it out to do without fail). What I have found works best is to have as many tasks follow a streamlined and common structure as possible. When deploying docker services, I have the following set of tasks:
 
 ***
 
@@ -252,7 +252,7 @@ I then create directories and sub-directories required for the role:
 
 ```
 
-Typically, the only thing differing between roles are directory paths, so it's a case of looping over directory paths. However, sometimes I require different permissions (i.e, bitnami), as below:
+Typically, the only thing differing between roles are paths, so it's a case of looping over these. However, sometimes I require different permissions (i.e, bitnami), as below:
 
 ```yaml
 
@@ -743,7 +743,13 @@ The idea is to keep the main tasks file as streamlined as possible.
 
 ***
 
-## Roles/Templates/Configs
+## Roles/Templates
+
+***
+
+***
+
+### Configs
 
 ***
 
@@ -778,7 +784,7 @@ I find templating more powerful than copying, as a change in a variable's value 
 
 ***
 
-## Roles/Templates/Compose
+### Compose
 
 ***
 
@@ -898,3 +904,25 @@ volumes:
     external: true
 
 ```
+
+***
+
+## To Compose or not to Compose
+
+***
+ 
+The use of Compose with Ansible may seem odd, considering:
+
+   1. Ansible can easily automate the creation of multiple containers/services via individual tasks
+   2. Ansible can easily create networks, volumes, and other relevant things
+
+In this sense, Ansible covers the convenience offered by a compose file.
+
+However....
+
+I enjoy combining Ansible with compose files for both my docker containers and swarm services, because:
+
+  1. Defining things in a compose file allows for stacks to be brought up and down easily with or without Ansible, via CLI
+  2. In the case I need support, it's easier to pass along a compose file, where everything is formatted in the popular compose standard, rather than passing along Ansible tasks full of variables.
+
+With all that said, it's more a preference on my end than a necessity, and I have done it all without compose files with equal success. Do what you prefer.

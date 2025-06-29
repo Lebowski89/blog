@@ -189,7 +189,7 @@ Group_Vars For my set up, group_vars, is structured like the following:
   <h1 class="post-title">
     <a href="http://localhost:1313/roles/">Structuring your Ansible Roles</a>
   </h1>
-  <div class="post-meta"><span class="post-reading-time">14 min read (2855 words)</span></div>
+  <div class="post-meta"><span class="post-reading-time">15 min read (2994 words)</span></div>
 
   
     <span class="post-tags">
@@ -230,8 +230,13 @@ Group_Vars For my set up, group_vars, is structured like the following:
       </ul>
     </li>
     <li><a href="#rolessub-tasks">Roles/Sub-tasks</a></li>
-    <li><a href="#rolestemplatesconfigs">Roles/Templates/Configs</a></li>
-    <li><a href="#rolestemplatescompose">Roles/Templates/Compose</a></li>
+    <li><a href="#rolestemplates">Roles/Templates</a>
+      <ul>
+        <li><a href="#configs">Configs</a></li>
+        <li><a href="#compose">Compose</a></li>
+      </ul>
+    </li>
+    <li><a href="#to-compose-or-not-to-compose">To Compose or not to Compose</a></li>
   </ul>
 </nav>
     </div>
@@ -335,11 +340,11 @@ Group_Vars For my set up, group_vars, is structured like the following:
 </span></span><span style="display:flex;"><span>    <span style="color:#ae81ff">├── blog-stack.yml.j2</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#ae81ff">└── configs</span>
 </span></span><span style="display:flex;"><span>        <span style="color:#ae81ff">└── hugo.toml.j2</span>
-</span></span></code></pre></div><p>Above, I have themes files for my Hugo blog which are copied during the play to the hugo/static folder. Generally, I prefer to template files during the play, but in cases, such as the above, I don&rsquo;t need to change or edit the files and simply need them copied.</p>
+</span></span></code></pre></div><p>Above, I have themes files for my Hugo blog which are copied during the play to the hugo/static folder. Generally, I prefer to template files during the play, but in cases, such as the above, I don&rsquo;t need to change or edit the files.</p>
 <hr>
 <h2 id="roletasks">Role/Tasks<a href="#roletasks" class="hanchor" ariaLabel="Anchor">#</a> </h2>
 <hr>
-<p>The role tasks contain everything required to automate what I need, with idempotence (that is, to be able to run the role as many times as I want and have it fulfill the tasks I set it out to do without fail). What I have found works best is to have as many tasks follow a streamlined and common structure as possible whenever you make a role. When deploying docker services, I have the following set of tasks:</p>
+<p>Role tasks contain everything required to automate what I need, with idempotence (that is, to be able to run the role as many times as I want and have it fulfill the tasks I set it out to do without fail). What I have found works best is to have as many tasks follow a streamlined and common structure as possible. When deploying docker services, I have the following set of tasks:</p>
 <hr>
 <h3 id="clean-up">Clean Up<a href="#clean-up" class="hanchor" ariaLabel="Anchor">#</a> </h3>
 <hr>
@@ -411,7 +416,7 @@ Group_Vars For my set up, group_vars, is structured like the following:
 </span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ sonarr_4k_location }}&#39;</span>
 </span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ whisparr_location }}&#39;</span>
 </span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ whisparr_v3_location }}&#39;</span>
-</span></span></code></pre></div><p>Typically, the only thing differing between roles are directory paths, so it&rsquo;s a case of looping over directory paths. However, sometimes I require different permissions (i.e, bitnami), as below:</p>
+</span></span></code></pre></div><p>Typically, the only thing differing between roles are paths, so it&rsquo;s a case of looping over these. However, sometimes I require different permissions (i.e, bitnami), as below:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Create directories</span>
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.file</span>:
@@ -813,7 +818,10 @@ Group_Vars For my set up, group_vars, is structured like the following:
 </span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - name: Remux + WEB 1080p</span>
 </span></span></code></pre></div><p>The idea is to keep the main tasks file as streamlined as possible.</p>
 <hr>
-<h2 id="rolestemplatesconfigs">Roles/Templates/Configs<a href="#rolestemplatesconfigs" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<h2 id="rolestemplates">Roles/Templates<a href="#rolestemplates" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<hr>
+<hr>
+<h3 id="configs">Configs<a href="#configs" class="hanchor" ariaLabel="Anchor">#</a> </h3>
 <hr>
 <p>Most roles will include at least one config file to be templated.</p>
 <p><strong>Example:</strong></p>
@@ -838,7 +846,7 @@ Group_Vars For my set up, group_vars, is structured like the following:
 </span></span><span style="display:flex;"><span> }
 </span></span></code></pre></div><p>I find templating more powerful than copying, as a change in a variable&rsquo;s value will apply to the config template referencing it, reducing the need to manually edit config files. With that said, when templating configs I will not replace an existing config file in the directory by default. It&rsquo;s just a safe guard in case a config file has additional entries not tracked by the Ansible template. I instead will remove the config file and then run the role.</p>
 <hr>
-<h2 id="rolestemplatescompose">Roles/Templates/Compose<a href="#rolestemplatescompose" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<h3 id="compose">Compose<a href="#compose" class="hanchor" ariaLabel="Anchor">#</a> </h3>
 <hr>
 <p>Each role will have a compose file, containing the roles services.</p>
 <p><strong>Docker Compose</strong></p>
@@ -941,7 +949,23 @@ Group_Vars For my set up, group_vars, is structured like the following:
 </span></span><span style="display:flex;"><span><span style="color:#f92672">volumes</span>:
 </span></span><span style="display:flex;"><span>  {{ <span style="color:#f92672">media_volume }}</span>:
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">external</span>: <span style="color:#66d9ef">true</span>
-</span></span></code></pre></div>
+</span></span></code></pre></div><hr>
+<h2 id="to-compose-or-not-to-compose">To Compose or not to Compose<a href="#to-compose-or-not-to-compose" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<hr>
+<p>The use of Compose with Ansible may seem odd, considering:</p>
+<ol>
+<li>Ansible can easily automate the creation of multiple containers/services via individual tasks</li>
+<li>Ansible can easily create networks, volumes, and other relevant things</li>
+</ol>
+<p>In this sense, Ansible covers the convenience offered by a compose file.</p>
+<p>However&hellip;.</p>
+<p>I enjoy combining Ansible with compose files for both my docker containers and swarm services, because:</p>
+<ol>
+<li>Defining things in a compose file allows for stacks to be brought up and down easily with or without Ansible, via CLI</li>
+<li>In the case I need support, it&rsquo;s easier to pass along a compose file, where everything is formatted in the popular compose standard, rather than passing along Ansible tasks full of variables.</li>
+</ol>
+<p>With all that said, it&rsquo;s more a preference on my end than a necessity, and I have done it all without compose files with equal success. Do what you prefer.</p>
+
       </div></div>
 
   
