@@ -462,7 +462,7 @@ Moving Traefik labels to this eliminated unnecessary defaults files.
 
 ***
 
-I use postgres as a database for a variety of docker services, across multiple roles. As such, I use the postgresql ping and db modules to ping for an existing database and to create a one if none exists. These tasks require an existing postgres install that is up and running (I deploy postgres via docker swarm), and login details of the running instance.
+I use postgres as a database for a variety of docker services, across multiple roles. As such, I use the postgresql ping and db modules to ping for an existing database and to create a one if none exists. These tasks require an existing running postgres instance (I deploy postgres via docker swarm).
 
 
 ### Common Task
@@ -524,4 +524,4 @@ I use postgres as a database for a variety of docker services, across multiple r
 
 Above, the only thing that changes for the include task is the name of the database. I'm only working with one postgres instance, so that's all I need.
 
-<script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="lebowski89" data-description="Support me on Buy me a coffee!" data-message="Coffee" data-color="#5F7FFF" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
+<script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="lebowski89" data-description="Support me on Buy me a coffee!" data-message="Support Me" data-color="#5F7FFF" data-position="Right" data-x_margin="18" data-y_margin="18"></script>

@@ -927,3 +927,5 @@ I enjoy combining Ansible with compose files for both my docker containers and s
   2. In the case I need support, it's easier to pass along a compose file, where everything is formatted in the popular compose standard, rather than passing along Ansible tasks full of variables.
 
 With all that said, it's more a preference on my end than a necessity, and I have done it all without compose files with equal success. Do what you prefer.
+
+<script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="lebowski89" data-description="Support me on Buy me a coffee!" data-message="Support Me" data-color="#5F7FFF" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
