@@ -16,7 +16,9 @@ title: Structuring your Ansible Roles
 
 ***
 
-Ansible roles contain the majority of my tasks that automate the setup and deployment of my Docker containers and Swarm services. During my time with Ansible, my roles have changed a lot, both content and structure wise. 
+Ansible roles contain the majority of my tasks that automate the setup and deployment of my Docker containers and Swarm services. During my time with Ansible, my roles have changed a lot, both content and structure wise.
+
+The rest of this document will be divided into a dicussion of common sections found in my roles:
 
 
 ***
@@ -525,7 +527,7 @@ The final step of tasks is to deploy the required container or stack:
 
 ***
 
-## Roles/Sub-tasks
+## Role/Sub-tasks
 
 ***
 
@@ -743,17 +745,17 @@ The idea is to keep the main tasks file as streamlined as possible.
 
 ***
 
-## Roles/Templates
-
-***
+## Role/Templates
 
 ***
 
 ### Configs
 
-***
-
 Most roles will include at least one config file to be templated.
+
+The goal here is to have as many config settings set as possible/required to have services up and running and performing what is needed with little to no further intervention.
+
+For some services, I rely entirely on config templates, while others will be a mix of docker environmental variables or fully environmental variables. It depends on the service.
 
 **Example:**
 
@@ -780,13 +782,9 @@ Most roles will include at least one config file to be templated.
 
  ```
 
-I find templating more powerful than copying, as a change in a variable's value will apply to the config template referencing it, reducing the need to manually edit config files. With that said, when templating configs I will not replace an existing config file in the directory by default. It's just a safe guard in case a config file has additional entries not tracked by the Ansible template. I instead will remove the config file and then run the role.
-
-***
+I find templating more powerful than copying, as a change in a variable's value will apply to the config template referencing it, reducing the need to manually edit config files. 
 
 ### Compose
-
-***
 
 Each role will have a compose file, containing the roles services.
 

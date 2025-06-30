@@ -7,6 +7,7 @@
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content=" Introduction Ansible roles contain the majority of my tasks that automate the setup and deployment of my Docker containers and Swarm services. During my time with Ansible, my roles have changed a lot, both content and structure wise.
+The rest of this document will be divided into a dicussion of common sections found in my roles:
 Group_Vars For my set up, group_vars, is structured like the following:
 /ansible/group_vars └── all ├── docker.yml ├── roles │ ├── arrs.yml │ ├── blog.yml │ ├── comps.yml │ ├── dns.yml │ ├── gitea.yml │ ├── mariadb.yml │ ├── metrics.yml │ ├── plex.yml │ ├── postgres.yml │ ├── proxy.yml │ ├── torrents.yml │ ├── unifi.yml │ ├── usenet.yml │ ├── utilities.yml │ ├── vpn.yml │ └── wordpress.yml ├── traefik.yml └── vault.yml The docker.yml file contains general docker variables, such as puid/pgid and docker network information The traefik.yml file contains traefik middleware and a traefik labels template variables (used by the traefik labels common task) The vault.yml file contains all sensitive variables, including api/keys/domains/passwords/emails and any other sensitive information. The remaining variables are contained in the group_vars/all/roles folder, with one group_vars file per role. These contain all the relevant information required to get the roles services up and running, for example:
 " />
@@ -77,6 +78,7 @@ Group_Vars For my set up, group_vars, is structured like the following:
 <meta property="og:type" content="article" />
 <meta property="og:title" content="Structuring your Ansible Roles">
 <meta property="og:description" content=" Introduction Ansible roles contain the majority of my tasks that automate the setup and deployment of my Docker containers and Swarm services. During my time with Ansible, my roles have changed a lot, both content and structure wise.
+The rest of this document will be divided into a dicussion of common sections found in my roles:
 Group_Vars For my set up, group_vars, is structured like the following:
 /ansible/group_vars └── all ├── docker.yml ├── roles │ ├── arrs.yml │ ├── blog.yml │ ├── comps.yml │ ├── dns.yml │ ├── gitea.yml │ ├── mariadb.yml │ ├── metrics.yml │ ├── plex.yml │ ├── postgres.yml │ ├── proxy.yml │ ├── torrents.yml │ ├── unifi.yml │ ├── usenet.yml │ ├── utilities.yml │ ├── vpn.yml │ └── wordpress.yml ├── traefik.yml └── vault.yml The docker.yml file contains general docker variables, such as puid/pgid and docker network information The traefik.yml file contains traefik middleware and a traefik labels template variables (used by the traefik labels common task) The vault.yml file contains all sensitive variables, including api/keys/domains/passwords/emails and any other sensitive information. The remaining variables are contained in the group_vars/all/roles folder, with one group_vars file per role. These contain all the relevant information required to get the roles services up and running, for example:
 " />
@@ -189,7 +191,7 @@ Group_Vars For my set up, group_vars, is structured like the following:
   <h1 class="post-title">
     <a href="http://localhost:1313/roles/">Structuring your Ansible Roles</a>
   </h1>
-  <div class="post-meta"><span class="post-reading-time">15 min read (2994 words)</span></div>
+  <div class="post-meta"><span class="post-reading-time">15 min read (3020 words)</span></div>
 
   
     <span class="post-tags">
@@ -229,8 +231,8 @@ Group_Vars For my set up, group_vars, is structured like the following:
         <li><a href="#deploy">Deploy</a></li>
       </ul>
     </li>
-    <li><a href="#rolessub-tasks">Roles/Sub-tasks</a></li>
-    <li><a href="#rolestemplates">Roles/Templates</a>
+    <li><a href="#rolesub-tasks">Role/Sub-tasks</a></li>
+    <li><a href="#roletemplates">Role/Templates</a>
       <ul>
         <li><a href="#configs">Configs</a></li>
         <li><a href="#compose">Compose</a></li>
@@ -247,6 +249,7 @@ Group_Vars For my set up, group_vars, is structured like the following:
 <h2 id="introduction">Introduction<a href="#introduction" class="hanchor" ariaLabel="Anchor">#</a> </h2>
 <hr>
 <p>Ansible roles contain the majority of my tasks that automate the setup and deployment of my Docker containers and Swarm services. During my time with Ansible, my roles have changed a lot, both content and structure wise.</p>
+<p>The rest of this document will be divided into a dicussion of common sections found in my roles:</p>
 <hr>
 <h2 id="group_vars">Group_Vars<a href="#group_vars" class="hanchor" ariaLabel="Anchor">#</a> </h2>
 <hr>
@@ -614,7 +617,7 @@ Group_Vars For my set up, group_vars, is structured like the following:
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">compose</span>:
 </span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">/opt/arrs-stack.yml</span>
 </span></span></code></pre></div><hr>
-<h2 id="rolessub-tasks">Roles/Sub-tasks<a href="#rolessub-tasks" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<h2 id="rolesub-tasks">Role/Sub-tasks<a href="#rolesub-tasks" class="hanchor" ariaLabel="Anchor">#</a> </h2>
 <hr>
 <p>I make use of sub-tasks in roles if a set of tasks meet the following criteria:</p>
 <ol>
@@ -818,12 +821,12 @@ Group_Vars For my set up, group_vars, is structured like the following:
 </span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                - name: Remux + WEB 1080p</span>
 </span></span></code></pre></div><p>The idea is to keep the main tasks file as streamlined as possible.</p>
 <hr>
-<h2 id="rolestemplates">Roles/Templates<a href="#rolestemplates" class="hanchor" ariaLabel="Anchor">#</a> </h2>
-<hr>
+<h2 id="roletemplates">Role/Templates<a href="#roletemplates" class="hanchor" ariaLabel="Anchor">#</a> </h2>
 <hr>
 <h3 id="configs">Configs<a href="#configs" class="hanchor" ariaLabel="Anchor">#</a> </h3>
-<hr>
 <p>Most roles will include at least one config file to be templated.</p>
+<p>The goal here is to have as many config settings set as possible/required to have services up and running and performing what is needed with little to no further intervention.</p>
+<p>For some services, I rely entirely on config templates, while others will be a mix of docker environmental variables or fully environmental variables. It depends on the service.</p>
 <p><strong>Example:</strong></p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e">## Doplarr&#39;s config (config.edn.j2)</span>
@@ -844,10 +847,8 @@ Group_Vars For my set up, group_vars, is structured like the following:
 </span></span><span style="display:flex;"><span> :<span style="color:#ae81ff">discord/requested-msg-style :plain</span>
 </span></span><span style="display:flex;"><span> :<span style="color:#ae81ff">log-level :trace</span>
 </span></span><span style="display:flex;"><span> }
-</span></span></code></pre></div><p>I find templating more powerful than copying, as a change in a variable&rsquo;s value will apply to the config template referencing it, reducing the need to manually edit config files. With that said, when templating configs I will not replace an existing config file in the directory by default. It&rsquo;s just a safe guard in case a config file has additional entries not tracked by the Ansible template. I instead will remove the config file and then run the role.</p>
-<hr>
+</span></span></code></pre></div><p>I find templating more powerful than copying, as a change in a variable&rsquo;s value will apply to the config template referencing it, reducing the need to manually edit config files.</p>
 <h3 id="compose">Compose<a href="#compose" class="hanchor" ariaLabel="Anchor">#</a> </h3>
-<hr>
 <p>Each role will have a compose file, containing the roles services.</p>
 <p><strong>Docker Compose</strong></p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
