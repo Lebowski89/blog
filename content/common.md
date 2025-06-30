@@ -2,11 +2,6 @@
 draft: false
 genres:
 - ansible
-tags:
-- common-tasks
-- ansible
-- cloudflare
-- traefik
 menus: common
 weight: 1
 title: Handling common tasks within Ansible

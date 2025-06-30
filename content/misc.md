@@ -2,9 +2,6 @@
 draft: false
 genres:
 - ansible
-tags:
-- ansible
-- misc
 menus: misc
 weight: 1
 title: Miscellaneous Ansible topics (rants)

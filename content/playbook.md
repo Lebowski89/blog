@@ -2,12 +2,9 @@
 draft: false
 genres:
 - ansible
-tags:
-- playbook
-- ansible
 menus: playbook
 weight: 1
-title: Structuring your Ansible Playbook
+title: Structuring your Ansible Docker Playbook
 ---
 
 

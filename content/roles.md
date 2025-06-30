@@ -2,12 +2,9 @@
 draft: false
 genres:
 - ansible
-tags:
-- roles
-- ansible
 menus: roles
 weight: 1
-title: Structuring your Ansible Roles
+title: Structuring your Ansible Docker Roles
 ---
 
 ***
@@ -316,7 +313,7 @@ I have a single task that checks for a database and creates one if none exists.
 
 **Postgres**
 
-I have [common tasks defined elsewhere](https://drjoyce.blog/common/).
+I have [common tasks defined elsewhere](https://drjoyce.blog/common/#postgres-database).
 
 **Database Requirements**
 
