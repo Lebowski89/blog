@@ -20,7 +20,7 @@ To handle commonly repeated tasks, I've found it is effective to make a common t
 The rest of this document is dedicated to describing the common tasks I use.
 
 ### Key points
-   - The common tasks are included in a resources directory in the Ansible directory
+   - The common task files are in a folder in the Ansible directory
    - Each task has generic variables that will be replaced with relevant ones during the play when the role is included using the `ansible.builtin.include_tasks` module
    - Loops and iterating over hashes are key to reducing the number of required tasks.
 
@@ -173,7 +173,7 @@ In the above example, I copy the files required for this blogs theme.
 
 ***
 
-One of the most important tasks, and one of the primary reasons I'm using Ansible, is to set-up the various configs for my VMs and the services in them. For this, I typically template a config file from a role directory into a desired folder.
+Some of the important tasks, and a core reason I'm using Ansible, is to set-up the various configs services. For this, I typically template a config file from a role directory into a desired folder.
 
 ### Common Task
 

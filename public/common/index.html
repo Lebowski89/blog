@@ -185,7 +185,7 @@
   <h1 class="post-title">
     <a href="http://localhost:1313/common/">Handling common tasks within Ansible</a>
   </h1>
-  <div class="post-meta"><span class="post-reading-time">10 min read (1997 words)</span></div>
+  <div class="post-meta"><span class="post-reading-time">10 min read (1986 words)</span></div>
 
   
   
@@ -248,7 +248,7 @@
 <p>The rest of this document is dedicated to describing the common tasks I use.</p>
 <h3 id="key-points">Key points<a href="#key-points" class="hanchor" ariaLabel="Anchor">#</a> </h3>
 <ul>
-<li>The common tasks are included in a resources directory in the Ansible directory</li>
+<li>The common task files are in a folder in the Ansible directory</li>
 <li>Each task has generic variables that will be replaced with relevant ones during the play when the role is included using the <code>ansible.builtin.include_tasks</code> module</li>
 <li>Loops and iterating over hashes are key to reducing the number of required tasks.</li>
 </ul>
@@ -365,7 +365,7 @@
 <hr>
 <h2 id="templates">Templates<a href="#templates" class="hanchor" ariaLabel="Anchor">#</a> </h2>
 <hr>
-<p>One of the most important tasks, and one of the primary reasons I&rsquo;m using Ansible, is to set-up the various configs for my VMs and the services in them. For this, I typically template a config file from a role directory into a desired folder.</p>
+<p>Some of the important tasks, and a core reason I&rsquo;m using Ansible, is to set-up the various configs services. For this, I typically template a config file from a role directory into a desired folder.</p>
 <h3 id="common-task-2">Common Task<a href="#common-task-2" class="hanchor" ariaLabel="Anchor">#</a> </h3>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Template file</span>
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.template</span>:
