@@ -6,10 +6,7 @@
   
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content=" Introduction Ansible roles contain the majority of my tasks that automate the setup and deployment of my Docker containers and Swarm services. During my time with Ansible, my roles have changed a lot, both content and structure wise.
-The rest of this document will be divided into a dicussion of common sections found in my roles:
-Group_Vars For my set up, group_vars, is structured like the following:
-/ansible/group_vars └── all ├── docker.yml ├── roles │ ├── arrs.yml │ ├── blog.yml │ ├── comps.yml │ ├── dns.yml │ ├── gitea.yml │ ├── mariadb.yml │ ├── metrics.yml │ ├── plex.yml │ ├── postgres.yml │ ├── proxy.yml │ ├── torrents.yml │ ├── unifi.yml │ ├── usenet.yml │ ├── utilities.yml │ ├── vpn.yml │ └── wordpress.yml ├── traefik.yml └── vault.yml The docker.yml file contains general docker variables, such as puid/pgid and docker network information The traefik.yml file contains traefik middleware and a traefik labels template variables (used by the traefik labels common task) The vault.yml file contains all sensitive variables, including api/keys/domains/passwords/emails and any other sensitive information. The remaining variables are contained in the group_vars/all/roles folder, with one group_vars file per role. These contain all the relevant information required to get the roles services up and running, for example:
+<meta name="description" content=" Introduction Ansible roles contain the majority of my tasks and they have changed a lot during my time with Ansible, both content and structure wise. My current approach that I like is to have roles dedicated to deploying my docker services in a one role - one docker stack approach, where each role is dedicated to deploying a specific set of docker containers or swarm services (with some other roles dedicated to readying the VM and installing Docker, etc).
 " />
 <meta name="keywords" content="" />
 
@@ -77,10 +74,7 @@ Group_Vars For my set up, group_vars, is structured like the following:
 <meta property="og:locale" content="en" />
 <meta property="og:type" content="article" />
 <meta property="og:title" content="Structuring your Ansible Roles">
-<meta property="og:description" content=" Introduction Ansible roles contain the majority of my tasks that automate the setup and deployment of my Docker containers and Swarm services. During my time with Ansible, my roles have changed a lot, both content and structure wise.
-The rest of this document will be divided into a dicussion of common sections found in my roles:
-Group_Vars For my set up, group_vars, is structured like the following:
-/ansible/group_vars └── all ├── docker.yml ├── roles │ ├── arrs.yml │ ├── blog.yml │ ├── comps.yml │ ├── dns.yml │ ├── gitea.yml │ ├── mariadb.yml │ ├── metrics.yml │ ├── plex.yml │ ├── postgres.yml │ ├── proxy.yml │ ├── torrents.yml │ ├── unifi.yml │ ├── usenet.yml │ ├── utilities.yml │ ├── vpn.yml │ └── wordpress.yml ├── traefik.yml └── vault.yml The docker.yml file contains general docker variables, such as puid/pgid and docker network information The traefik.yml file contains traefik middleware and a traefik labels template variables (used by the traefik labels common task) The vault.yml file contains all sensitive variables, including api/keys/domains/passwords/emails and any other sensitive information. The remaining variables are contained in the group_vars/all/roles folder, with one group_vars file per role. These contain all the relevant information required to get the roles services up and running, for example:
+<meta property="og:description" content=" Introduction Ansible roles contain the majority of my tasks and they have changed a lot during my time with Ansible, both content and structure wise. My current approach that I like is to have roles dedicated to deploying my docker services in a one role - one docker stack approach, where each role is dedicated to deploying a specific set of docker containers or swarm services (with some other roles dedicated to readying the VM and installing Docker, etc).
 " />
 <meta property="og:url" content="http://localhost:1313/roles/" />
 <meta property="og:site_name" content="Le Tour De Blog" />
@@ -191,7 +185,7 @@ Group_Vars For my set up, group_vars, is structured like the following:
   <h1 class="post-title">
     <a href="http://localhost:1313/roles/">Structuring your Ansible Roles</a>
   </h1>
-  <div class="post-meta"><span class="post-reading-time">15 min read (3020 words)</span></div>
+  <div class="post-meta"><span class="post-reading-time">15 min read (3061 words)</span></div>
 
   
     <span class="post-tags">
@@ -248,8 +242,8 @@ Group_Vars For my set up, group_vars, is structured like the following:
         <hr>
 <h2 id="introduction">Introduction<a href="#introduction" class="hanchor" ariaLabel="Anchor">#</a> </h2>
 <hr>
-<p>Ansible roles contain the majority of my tasks that automate the setup and deployment of my Docker containers and Swarm services. During my time with Ansible, my roles have changed a lot, both content and structure wise.</p>
-<p>The rest of this document will be divided into a dicussion of common sections found in my roles:</p>
+<p>Ansible roles contain the majority of my tasks and they have changed a lot during my time with Ansible, both content and structure wise. My current approach that I like is to have roles dedicated to deploying my docker services in a one role - one docker stack approach, where each role is dedicated to deploying a specific set of docker containers or swarm services (with some other roles dedicated to readying the VM and installing Docker, etc).</p>
+<p>The rest of this document will be divided into a dicussion of common sections found in these roles:</p>
 <hr>
 <h2 id="group_vars">Group_Vars<a href="#group_vars" class="hanchor" ariaLabel="Anchor">#</a> </h2>
 <hr>

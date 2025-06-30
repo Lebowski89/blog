@@ -16,9 +16,9 @@ title: Structuring your Ansible Roles
 
 ***
 
-Ansible roles contain the majority of my tasks that automate the setup and deployment of my Docker containers and Swarm services. During my time with Ansible, my roles have changed a lot, both content and structure wise.
+Ansible roles contain the majority of my tasks and they have changed a lot during my time with Ansible, both content and structure wise. My current approach that I like is to have roles dedicated to deploying my docker services in a one role - one docker stack approach, where each role is dedicated to deploying a specific set of docker containers or swarm services (with some other roles dedicated to readying the VM and installing Docker, etc).
 
-The rest of this document will be divided into a dicussion of common sections found in my roles:
+The rest of this document will be divided into a dicussion of common sections found in these roles:
 
 
 ***
@@ -753,9 +753,9 @@ The idea is to keep the main tasks file as streamlined as possible.
 
 Most roles will include at least one config file to be templated.
 
-The goal here is to have as many config settings set as possible/required to have services up and running and performing what is needed with little to no further intervention.
+The goal is to have as many settings configured set as possible/required to have services up and running and performing what is needed with little to no further intervention.
 
-For some services, I rely entirely on config templates, while others will be a mix of docker environmental variables or fully environmental variables. It depends on the service.
+For some services, I rely entirely on config templates, rely on docker environmental variables, or a mix. It depends on the service.
 
 **Example:**
 
@@ -781,8 +781,6 @@ For some services, I rely entirely on config templates, while others will be a m
  }
 
  ```
-
-I find templating more powerful than copying, as a change in a variable's value will apply to the config template referencing it, reducing the need to manually edit config files. 
 
 ### Compose
 
