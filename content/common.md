@@ -173,7 +173,7 @@ In the above example, I copy the files required for this blogs theme.
 
 ***
 
-Some of the important tasks, and a core reason I'm using Ansible, is to set-up the various configs services. For this, I typically template a config file from a role directory into a desired folder.
+A core reason I'm using Ansible is to set up the various configs for my services. For this, I typically template a config file from a role directory into a desired folder.
 
 ### Common Task
 
@@ -199,11 +199,15 @@ Some of the important tasks, and a core reason I'm using Ansible, is to set-up t
 - name: Conduct template tasks
   ansible.builtin.include_tasks: '/ansible/resources/template.yml'
   vars:
-    template_location: '{{ item.template }}'
-    file_location: '{{ item.file }}'
+    template_source: '{{ item.source }}'
+    template_destination: '{{ item.destination }}'
+    template_force: true
+    template_owner: '{{ puid }}'
+    template_group: '{{ pgid }}'
+    template_mode: '0664'
   loop:
-    - { template: '{{ role_path }}/templates/configs/autobrr_config.toml.j2', file: '{{ autobrr_location }}/config.toml' }
-    - { template: '{{ role_path }}/templates/configs/doplarr_config.edn.j2', file: '{{ doplarr_location }}/config.edn' }
+    - { source: '{{ role_path }}/templates/configs/autobrr_config.toml.j2', destination: '{{ autobrr_location }}/config.toml' }
+    - { source: '{{ role_path }}/templates/configs/doplarr_config.edn.j2', destination: '{{ doplarr_location }}/config.edn' }
 
 ```
 

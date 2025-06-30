@@ -185,7 +185,7 @@
   <h1 class="post-title">
     <a href="http://localhost:1313/common/">Handling common tasks within Ansible</a>
   </h1>
-  <div class="post-meta"><span class="post-reading-time">10 min read (1986 words)</span></div>
+  <div class="post-meta"><span class="post-reading-time">10 min read (1995 words)</span></div>
 
   
   
@@ -365,7 +365,7 @@
 <hr>
 <h2 id="templates">Templates<a href="#templates" class="hanchor" ariaLabel="Anchor">#</a> </h2>
 <hr>
-<p>Some of the important tasks, and a core reason I&rsquo;m using Ansible, is to set-up the various configs services. For this, I typically template a config file from a role directory into a desired folder.</p>
+<p>A core reason I&rsquo;m using Ansible is to set up the various configs for my services. For this, I typically template a config file from a role directory into a desired folder.</p>
 <h3 id="common-task-2">Common Task<a href="#common-task-2" class="hanchor" ariaLabel="Anchor">#</a> </h3>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Template file</span>
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.template</span>:
@@ -384,11 +384,15 @@
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Conduct template tasks</span>
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.include_tasks</span>: <span style="color:#e6db74">&#39;/ansible/resources/template.yml&#39;</span>
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">vars</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">template_location</span>: <span style="color:#e6db74">&#39;{{ item.template }}&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">file_location</span>: <span style="color:#e6db74">&#39;{{ item.file }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">template_source</span>: <span style="color:#e6db74">&#39;{{ item.source }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">template_destination</span>: <span style="color:#e6db74">&#39;{{ item.destination }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">template_force</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">template_owner</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">template_group</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">template_mode</span>: <span style="color:#e6db74">&#39;0664&#39;</span>
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">loop</span>:
-</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">template</span>: <span style="color:#e6db74">&#39;{{ role_path }}/templates/configs/autobrr_config.toml.j2&#39;</span><span style="color:#f92672">, file</span>: <span style="color:#e6db74">&#39;{{ autobrr_location }}/config.toml&#39;</span> }
-</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">template</span>: <span style="color:#e6db74">&#39;{{ role_path }}/templates/configs/doplarr_config.edn.j2&#39;</span><span style="color:#f92672">, file</span>: <span style="color:#e6db74">&#39;{{ doplarr_location }}/config.edn&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">source</span>: <span style="color:#e6db74">&#39;{{ role_path }}/templates/configs/autobrr_config.toml.j2&#39;</span><span style="color:#f92672">, destination</span>: <span style="color:#e6db74">&#39;{{ autobrr_location }}/config.toml&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">source</span>: <span style="color:#e6db74">&#39;{{ role_path }}/templates/configs/doplarr_config.edn.j2&#39;</span><span style="color:#f92672">, destination</span>: <span style="color:#e6db74">&#39;{{ doplarr_location }}/config.edn&#39;</span> }
 </span></span></code></pre></div><p><strong>Example config (autobrr_config.toml.j2):</strong></p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-toml" data-lang="toml"><span style="display:flex;"><span><span style="color:#75715e"># config.toml</span>
 </span></span><span style="display:flex;"><span>
