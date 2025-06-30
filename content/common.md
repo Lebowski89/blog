@@ -122,88 +122,6 @@ With each loop the variables are replaced without interfering with others.
 
 ***
 
-## Files (and Directories)
-
-***
-
-One of the simplest and most common tasks within each of my roles are those involving the `ansible.builtin.file` module, specifically the creation of directories and touching of files.
-
-### Common Task
-
-```yaml
-- name: Conduct file task
-  ansible.builtin.file:
-    path: '{{ file_path }}'
-    state: '{{ file_state }}'
-    force: '{{ file_force }}'
-    owner: '{{ file_owner }}'
-    group: '{{ file_group }}'
-    mode: '{{ file_mode }}'
-
-- name: Wait for file
-  when: (file_state != 'directory') and (file_state != 'touch')
-  ansible.builtin.wait_for:
-    path: '{{ file_path }}'
-    state: '{{ file_state }}'
-```
-
-The above includes a `wait_for` task to assure the file is present before continuing the play.
-
-### include_task
-
-```yaml
-- name: Create directories
-  ansible.builtin.include_tasks: '/ansible/resources/file.yml'
-  vars:
-    file_path: '{{ item }}'
-    file_state: 'directory'
-    file_force: 'false'
-    file_owner: '{{ puid }}'
-    file_group: '{{ pgid }}'
-    file_mode: '0755'
-  loop:
-    - '{{ hugo_cache_location }}'
-    - '{{ obsidian_location }}'
-    - '{{ obsidian_location }}/vault'
-    - '{{ obsidian_location }}/vault/posts'
-```
-
-In some cases the desired variables will differ between files and directories:
-
-```yaml
-- name: Create directories
-  ansible.builtin.include_tasks: '/ansible/resources/file.yml'
-  vars:
-    file_path: '{{ item.path }}'
-    file_state: 'directory'
-    file_force: 'false'
-    file_owner: '{{ item.owner }}'
-    file_group: '{{ item.group }}'
-    file_mode: '0755'
-  loop:
-    - { path: '{{ authelia_location }}', owner: '{{ puid }}', group: '{{ pgid }}' }
-    - { path: '{{ authelia_logs_location }}', owner: '{{ puid }}', group: '{{ pgid }}' }
-    - { path: '{{ authelia_redis_location }}', owner: '1001', group: '1001' }
-    - { path: '{{ traefik_location }}', owner: '{{ puid }}', group: '{{ pgid }}' }
-    - { path: '{{ traefik_logs_location }}', owner: '{{ puid }}', group: '{{ pgid }}' }
-```
-
-In some cases it's a simple case of 'touching' a file:
-
-```yaml
-- name: Touch acme.json
-  ansible.builtin.include_tasks: '/ansible/resources/file.yml'
-  vars:
-    file_path: '{{ traefik_location }}/acme.json'
-    file_state: 'touch'
-    file_force: 'false'
-    file_owner: '{{ puid }}'
-    file_group: '{{ pgid }}'
-    file_mode: '0600'
-```
-
-***
-
 ## File Copy
 
 ***
@@ -536,5 +454,74 @@ In the above example, both services receive full Traefik labels, including being
 ```
 
 Moving Traefik labels to this eliminated unnecessary defaults files.
+
+
+***
+
+## Postgres Database
+
+***
+
+I use postgres as a database for a variety of docker services, across multiple roles. As such, I use the `postgresql.postgresql_ping` and `postgresql.postgresql_db` modules to ping for an existing database and to create a one if none exists. These tasks require an existing postgres install that is up and running (I deploy postgres via docker swarm), and the host (machine ip)/user/port/password of the running instance.
+
+
+### Common Task
+
+```yaml
+
+- name: Ping for existing database
+  community.postgresql.postgresql_ping:
+    login_host: '{{ pvr_machine }}'
+    login_user: '{{ postgres_username }}'
+    login_password: '{{ postgres_password }}'
+    port: '{{ postgres_ports_host }}'
+    login_db: '{{ postgres_database }}'
+  register: postgres_db_exists
+
+- name: Create postgres database
+  when: not postgres_db_exists == true
+  community.postgresql.postgresql_db:
+    login_host: '{{ pvr_machine }}'
+    login_user: '{{ postgres_username }}'
+    login_password: '{{ postgres_password }}'
+    port: '{{ postgres_ports_host }}'
+    name: '{{ postgres_database }}'
+    state: present
+
+```
+
+### include_task
+
+```yaml
+
+- name: Conduct Postgres DB tasks
+  ansible.builtin.include_tasks: /ansible/common/postgres.yml
+  vars:
+    postgres_database: '{{ item }}'
+  loop:
+    - 'bazarr'
+    - 'lidarr-main'
+    - 'lidarr-log'
+    - 'prowlarr-main'
+    - 'prowlarr-log'
+    - 'radarr-main'
+    - 'radarr-log'
+    - 'radarr-4k-main'
+    - 'radarr-4k-log'
+    - 'readarr-main'
+    - 'readarr-log'
+    - 'readarr-cache'
+    - 'sonarr-main'
+    - 'sonarr-log'
+    - 'sonarr-4k-main'
+    - 'sonarr-4k-log'
+    - 'whisparr-main'
+    - 'whisparr-log'
+    - 'whisparr-main-v3'
+    - 'whisparr-log-v3'
+
+```
+
+Above, the only thing that changes for the include task is the name of the database. I'm only working with one postgres instance, so that's all I need.
 
 <script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="lebowski89" data-description="Support me on Buy me a coffee!" data-message="Coffee" data-color="#5F7FFF" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
