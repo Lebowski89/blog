@@ -462,7 +462,7 @@ Moving Traefik labels to this eliminated unnecessary defaults files.
 
 ***
 
-I use postgres as a database for a variety of docker services, across multiple roles. As such, I use the `postgresql.postgresql_ping` and `postgresql.postgresql_db` modules to ping for an existing database and to create a one if none exists. These tasks require an existing postgres install that is up and running (I deploy postgres via docker swarm), and the host (machine ip)/user/port/password of the running instance.
+I use postgres as a database for a variety of docker services, across multiple roles. As such, I use the postgresql ping and db modules to ping for an existing database and to create a one if none exists. These tasks require an existing postgres install that is up and running (I deploy postgres via docker swarm), and login details of the running instance.
 
 
 ### Common Task
