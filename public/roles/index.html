@@ -6,7 +6,7 @@
   
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content=" Introduction Ansible roles contain the majority of my tasks and have changed a lot during my time with Ansible, both content and structure wise. My current approach is to have roles dedicated to deploying my docker services in a one role - one docker stack approach, where each role is dedicated to deploying a specific set of containers or swarm services (with auxiliary roles dedicated to readying the system).
+<meta name="description" content=" Introduction Ansible roles contain most of my tasks and have changed a lot during my time with Ansible, both content and structure wise. My current approach is to have roles dedicated to deploying my docker services in a one role - one docker stack approach, where each role is dedicated to deploying a specific set of containers or swarm services (with auxiliary roles dedicated to readying the system).
 The rest of this document will discuss common sections of my roles:
 " />
 <meta name="keywords" content="" />
@@ -75,7 +75,7 @@ The rest of this document will discuss common sections of my roles:
 <meta property="og:locale" content="en" />
 <meta property="og:type" content="article" />
 <meta property="og:title" content="Structuring your Ansible Roles">
-<meta property="og:description" content=" Introduction Ansible roles contain the majority of my tasks and have changed a lot during my time with Ansible, both content and structure wise. My current approach is to have roles dedicated to deploying my docker services in a one role - one docker stack approach, where each role is dedicated to deploying a specific set of containers or swarm services (with auxiliary roles dedicated to readying the system).
+<meta property="og:description" content=" Introduction Ansible roles contain most of my tasks and have changed a lot during my time with Ansible, both content and structure wise. My current approach is to have roles dedicated to deploying my docker services in a one role - one docker stack approach, where each role is dedicated to deploying a specific set of containers or swarm services (with auxiliary roles dedicated to readying the system).
 The rest of this document will discuss common sections of my roles:
 " />
 <meta property="og:url" content="http://localhost:1313/roles/" />
@@ -187,7 +187,7 @@ The rest of this document will discuss common sections of my roles:
   <h1 class="post-title">
     <a href="http://localhost:1313/roles/">Structuring your Ansible Roles</a>
   </h1>
-  <div class="post-meta"><span class="post-reading-time">14 min read (2958 words)</span></div>
+  <div class="post-meta"><span class="post-reading-time">14 min read (2955 words)</span></div>
 
   
     <span class="post-tags">
@@ -244,7 +244,7 @@ The rest of this document will discuss common sections of my roles:
         <hr>
 <h2 id="introduction">Introduction<a href="#introduction" class="hanchor" ariaLabel="Anchor">#</a> </h2>
 <hr>
-<p>Ansible roles contain the majority of my tasks and have changed a lot during my time with Ansible, both content and structure wise. My current approach is to have roles dedicated to deploying my docker services in a one role - one docker stack approach, where each role is dedicated to deploying a specific set of containers or swarm services (with auxiliary roles dedicated to readying the system).</p>
+<p>Ansible roles contain most of my tasks and have changed a lot during my time with Ansible, both content and structure wise. My current approach is to have roles dedicated to deploying my docker services in a one role - one docker stack approach, where each role is dedicated to deploying a specific set of containers or swarm services (with auxiliary roles dedicated to readying the system).</p>
 <p>The rest of this document will discuss common sections of my roles:</p>
 <hr>
 <h2 id="group_vars">Group_Vars<a href="#group_vars" class="hanchor" ariaLabel="Anchor">#</a> </h2>
@@ -278,7 +278,8 @@ The rest of this document will discuss common sections of my roles:
 <li><code>traefik.yml</code> contains traefik middleware and a traefik labels template variables (used by the traefik labels common task)</li>
 <li><code>vault.yml</code> contains sensitive variables, including api/keys/domains/passwords/emails and others.</li>
 </ol>
-<p>The remaining variables are contained in the <code>group_vars/all/roles</code> folder, with one group_vars file per role. These contain relevant service information, for example:</p>
+<p>The remaining variables are contained in the <code>group_vars/all/roles</code> folder, with one group_vars file per role. These contain relevant service information.</p>
+<p><strong>Example:</strong></p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">radarr_name</span>: <span style="color:#e6db74">&#39;radarr&#39;</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">radarr_image_repo</span>: <span style="color:#e6db74">&#39;ghcr.io/hotio/radarr&#39;</span>
@@ -300,7 +301,7 @@ The rest of this document will discuss common sections of my roles:
 <hr>
 <h3 id="roledefaults">Role/Defaults<a href="#roledefaults" class="hanchor" ariaLabel="Anchor">#</a> </h3>
 <hr>
-<p>Previously, I would include defaults required by multiple roles in group_vars and the remainder in role defaults. This led to a mish-mash of defaults in different locations. With the adoption of <a href="https://drjoyce.blog/common/">common tasks</a>, I was able to minimise the amount of defaults and could move all to group_vars. However, when I did use role/defaults, I liked to include &lsquo;defaults&rsquo; in the variable name:</p>
+<p>Previously, I would include defaults required by multiple roles in group_vars and the remainder in role defaults. This led to a mish-mash of defaults in different locations. With the adoption of <a href="https://drjoyce.blog/common/">common tasks</a>, I was able to minimise the amount of defaults and moved all to group_vars. However, when I did use role/defaults, I liked to include &lsquo;defaults&rsquo; in the variable name:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e">## metrics/defaults/main/exporters.yml</span>
 </span></span><span style="display:flex;"><span>
@@ -344,7 +345,9 @@ The rest of this document will discuss common sections of my roles:
 <h2 id="roletasks">Role/Tasks<a href="#roletasks" class="hanchor" ariaLabel="Anchor">#</a> </h2>
 <hr>
 <p>Role tasks contain everything required to automate what I need, with idempotence (that is, to be able to run the role as many times as I want and have it fulfill the tasks I set it out to do without fail). What I have found works best is to have as many tasks follow a streamlined and common structure as possible. When deploying docker services, I have the following set of tasks:</p>
+<hr>
 <h3 id="clean-up">Clean Up<a href="#clean-up" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<hr>
 <p>When carrying out tasks, it is best to bring down existing services. This is prevent any issues when making changes to running services. Also some changes will not be registered until a container or service is redeployed.</p>
 <p><strong>Bringing down a container:</strong></p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
@@ -388,7 +391,9 @@ The rest of this document will discuss common sections of my roles:
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.file</span>:
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#ae81ff">/opt/arrs-stack.yml</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">absent</span>
-</span></span></code></pre></div><h3 id="directories">Directories<a href="#directories" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+</span></span></code></pre></div><hr>
+<h3 id="directories">Directories<a href="#directories" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<hr>
 <p>I then create directories and sub-directories required for the role:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Create directories</span>
@@ -428,9 +433,13 @@ The rest of this document will discuss common sections of my roles:
 </span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ traefik_location }}&#39;</span><span style="color:#f92672">, owner</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span><span style="color:#f92672">, group</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span> }
 </span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ traefik_logs_location }}&#39;</span><span style="color:#f92672">, owner</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span><span style="color:#f92672">, group</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span> }
 </span></span></code></pre></div><p>Above, I loop over <code>path</code>, <code>owner</code>, <code>group</code>. However, you can name them whatever you want, as long as it matches up with the value after <code>item.</code>.</p>
+<hr>
 <h3 id="files">Files<a href="#files" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<hr>
 <p>I deal with files using common tasks for <a href="https://drjoyce.blog/common/#templates">templates</a> and <a href="https://drjoyce.blog/common/#file-copy">copy tasks</a>.</p>
+<hr>
 <h3 id="databases">Databases<a href="#databases" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<hr>
 <p>Here I create postgres/mariadb databases using ansible modules:</p>
 <p><strong>MariaDB</strong></p>
 <p>I have a single task that checks for a database and creates one if none exists.</p>
@@ -448,7 +457,9 @@ The rest of this document will discuss common sections of my roles:
 <p><strong>Database Requirements</strong></p>
 <p>Both require an existing mariadb/postgres database instance that is up and accepting connections, with all relevant database login details stored in <code>group_vars/vault</code>. I deploy my databases via docker, but it doesn&rsquo;t matter if you installed via a different method. Also, since these are ansible module tasks, and are not part of your docker network, they rely on machine ip and host port.</p>
 <p>Once the database is created, depending on the services, additional database tasks will be required. These usually revolve around adding your database details to the service config. For me, I prefer defining the database details via the services docker environmental variables, but sometimes this isn&rsquo;t possible. Sometimes I prefer editing the config, which is the case with my arrs stack.</p>
+<hr>
 <h3 id="docker-secrets--networks--volumes">Docker Secrets / Networks / Volumes<a href="#docker-secrets--networks--volumes" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<hr>
 <p>Here I create any required docker secrets, networks and volumes:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Prepare docker secrets</span>
@@ -488,7 +499,9 @@ The rest of this document will discuss common sections of my roles:
 </span></span><span style="display:flex;"><span>        <span style="color:#f92672">attachable</span>: <span style="color:#66d9ef">true</span> 
 </span></span><span style="display:flex;"><span>        <span style="color:#f92672">ipam_config</span>:
 </span></span><span style="display:flex;"><span>          - <span style="color:#f92672">subnet</span>: <span style="color:#e6db74">&#39;{{ network_overlay_subnet }}&#39;</span>
-</span></span></code></pre></div><h3 id="dns">DNS<a href="#dns" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+</span></span></code></pre></div><hr>
+<h3 id="dns">DNS<a href="#dns" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<hr>
 <p>In this section, I add cloudflare DNS records via <a href="https://drjoyce.blog/common/#cloudflare-dns">common tasks</a></p>
 <p>Previously, I would define the cloudflare tasks in the role, like so:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
@@ -536,7 +549,9 @@ The rest of this document will discuss common sections of my roles:
 </span></span><span style="display:flex;"><span>        - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Display DNS record creation status</span>
 </span></span><span style="display:flex;"><span>          <span style="color:#f92672">ansible.builtin.debug</span>:
 </span></span><span style="display:flex;"><span>            <span style="color:#f92672">msg</span>: <span style="color:#e6db74">&#39;DNS A Record for &#34;{{ ombi_cloudflare_record_print }}&#34; set to &#34;{{ ipify_public_ip }}&#34; was added. Proxy: {{ cloudflare_proxy }}&#39;</span>
-</span></span></code></pre></div><h3 id="traefik">Traefik<a href="#traefik" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+</span></span></code></pre></div><hr>
+<h3 id="traefik">Traefik<a href="#traefik" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<hr>
 <p>Here I use <a href="https://drjoyce.blog/common/#traefik-labels">common tasks</a> to set Traefik labels for services.</p>
 <hr>
 <h3 id="deploy">Deploy<a href="#deploy" class="hanchor" ariaLabel="Anchor">#</a> </h3>
@@ -599,7 +614,9 @@ The rest of this document will discuss common sections of my roles:
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">name</span>: <span style="color:#ae81ff">arrs</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">compose</span>:
 </span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">/opt/arrs-stack.yml</span>
-</span></span></code></pre></div><h2 id="rolesub-tasks">Role/Sub-tasks<a href="#rolesub-tasks" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+</span></span></code></pre></div><hr>
+<h2 id="rolesub-tasks">Role/Sub-tasks<a href="#rolesub-tasks" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<hr>
 <p>I make use of sub-tasks in roles if a set of tasks meet the following criteria:</p>
 <ol>
 <li>The tasks are role specific/niche and not appropriate for common tasks</li>

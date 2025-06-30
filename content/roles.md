@@ -16,7 +16,7 @@ title: Structuring your Ansible Roles
 
 ***
 
-Ansible roles contain the majority of my tasks and have changed a lot during my time with Ansible, both content and structure wise. My current approach is to have roles dedicated to deploying my docker services in a one role - one docker stack approach, where each role is dedicated to deploying a specific set of containers or swarm services (with auxiliary roles dedicated to readying the system).
+Ansible roles contain most of my tasks and have changed a lot during my time with Ansible, both content and structure wise. My current approach is to have roles dedicated to deploying my docker services in a one role - one docker stack approach, where each role is dedicated to deploying a specific set of containers or swarm services (with auxiliary roles dedicated to readying the system).
 
 The rest of this document will discuss common sections of my roles:
 
@@ -60,7 +60,9 @@ For my set up, group_vars is structured like the following:
 2. `traefik.yml` contains traefik middleware and a traefik labels template variables (used by the traefik labels common task)
 3. `vault.yml` contains sensitive variables, including api/keys/domains/passwords/emails and others.
 
-The remaining variables are contained in the `group_vars/all/roles` folder, with one group_vars file per role. These contain relevant service information, for example:
+The remaining variables are contained in the `group_vars/all/roles` folder, with one group_vars file per role. These contain relevant service information.
+
+**Example:**
 
 ```yaml
 
@@ -92,7 +94,7 @@ In the above example, all three roles will require Radarr's service name, port, 
 
 ***
 
-Previously, I would include defaults required by multiple roles in group_vars and the remainder in role defaults. This led to a mish-mash of defaults in different locations. With the adoption of [common tasks](https://drjoyce.blog/common/), I was able to minimise the amount of defaults and could move all to group_vars. However, when I did use role/defaults, I liked to include 'defaults' in the variable name:
+Previously, I would include defaults required by multiple roles in group_vars and the remainder in role defaults. This led to a mish-mash of defaults in different locations. With the adoption of [common tasks](https://drjoyce.blog/common/), I was able to minimise the amount of defaults and moved all to group_vars. However, when I did use role/defaults, I liked to include 'defaults' in the variable name:
 
 ```yaml
 
@@ -156,7 +158,11 @@ Above, the themes files for my Hugo blog are copied during the play to the hugo/
 
 Role tasks contain everything required to automate what I need, with idempotence (that is, to be able to run the role as many times as I want and have it fulfill the tasks I set it out to do without fail). What I have found works best is to have as many tasks follow a streamlined and common structure as possible. When deploying docker services, I have the following set of tasks:
 
+***
+
 ### Clean Up
+
+***
 
 When carrying out tasks, it is best to bring down existing services. This is prevent any issues when making changes to running services. Also some changes will not be registered until a container or service is redeployed. 
 
@@ -217,8 +223,11 @@ When carrying out tasks, it is best to bring down existing services. This is pre
 
 ```
 
+***
+
 ### Directories
 
+***
 
 I then create directories and sub-directories required for the role:
 
@@ -270,14 +279,19 @@ Typically, the only thing differing between roles are paths, so it's a case of l
 
 Above, I loop over `path`, `owner`, `group`. However, you can name them whatever you want, as long as it matches up with the value after `item.`.
 
+***
 
 ### Files
 
+***
 
 I deal with files using common tasks for [templates](https://drjoyce.blog/common/#templates) and [copy tasks](https://drjoyce.blog/common/#file-copy).
 
+***
 
 ### Databases
+
+***
 
 
 Here I create postgres/mariadb databases using ansible modules:
@@ -310,7 +324,11 @@ Both require an existing mariadb/postgres database instance that is up and accep
 
 Once the database is created, depending on the services, additional database tasks will be required. These usually revolve around adding your database details to the service config. For me, I prefer defining the database details via the services docker environmental variables, but sometimes this isn't possible. Sometimes I prefer editing the config, which is the case with my arrs stack.
 
+***
+
 ### Docker Secrets / Networks / Volumes
+
+***
 
 Here I create any required docker secrets, networks and volumes:
 
@@ -364,8 +382,11 @@ Here I create any required docker secrets, networks and volumes:
 
 ```
 
+***
+
 ### DNS
 
+***
 
 In this section, I add cloudflare DNS records via [common tasks](https://drjoyce.blog/common/#cloudflare-dns)
 
@@ -421,7 +442,11 @@ Previously, I would define the cloudflare tasks in the role, like so:
 
 ```
 
+***
+
 ### Traefik
+
+***
 
 Here I use [common tasks](https://drjoyce.blog/common/#traefik-labels) to set Traefik labels for services.
 
@@ -505,7 +530,11 @@ The final step of tasks is to deploy the required container or stack:
 
 ```
 
+***
+
 ## Role/Sub-tasks
+
+***
 
 I make use of sub-tasks in roles if a set of tasks meet the following criteria:
    
