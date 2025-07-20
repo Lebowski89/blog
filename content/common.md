@@ -17,8 +17,8 @@ When you begin constructing your Ansible tasks - roles - collections, you quickl
 
 For me, my common tasks consist of two main types:
 
-1) Multiple common tasks defined in a file in a common tasks folder (external to the role) in the ansible directory, which are included in the role using the `include_tasks` module
-2) Smaller common tasks that are confined within a role without the need to include external tasks.
+1) Multiple (3+) common tasks defined in a file in a common tasks folder (external to the role), which are included in the role using the `include_tasks` module
+2) Smaller (1-3) common tasks defined and confined entirely within roles.
 
 The rest of this document is dedicated to listing and describing common tasks that I use:
 
@@ -463,7 +463,7 @@ I use postgres databases for a variety of docker services, across multiple roles
 
 - name: Ping for existing database
   community.postgresql.postgresql_ping:
-    login_host: '{{ pvr_machine }}'
+    login_host: '{{ local_ip }}'
     login_user: '{{ postgres_username }}'
     login_password: '{{ postgres_password }}'
     port: '{{ postgres_ports_host }}'
@@ -473,7 +473,7 @@ I use postgres databases for a variety of docker services, across multiple roles
 - name: Create postgres database
   when: not postgres_db_exists == true
   community.postgresql.postgresql_db:
-    login_host: '{{ pvr_machine }}'
+    login_host: '{{ local_ip }}'
     login_user: '{{ postgres_username }}'
     login_password: '{{ postgres_password }}'
     port: '{{ postgres_ports_host }}'
@@ -506,8 +506,35 @@ I use postgres databases for a variety of docker services, across multiple roles
     - 'sonarr-4k-log'
     - 'whisparr-main'
     - 'whisparr-log'
+
 ```
 
 Above, the only the database name changes, since I'm working with one postgres instance, and that's all I need.
+
+***
+
+## MariaDB Database
+
+***
+
+For MariaDB, the `mysql_db` module will ping and create databases in a single task:
+
+```yaml
+
+  ## role/tasks/main.yml
+
+- name: Create mariadb database
+  community.mysql.mysql_db:
+    login_host: '{{ local_machine }}'
+    login_user: 'root'
+    login_password: '{{ mariadb_password }}'
+    login_port: '{{ mariadb_ports_host }}'
+    name: 'wordpress'
+    state: present
+
+```
+
+Like Postgres, this task requires an existing MariaDB instance to be present and running.
+
 
 <script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="lebowski89" data-description="Support me on Buy me a coffee!" data-message="Support Me" data-color="#5F7FFF" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
