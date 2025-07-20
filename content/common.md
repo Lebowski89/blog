@@ -173,43 +173,45 @@ In the above example, I copy the files required for this blogs theme.
 
 ***
 
-A core reason I'm using Ansible is to set up the various configs for my services. For this, I typically template a config file from a role directory into a desired folder.
+A core reason I'm using Ansible is to set up configs for my services. For this, I typically template a config file from the role into the service folder.
 
-### Common Task
-
-```yaml
-- name: Template file
-  ansible.builtin.template:
-    src: '{{ template_source }}'
-    dest: '{{ template_destination }}'
-    force: '{{ template_force }}'
-    owner: '{{ template_owner }}'
-    group: '{{ template_group }}'
-    mode: '{{ template_mode }}'
-
-- name: Wait for file to be created
-  ansible.builtin.wait_for:
-    path: '{{ template_destination }}'
-    state: present
-```
-
-### include_task
+### Tasks
 
 ```yaml
 - name: Conduct template tasks
-  ansible.builtin.include_tasks: '/ansible/resources/template.yml'
-  vars:
-    template_source: '{{ item.source }}'
-    template_destination: '{{ item.destination }}'
-    template_force: true
-    template_owner: '{{ puid }}'
-    template_group: '{{ pgid }}'
-    template_mode: '0664'
+  ansible.builtin.template:
+    src: '{{ item.template }}'
+    dest: '{{ item.file }}'
+    force: false
+    owner: '{{ puid }}'
+    group: '{{ pgid }}'
+    mode: '0664'
   loop:
-    - { source: '{{ role_path }}/templates/configs/autobrr_config.toml.j2', destination: '{{ autobrr_location }}/config.toml' }
-    - { source: '{{ role_path }}/templates/configs/doplarr_config.edn.j2', destination: '{{ doplarr_location }}/config.edn' }
+    - { template: '{{ role_path }}/templates/configs/bazarr_config.yaml.j2', file: '{{ bazarr_location }}/config/config.yaml' }
+    - { template: '{{ role_path }}/templates/configs/arrs_config.xml.j2', file: '{{ lidarr_location }}/config.xml' }
+    - { template: '{{ role_path }}/templates/configs/arrs_config.xml.j2', file: '{{ prowlarr_location }}/config.xml' }
+    - { template: '{{ role_path }}/templates/configs/arrs_config.xml.j2', file: '{{ radarr_location }}/config.xml' }
+    - { template: '{{ role_path }}/templates/configs/arrs_config.xml.j2', file: '{{ radarr_4k_location }}/config.xml' }
+    - { template: '{{ role_path }}/templates/configs/arrs_config.xml.j2', file: '{{ sonarr_location }}/config.xml' }
+    - { template: '{{ role_path }}/templates/configs/arrs_config.xml.j2', file: '{{ sonarr_4k_location }}/config.xml' }
+    - { template: '{{ role_path }}/templates/configs/arrs_config.xml.j2', file: '{{ whisparr_location }}/config.xml' }
 
+- name: Wait for files to be created
+  ansible.builtin.wait_for:
+    path: '{{ item }}'
+    state: present
+  loop:
+    - '{{ bazarr_location }}/config/config.yaml'
+    - '{{ lidarr_location }}/config.xml'
+    - '{{ prowlarr_location }}/config.xml'
+    - '{{ radarr_location }}/config.xml'
+    - '{{ radarr_4k_location }}/config.xml'
+    - '{{ sonarr_location }}/config.xml'
+    - '{{ sonarr_4k_location }}/config.xml'
+    - '{{ whisparr_location }}/config.xml'
 ```
+
+Above, I template configs from the arrs role folder into the respective arrs appdata directory. The `wait_for` task just ensures the templated configs are in place before subsequent tasks continue.
 
 **Example config (autobrr_config.toml.j2):**
 
