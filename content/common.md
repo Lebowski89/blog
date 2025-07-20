@@ -33,9 +33,10 @@ The rest of this document is dedicated to describing the common tasks I use.
 
 One integral time-saving task when spinning up docker services is to automate DNS records.
 
-### Common Task
-
 ```yaml
+
+  ## ansible/common/cloudflare.yml
+
 - name: Remove existing A DNS record
   when: cloudflare_remove_existing == 'true'
   community.general.cloudflare_dns:
@@ -74,11 +75,12 @@ One integral time-saving task when spinning up docker services is to automate DN
 
 These will add/remove DNS records and display the DNS record on success.
 
-### include_task
-
 ```yaml
+
+  ## role/tasks/main.yml
+
 - name: Add Cloudflare DNS records
-  ansible.builtin.include_tasks: '/ansible/resources/cloudflare.yml'
+  ansible.builtin.include_tasks: '/ansible/common/cloudflare.yml'
   vars:
     cloudflare_domain: '{{ local_domain }}'
     cloudflare_record: '{{ obsidian_name }}'
@@ -92,8 +94,11 @@ These will add/remove DNS records and display the DNS record on success.
 In the above example, variables from the common task are replaced with relevant values required to create a DNS record for my Obsidian container running on my local server. You can create loops to handle as many services as you require:
 
 ```yaml
+
+  ## role/tasks/main.yml
+
 - name: Add 'GitHub Pages' DNS records
-  ansible.builtin.include_tasks: '/ansible/resources/cloudflare.yml'
+  ansible.builtin.include_tasks: '/ansible/common/cloudflare.yml'
   vars:
     cloudflare_domain: '{{ github_pages_domain }}'
     cloudflare_record: '@'
@@ -111,6 +116,7 @@ In the above example, variables from the common task are replaced with relevant 
     - { type: 'AAAA', value: '2606:50c0:8001::153' }
     - { type: 'AAAA', value: '2606:50c0:8002::153' }
     - { type: 'AAAA', value: '2606:50c0:8003::153' }
+
 ```
 
 With each loop the variables are replaced without interfering with others.
@@ -123,9 +129,10 @@ With each loop the variables are replaced without interfering with others.
 
 A simple task to copy files from one directory to another. I typically use this to copy files that docker services require from their role folder to the services appdata directory (though, I prefer to template files where and when possible).
 
-### Common Task
-
 ```yaml
+
+  ## ansible/common/copy.yml
+
 - name: Check if file exists
   ansible.builtin.stat:
     path: '{{ copy_destination }}'
@@ -147,11 +154,12 @@ A simple task to copy files from one directory to another. I typically use this 
     state: present
 ```
 
-### include_task
-
 ```yaml
+
+  ## role/tasks/main.yml
+
 - name: Copy Hugo Terminal Themes files
-  ansible.builtin.include_tasks: '/ansible/resources/copy.yml'
+  ansible.builtin.include_tasks: '/ansible/common/copy.yml'
   vars:
     copy_source: '{{ item.source }}'
     copy_destination: '{{ item.destination }}'
@@ -163,6 +171,7 @@ A simple task to copy files from one directory to another. I typically use this 
     - { source: '{{ role_path }}/files/favicon.png', destination: '/{{ hugo_site_name }}/static/favicon.png' }
     - { source: '{{ role_path }}/files/og-image.png', destination: '/{{ hugo_site_name }}/static/og-image.png' }
     - { source: '{{ role_path }}/files/terminal.css', destination: '/{{ hugo_site_name }}/static/terminal.css' }
+
 ```
 
 In the above example, I copy the files required for this blogs theme.
@@ -451,7 +460,7 @@ In the above example, both services receive full Traefik labels, including being
 
 I use postgres databases for a variety of docker services, across multiple roles. As such, I use the postgresql ping and db modules to ping for existing databases and to create them if none exists. 
 
-**Note:** Require an existing running postgres instance (I deploy postgres via docker swarm).
+**Note:** Requires an existing running postgres instance.
 
 ```yaml
 

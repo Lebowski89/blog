@@ -185,7 +185,7 @@
   <h1 class="post-title">
     <a href="http://localhost:1313/common/">Handling common tasks within Ansible</a>
   </h1>
-  <div class="post-meta"><span class="post-reading-time">10 min read (1966 words)</span></div>
+  <div class="post-meta"><span class="post-reading-time">10 min read (1964 words)</span></div>
 
   
   
@@ -203,18 +203,8 @@
         <li><a href="#key-points">Key points</a></li>
       </ul>
     </li>
-    <li><a href="#cloudflare-dns">Cloudflare DNS</a>
-      <ul>
-        <li><a href="#common-task">Common Task</a></li>
-        <li><a href="#include_task">include_task</a></li>
-      </ul>
-    </li>
-    <li><a href="#file-copy">File Copy</a>
-      <ul>
-        <li><a href="#common-task-1">Common Task</a></li>
-        <li><a href="#include_task-1">include_task</a></li>
-      </ul>
-    </li>
+    <li><a href="#cloudflare-dns">Cloudflare DNS</a></li>
+    <li><a href="#file-copy">File Copy</a></li>
     <li><a href="#templates">Templates</a>
       <ul>
         <li><a href="#tasks">Tasks</a></li>
@@ -244,8 +234,10 @@
 <h2 id="cloudflare-dns">Cloudflare DNS<a href="#cloudflare-dns" class="hanchor" ariaLabel="Anchor">#</a> </h2>
 <hr>
 <p>One integral time-saving task when spinning up docker services is to automate DNS records.</p>
-<h3 id="common-task">Common Task<a href="#common-task" class="hanchor" ariaLabel="Anchor">#</a> </h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Remove existing A DNS record</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## ansible/common/cloudflare.yml</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Remove existing A DNS record</span>
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">when</span>: <span style="color:#ae81ff">cloudflare_remove_existing == &#39;true&#39;</span>
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.general.cloudflare_dns</span>:
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">api_token</span>: <span style="color:#e6db74">&#39;{{ cloudflare_api }}&#39;</span>
@@ -279,9 +271,11 @@
 </span></span><span style="display:flex;"><span>          <span style="color:#f92672">ansible.builtin.debug</span>:
 </span></span><span style="display:flex;"><span>            <span style="color:#f92672">msg</span>: <span style="color:#e6db74">&#39;DNS A Record for &#34;{{ cloudflare_record_print }}&#34; set to &#34;{{ cloudflare_value }}&#34; was added. Proxy: {{ cloudflare_proxy }}&#39;</span>
 </span></span></code></pre></div><p>These will add/remove DNS records and display the DNS record on success.</p>
-<h3 id="include_task">include_task<a href="#include_task" class="hanchor" ariaLabel="Anchor">#</a> </h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Add Cloudflare DNS records</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.include_tasks</span>: <span style="color:#e6db74">&#39;/ansible/resources/cloudflare.yml&#39;</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## role/tasks/main.yml</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Add Cloudflare DNS records</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.include_tasks</span>: <span style="color:#e6db74">&#39;/ansible/common/cloudflare.yml&#39;</span>
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">vars</span>:
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_domain</span>: <span style="color:#e6db74">&#39;{{ local_domain }}&#39;</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_record</span>: <span style="color:#e6db74">&#39;{{ obsidian_name }}&#39;</span>
@@ -291,8 +285,11 @@
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_solo</span>: <span style="color:#e6db74">&#39;true&#39;</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_remove_existing</span>: <span style="color:#e6db74">&#39;true&#39;</span>
 </span></span></code></pre></div><p>In the above example, variables from the common task are replaced with relevant values required to create a DNS record for my Obsidian container running on my local server. You can create loops to handle as many services as you require:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Add &#39;GitHub Pages&#39; DNS records</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.include_tasks</span>: <span style="color:#e6db74">&#39;/ansible/resources/cloudflare.yml&#39;</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## role/tasks/main.yml</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Add &#39;GitHub Pages&#39; DNS records</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.include_tasks</span>: <span style="color:#e6db74">&#39;/ansible/common/cloudflare.yml&#39;</span>
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">vars</span>:
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_domain</span>: <span style="color:#e6db74">&#39;{{ github_pages_domain }}&#39;</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_record</span>: <span style="color:#e6db74">&#39;@&#39;</span>
@@ -315,8 +312,10 @@
 <h2 id="file-copy">File Copy<a href="#file-copy" class="hanchor" ariaLabel="Anchor">#</a> </h2>
 <hr>
 <p>A simple task to copy files from one directory to another. I typically use this to copy files that docker services require from their role folder to the services appdata directory (though, I prefer to template files where and when possible).</p>
-<h3 id="common-task-1">Common Task<a href="#common-task-1" class="hanchor" ariaLabel="Anchor">#</a> </h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Check if file exists</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## ansible/common/copy.yml</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Check if file exists</span>
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.stat</span>:
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ copy_destination }}&#39;</span>
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">register</span>: <span style="color:#ae81ff">file_copy_stat</span>
@@ -335,9 +334,11 @@
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.wait_for</span>:
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ copy_destination }}&#39;</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">present</span>
-</span></span></code></pre></div><h3 id="include_task-1">include_task<a href="#include_task-1" class="hanchor" ariaLabel="Anchor">#</a> </h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Copy Hugo Terminal Themes files</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.include_tasks</span>: <span style="color:#e6db74">&#39;/ansible/resources/copy.yml&#39;</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## role/tasks/main.yml</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Copy Hugo Terminal Themes files</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.include_tasks</span>: <span style="color:#e6db74">&#39;/ansible/common/copy.yml&#39;</span>
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">vars</span>:
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">copy_source</span>: <span style="color:#e6db74">&#39;{{ item.source }}&#39;</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">copy_destination</span>: <span style="color:#e6db74">&#39;{{ item.destination }}&#39;</span>
@@ -597,7 +598,7 @@
 <h2 id="postgres-database">Postgres Database<a href="#postgres-database" class="hanchor" ariaLabel="Anchor">#</a> </h2>
 <hr>
 <p>I use postgres databases for a variety of docker services, across multiple roles. As such, I use the postgresql ping and db modules to ping for existing databases and to create them if none exists.</p>
-<p><strong>Note:</strong> Require an existing running postgres instance (I deploy postgres via docker swarm).</p>
+<p><strong>Note:</strong> Requires an existing running postgres instance.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e">## ansible/common/postgres.yml</span>
 </span></span><span style="display:flex;"><span>
