@@ -249,16 +249,22 @@ sessionSecret = 'SomeSecret'
 
 ***
 
-Traefik is my reverse-proxy of choice for my docker services, with much of the config taking place in Traefik docker labels. Previously, I would define the Traefik labels for each service individually in a role defaults file. Depending on the service, I have http, https, api and theme-park labels. It can get quite extensive and much of the labels are the same across services with only variables such as the router name and port differing. 
+Traefik is my reverse-proxy of choice, with much of the config taking place in docker labels. Previously, I would define the labels for each service individually in role defaults. Depending on the service, I have http, https, api and theme-park labels. It can get extensive, but most of the labels are common across services with few differing variables.
 
 To reduce the bloat, I make use of:
    1. A labels template contained in my group_vars
    2. A common task file to determine required labels
    3. Include_tasks task with relevant variables.
 
-### Group_Vars
 
 ```yaml
+
+  ## ansible/group_vars/all/traefik.yml
+
+traefik_middlewares: 'globalHeaders@file,autodetect@swarm,gzip@swarm,robotHeaders@file'
+traefik_http_middlewares: '{{ traefik_middlewares + ",redirect-to-https@swarm,cloudflarewarp@swarm" }}'
+traefik_https_middlewares: '{{ traefik_middlewares + ",secureHeaders@file,hsts@file,cloudflarewarp@swarm" }}'
+
 traefik_labels_core:
   - traefik.enable: "true"
   - traefik.docker.network: "{{ router_network }}"
@@ -300,11 +306,13 @@ traefik_labels_https_api:
 traefik_labels_themepark:
   - '{ "traefik.http.middlewares.themepark-{{ router_name }}.plugin.themepark.app": "{{ router_themepark_app }}" }'
   - '{ "traefik.http.middlewares.themepark-{{ router_name }}.plugin.themepark.theme": "{{ router_themepark_theme }}" }'
+
 ```
 
-### Common Task
-
 ```yaml
+
+  ## ansible/common/labels.yml
+
 ################################
 # CHECKS
 ################################
@@ -393,11 +401,12 @@ traefik_labels_themepark:
 
 The above task file combines the relevant labels into a single variable that is provided to the docker compose file.
 
-### include_task
-
 ```yaml
+
+  ## role/tasks/main.yml
+
 - name: Set traefik Labels
-  ansible.builtin.include_tasks: /ansible/resources/labels.yml
+  ansible.builtin.include_tasks: /ansible/common/labels.yml
   vars:
     router_variable: '{{ item.var }}'
     router_network: '{{ network_overlay }}'
@@ -405,10 +414,10 @@ The above task file combines the relevant labels into a single variable that is 
     router_port: '{{ item.port }}'
     router_api: '{{ item.api }}'
     router_domain: '{{ local_domain }}'
-    router_entrypoint: 'http'  ## web if saltbox
-    router_secure_entrypoint: 'https'  ## websecure if saltbox
-    router_tls_certresolver: 'dns-cloudflare'  ## cfdns if saltbox
-    router_tls_options: 'tls-opts@file'  ## securetls@file if saltbox
+    router_entrypoint: 'http'
+    router_secure_entrypoint: 'https'
+    router_tls_certresolver: 'dns-cloudflare'
+    router_tls_options: 'securetls@file'
     router_themepark_app: '{{ item.tp_app }}'
     router_themepark_theme: 'hotpink'
     router_http_middlewares: '{{ traefik_http_middlewares + item.sso + item.tp }}'
@@ -432,30 +441,7 @@ The above task file combines the relevant labels into a single variable that is 
         tp_app: 'lidarr' }
 ```
 
-In the above example, both services receive full Traefik labels, including being protected by my SSO provider (Authelia), API labels and Theme-Park. Simply leaving the API and/or Themepark vars empty will remove these labels, i.e:
-
-```yaml
-- name: Set Obsidian traefik Labels
-  ansible.builtin.include_tasks: /ansible/resources/labels.yml
-  vars:
-    router_variable: 'obsidian_labels'
-    router_network: '{{ network_overlay }}'
-    router_name: '{{ obsidian_name }}'
-    router_port: '{{ obsidian_ports_http_cont }}'
-    router_api: ''
-    router_domain: '{{ local_domain }}'
-    router_entrypoint: 'http'  ## web if saltbox
-    router_secure_entrypoint: 'https'  ## websecure if saltbox
-    router_tls_certresolver: 'dns-cloudflare'  ## cfdns if saltbox
-    router_tls_options: 'tls-opts@file'  ## securetls@file if saltbox
-    router_themepark_app: ''
-    router_themepark_theme: 'hotpink'
-    router_http_middlewares: '{{ traefik_http_middlewares + ",authelia@swarm" }}'
-    router_https_middlewares: '{{ traefik_https_middlewares + ",authelia@swarm" }}'
-```
-
-Moving Traefik labels to this eliminated unnecessary defaults files.
-
+In the above example, both services receive full Traefik labels, including being protected by my SSO provider (Authelia), API labels and Theme-Park. Simply leaving the API and/or Themepark vars empty will remove these labels.
 
 ***
 
