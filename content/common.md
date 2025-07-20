@@ -211,7 +211,7 @@ A core reason I'm using Ansible is to set up configs for my services. For this, 
     - '{{ whisparr_location }}/config.xml'
 ```
 
-Above, I template configs from the arrs role folder into the respective arrs appdata directory. The `wait_for` task just ensures the templated configs are in place before subsequent tasks continue.
+Above, I template configs from the arrs role folder into respective arrs appdata directories. The `wait_for` task ensures templated files are in place before subsequent tasks continue.
 
 **Example config (autobrr_config.toml.j2):**
 
@@ -463,12 +463,13 @@ Moving Traefik labels to this eliminated unnecessary defaults files.
 
 ***
 
-I use postgres as a database for a variety of docker services, across multiple roles. As such, I use the postgresql ping and db modules to ping for an existing database and to create a one if none exists. These tasks require an existing running postgres instance (I deploy postgres via docker swarm).
+I use postgres databases for a variety of docker services, across multiple roles. As such, I use the postgresql ping and db modules to ping for existing databases and to create them if none exists. 
 
-
-### Common Task
+**Note:** Require an existing running postgres instance (I deploy postgres via docker swarm).
 
 ```yaml
+
+  ## ansible/common/postgres.yml
 
 - name: Ping for existing database
   community.postgresql.postgresql_ping:
@@ -491,9 +492,9 @@ I use postgres as a database for a variety of docker services, across multiple r
 
 ```
 
-### include_task
-
 ```yaml
+
+  ## role/tasks/main.yml
 
 - name: Conduct Postgres DB tasks
   ansible.builtin.include_tasks: /ansible/common/postgres.yml
@@ -509,20 +510,14 @@ I use postgres as a database for a variety of docker services, across multiple r
     - 'radarr-log'
     - 'radarr-4k-main'
     - 'radarr-4k-log'
-    - 'readarr-main'
-    - 'readarr-log'
-    - 'readarr-cache'
     - 'sonarr-main'
     - 'sonarr-log'
     - 'sonarr-4k-main'
     - 'sonarr-4k-log'
     - 'whisparr-main'
     - 'whisparr-log'
-    - 'whisparr-main-v3'
-    - 'whisparr-log-v3'
-
 ```
 
-Above, the only thing that changes for the include task is the name of the database. I'm only working with one postgres instance, so that's all I need.
+Above, the only the database name changes, since I'm working with one postgres instance, and that's all I need.
 
 <script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="lebowski89" data-description="Support me on Buy me a coffee!" data-message="Support Me" data-color="#5F7FFF" data-position="Right" data-x_margin="18" data-y_margin="18"></script>

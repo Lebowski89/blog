@@ -185,7 +185,7 @@
   <h1 class="post-title">
     <a href="http://localhost:1313/common/">Handling common tasks within Ansible</a>
   </h1>
-  <div class="post-meta"><span class="post-reading-time">10 min read (2088 words)</span></div>
+  <div class="post-meta"><span class="post-reading-time">10 min read (2062 words)</span></div>
 
   
   
@@ -227,12 +227,7 @@
         <li><a href="#include_task-2">include_task</a></li>
       </ul>
     </li>
-    <li><a href="#postgres-database">Postgres Database</a>
-      <ul>
-        <li><a href="#common-task-3">Common Task</a></li>
-        <li><a href="#include_task-3">include_task</a></li>
-      </ul>
-    </li>
+    <li><a href="#postgres-database">Postgres Database</a></li>
   </ul>
 </nav>
     </div>
@@ -397,7 +392,7 @@
 </span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ sonarr_location }}/config.xml&#39;</span>
 </span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ sonarr_4k_location }}/config.xml&#39;</span>
 </span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ whisparr_location }}/config.xml&#39;</span>
-</span></span></code></pre></div><p>Above, I template configs from the arrs role folder into the respective arrs appdata directory. The <code>wait_for</code> task just ensures the templated configs are in place before subsequent tasks continue.</p>
+</span></span></code></pre></div><p>Above, I template configs from the arrs role folder into respective arrs appdata directories. The <code>wait_for</code> task ensures templated files are in place before subsequent tasks continue.</p>
 <p><strong>Example config (autobrr_config.toml.j2):</strong></p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-toml" data-lang="toml"><span style="display:flex;"><span><span style="color:#75715e"># config.toml</span>
 </span></span><span style="display:flex;"><span>
@@ -615,9 +610,11 @@
 <hr>
 <h2 id="postgres-database">Postgres Database<a href="#postgres-database" class="hanchor" ariaLabel="Anchor">#</a> </h2>
 <hr>
-<p>I use postgres as a database for a variety of docker services, across multiple roles. As such, I use the postgresql ping and db modules to ping for an existing database and to create a one if none exists. These tasks require an existing running postgres instance (I deploy postgres via docker swarm).</p>
-<h3 id="common-task-3">Common Task<a href="#common-task-3" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<p>I use postgres databases for a variety of docker services, across multiple roles. As such, I use the postgresql ping and db modules to ping for existing databases and to create them if none exists.</p>
+<p><strong>Note:</strong> Require an existing running postgres instance (I deploy postgres via docker swarm).</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## ansible/common/postgres.yml</span>
+</span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Ping for existing database</span>
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.postgresql.postgresql_ping</span>:
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">login_host</span>: <span style="color:#e6db74">&#39;{{ pvr_machine }}&#39;</span>
@@ -636,8 +633,9 @@
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">port</span>: <span style="color:#e6db74">&#39;{{ postgres_ports_host }}&#39;</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#39;{{ postgres_database }}&#39;</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">present</span>
-</span></span></code></pre></div><h3 id="include_task-3">include_task<a href="#include_task-3" class="hanchor" ariaLabel="Anchor">#</a> </h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## role/tasks/main.yml</span>
+</span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Conduct Postgres DB tasks</span>
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.include_tasks</span>: <span style="color:#ae81ff">/ansible/common/postgres.yml</span>
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">vars</span>:
@@ -652,18 +650,13 @@
 </span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;radarr-log&#39;</span>
 </span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;radarr-4k-main&#39;</span>
 </span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;radarr-4k-log&#39;</span>
-</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;readarr-main&#39;</span>
-</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;readarr-log&#39;</span>
-</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;readarr-cache&#39;</span>
 </span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;sonarr-main&#39;</span>
 </span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;sonarr-log&#39;</span>
 </span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;sonarr-4k-main&#39;</span>
 </span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;sonarr-4k-log&#39;</span>
 </span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;whisparr-main&#39;</span>
 </span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;whisparr-log&#39;</span>
-</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;whisparr-main-v3&#39;</span>
-</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;whisparr-log-v3&#39;</span>
-</span></span></code></pre></div><p>Above, the only thing that changes for the include task is the name of the database. I&rsquo;m only working with one postgres instance, so that&rsquo;s all I need.</p>
+</span></span></code></pre></div><p>Above, the only the database name changes, since I&rsquo;m working with one postgres instance, and that&rsquo;s all I need.</p>
 <script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="lebowski89" data-description="Support me on Buy me a coffee!" data-message="Support Me" data-color="#5F7FFF" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
       </div></div>
 
