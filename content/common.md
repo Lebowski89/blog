@@ -13,17 +13,14 @@ title: Handling common tasks within Ansible
 
 ***
 
-When you begin constructing your Ansible tasks - roles - collections, you quickly realise that there are many tasks that you will use repeatedly with little variance. For example, if you're using Ansible to help set-up and deploy your docker containers, you'll have common tasks that create directories, configs, DNS and Traefik labels, among many others. If you're like me, I would simply copy and paste these tasks. While Ansible will run through and automate these repeated tasks all the same, the more tasks you have to repeat in a play, the more bloated and unreadable your playbook becomes and the more maintenance upkeep is required.
+When you begin constructing your Ansible tasks - roles - collections, you quickly realise that there are many tasks that you will use repeatedly with little variance. For example, if you're using Ansible to help set-up and deploy your docker containers, you'll have common tasks that create directories, configs, DNS and Traefik labels, among many others.
 
-To handle commonly repeated tasks, I've found it is effective to make a common tasks, in which you include during plays as required. In these tasks are generic variables that are looped over and replaced with relevant variables as required.
+For me, my common tasks consist of two main types:
 
-The rest of this document is dedicated to describing the common tasks I use.
+1) Multiple common tasks defined in a file in a common tasks folder (external to the role) in the ansible directory, which are included in the role using the `include_tasks` module
+2) Smaller common tasks that are confined within a role without the need to include external tasks.
 
-### Key points
-   - The common task files are in a folder in the Ansible directory
-   - Each task has generic variables that will be replaced with relevant ones during the play when the role is included using the `ansible.builtin.include_tasks` module
-   - Loops and iterating over hashes are key to reducing the number of required tasks.
-
+The rest of this document is dedicated to listing and describing common tasks that I use:
 
 ***
 
@@ -31,7 +28,7 @@ The rest of this document is dedicated to describing the common tasks I use.
 
 ***
 
-One integral time-saving task when spinning up docker services is to automate DNS records.
+One time-saving task when spinning up docker services is to automate the creationa and removal of cloudflare DNS records.
 
 ```yaml
 
@@ -73,8 +70,6 @@ One integral time-saving task when spinning up docker services is to automate DN
 
 ```
 
-These will add/remove DNS records and display the DNS record on success.
-
 ```yaml
 
   ## role/tasks/main.yml
@@ -91,7 +86,7 @@ These will add/remove DNS records and display the DNS record on success.
     cloudflare_remove_existing: 'true'
 ```
 
-In the above example, variables from the common task are replaced with relevant values required to create a DNS record for my Obsidian container running on my local server. You can create loops to handle as many services as you require:
+Above, variables from the common task are replaced with relevant values required to create a DNS record for my Obsidian container running on my local server. However, you can create loops to handle as many services as you require:
 
 ```yaml
 
@@ -118,8 +113,6 @@ In the above example, variables from the common task are replaced with relevant 
     - { type: 'AAAA', value: '2606:50c0:8003::153' }
 
 ```
-
-With each loop the variables are replaced without interfering with others.
 
 ***
 
@@ -184,9 +177,11 @@ In the above example, I copy the files required for this blogs theme.
 
 A core reason I'm using Ansible is to set up configs for my services. For this, I typically template a config file from the role into the service folder.
 
-### Tasks
 
 ```yaml
+
+  ## role/tasks/main.yml
+
 - name: Conduct template tasks
   ansible.builtin.template:
     src: '{{ item.template }}'

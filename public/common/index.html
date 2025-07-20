@@ -6,7 +6,9 @@
   
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content=" Introduction When you begin constructing your Ansible tasks - roles - collections, you quickly realise that there are many tasks that you will use repeatedly with little variance. For example, if you&rsquo;re using Ansible to help set-up and deploy your docker containers, you&rsquo;ll have common tasks that create directories, configs, DNS and Traefik labels, among many others. If you&rsquo;re like me, I would simply copy and paste these tasks. While Ansible will run through and automate these repeated tasks all the same, the more tasks you have to repeat in a play, the more bloated and unreadable your playbook becomes and the more maintenance upkeep is required.
+<meta name="description" content=" Introduction When you begin constructing your Ansible tasks - roles - collections, you quickly realise that there are many tasks that you will use repeatedly with little variance. For example, if you&rsquo;re using Ansible to help set-up and deploy your docker containers, you&rsquo;ll have common tasks that create directories, configs, DNS and Traefik labels, among many others.
+For me, my common tasks consist of two main types:
+Multiple common tasks defined in a file in a common tasks folder (external to the role) in the ansible directory, which are included in the role using the include_tasks module Smaller common tasks that are confined within a role without the need to include external tasks. The rest of this document is dedicated to listing and describing common tasks that I use:
 " />
 <meta name="keywords" content="" />
 
@@ -74,7 +76,9 @@
 <meta property="og:locale" content="en" />
 <meta property="og:type" content="article" />
 <meta property="og:title" content="Handling common tasks within Ansible">
-<meta property="og:description" content=" Introduction When you begin constructing your Ansible tasks - roles - collections, you quickly realise that there are many tasks that you will use repeatedly with little variance. For example, if you&rsquo;re using Ansible to help set-up and deploy your docker containers, you&rsquo;ll have common tasks that create directories, configs, DNS and Traefik labels, among many others. If you&rsquo;re like me, I would simply copy and paste these tasks. While Ansible will run through and automate these repeated tasks all the same, the more tasks you have to repeat in a play, the more bloated and unreadable your playbook becomes and the more maintenance upkeep is required.
+<meta property="og:description" content=" Introduction When you begin constructing your Ansible tasks - roles - collections, you quickly realise that there are many tasks that you will use repeatedly with little variance. For example, if you&rsquo;re using Ansible to help set-up and deploy your docker containers, you&rsquo;ll have common tasks that create directories, configs, DNS and Traefik labels, among many others.
+For me, my common tasks consist of two main types:
+Multiple common tasks defined in a file in a common tasks folder (external to the role) in the ansible directory, which are included in the role using the include_tasks module Smaller common tasks that are confined within a role without the need to include external tasks. The rest of this document is dedicated to listing and describing common tasks that I use:
 " />
 <meta property="og:url" content="http://localhost:1313/common/" />
 <meta property="og:site_name" content="Le Tour De Blog" />
@@ -185,7 +189,7 @@
   <h1 class="post-title">
     <a href="http://localhost:1313/common/">Handling common tasks within Ansible</a>
   </h1>
-  <div class="post-meta"><span class="post-reading-time">10 min read (1964 words)</span></div>
+  <div class="post-meta"><span class="post-reading-time">9 min read (1861 words)</span></div>
 
   
   
@@ -198,18 +202,10 @@
       </h2>
       <nav id="TableOfContents">
   <ul>
-    <li><a href="#introduction">Introduction</a>
-      <ul>
-        <li><a href="#key-points">Key points</a></li>
-      </ul>
-    </li>
+    <li><a href="#introduction">Introduction</a></li>
     <li><a href="#cloudflare-dns">Cloudflare DNS</a></li>
     <li><a href="#file-copy">File Copy</a></li>
-    <li><a href="#templates">Templates</a>
-      <ul>
-        <li><a href="#tasks">Tasks</a></li>
-      </ul>
-    </li>
+    <li><a href="#templates">Templates</a></li>
     <li><a href="#traefik-labels">Traefik Labels</a></li>
     <li><a href="#postgres-database">Postgres Database</a></li>
   </ul>
@@ -221,19 +217,17 @@
         <hr>
 <h2 id="introduction">Introduction<a href="#introduction" class="hanchor" ariaLabel="Anchor">#</a> </h2>
 <hr>
-<p>When you begin constructing your Ansible tasks - roles - collections, you quickly realise that there are many tasks that you will use repeatedly with little variance. For example, if you&rsquo;re using Ansible to help set-up and deploy your docker containers, you&rsquo;ll have common tasks that create directories, configs, DNS and Traefik labels, among many others. If you&rsquo;re like me, I would simply copy and paste these tasks. While Ansible will run through and automate these repeated tasks all the same, the more tasks you have to repeat in a play, the more bloated and unreadable your playbook becomes and the more maintenance upkeep is required.</p>
-<p>To handle commonly repeated tasks, I&rsquo;ve found it is effective to make a common tasks, in which you include during plays as required. In these tasks are generic variables that are looped over and replaced with relevant variables as required.</p>
-<p>The rest of this document is dedicated to describing the common tasks I use.</p>
-<h3 id="key-points">Key points<a href="#key-points" class="hanchor" ariaLabel="Anchor">#</a> </h3>
-<ul>
-<li>The common task files are in a folder in the Ansible directory</li>
-<li>Each task has generic variables that will be replaced with relevant ones during the play when the role is included using the <code>ansible.builtin.include_tasks</code> module</li>
-<li>Loops and iterating over hashes are key to reducing the number of required tasks.</li>
-</ul>
+<p>When you begin constructing your Ansible tasks - roles - collections, you quickly realise that there are many tasks that you will use repeatedly with little variance. For example, if you&rsquo;re using Ansible to help set-up and deploy your docker containers, you&rsquo;ll have common tasks that create directories, configs, DNS and Traefik labels, among many others.</p>
+<p>For me, my common tasks consist of two main types:</p>
+<ol>
+<li>Multiple common tasks defined in a file in a common tasks folder (external to the role) in the ansible directory, which are included in the role using the <code>include_tasks</code> module</li>
+<li>Smaller common tasks that are confined within a role without the need to include external tasks.</li>
+</ol>
+<p>The rest of this document is dedicated to listing and describing common tasks that I use:</p>
 <hr>
 <h2 id="cloudflare-dns">Cloudflare DNS<a href="#cloudflare-dns" class="hanchor" ariaLabel="Anchor">#</a> </h2>
 <hr>
-<p>One integral time-saving task when spinning up docker services is to automate DNS records.</p>
+<p>One time-saving task when spinning up docker services is to automate the creationa and removal of cloudflare DNS records.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e">## ansible/common/cloudflare.yml</span>
 </span></span><span style="display:flex;"><span>
@@ -270,8 +264,7 @@
 </span></span><span style="display:flex;"><span>        - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Display DNS record creation status</span>
 </span></span><span style="display:flex;"><span>          <span style="color:#f92672">ansible.builtin.debug</span>:
 </span></span><span style="display:flex;"><span>            <span style="color:#f92672">msg</span>: <span style="color:#e6db74">&#39;DNS A Record for &#34;{{ cloudflare_record_print }}&#34; set to &#34;{{ cloudflare_value }}&#34; was added. Proxy: {{ cloudflare_proxy }}&#39;</span>
-</span></span></code></pre></div><p>These will add/remove DNS records and display the DNS record on success.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e">## role/tasks/main.yml</span>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Add Cloudflare DNS records</span>
@@ -284,7 +277,7 @@
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_proxy</span>: <span style="color:#e6db74">&#39;false&#39;</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_solo</span>: <span style="color:#e6db74">&#39;true&#39;</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_remove_existing</span>: <span style="color:#e6db74">&#39;true&#39;</span>
-</span></span></code></pre></div><p>In the above example, variables from the common task are replaced with relevant values required to create a DNS record for my Obsidian container running on my local server. You can create loops to handle as many services as you require:</p>
+</span></span></code></pre></div><p>Above, variables from the common task are replaced with relevant values required to create a DNS record for my Obsidian container running on my local server. However, you can create loops to handle as many services as you require:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e">## role/tasks/main.yml</span>
 </span></span><span style="display:flex;"><span>
@@ -307,8 +300,7 @@
 </span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">type: &#39;AAAA&#39;, value</span>: <span style="color:#e6db74">&#39;2606:50c0:8001::153&#39;</span> }
 </span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">type: &#39;AAAA&#39;, value</span>: <span style="color:#e6db74">&#39;2606:50c0:8002::153&#39;</span> }
 </span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">type: &#39;AAAA&#39;, value</span>: <span style="color:#e6db74">&#39;2606:50c0:8003::153&#39;</span> }
-</span></span></code></pre></div><p>With each loop the variables are replaced without interfering with others.</p>
-<hr>
+</span></span></code></pre></div><hr>
 <h2 id="file-copy">File Copy<a href="#file-copy" class="hanchor" ariaLabel="Anchor">#</a> </h2>
 <hr>
 <p>A simple task to copy files from one directory to another. I typically use this to copy files that docker services require from their role folder to the services appdata directory (though, I prefer to template files where and when possible).</p>
@@ -355,8 +347,10 @@
 <h2 id="templates">Templates<a href="#templates" class="hanchor" ariaLabel="Anchor">#</a> </h2>
 <hr>
 <p>A core reason I&rsquo;m using Ansible is to set up configs for my services. For this, I typically template a config file from the role into the service folder.</p>
-<h3 id="tasks">Tasks<a href="#tasks" class="hanchor" ariaLabel="Anchor">#</a> </h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Conduct template tasks</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## role/tasks/main.yml</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Conduct template tasks</span>
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.template</span>:
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">src</span>: <span style="color:#e6db74">&#39;{{ item.template }}&#39;</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">dest</span>: <span style="color:#e6db74">&#39;{{ item.file }}&#39;</span>
