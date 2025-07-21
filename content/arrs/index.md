@@ -204,6 +204,26 @@ whisparr_api: 'SomeAPIKey'
 
 ***
 
+### Others
+
+***
+
+```yaml
+
+  ## /ansible/group_vars/all/docker.yml
+
+puid: '1000'
+pgid: '1000'
+network_overlay: 'overlay'  ## allows backend docker communication
+
+```
+
+Define these in group_vars, but you could just as easily define them manually.
+
+(`network_overlay` is the variable I use for my docker network name)
+
+***
+
 ## Role/Tasks
 
 ***
@@ -218,6 +238,8 @@ whisparr_api: 'SomeAPIKey'
 ***
 
 I first down existing running arrs services:
+
+([Click for stacks common-tasks overview](https://drjoyce.blog/common/#stacks))
 
 ```yaml
 
@@ -250,6 +272,9 @@ Next is to create appdata folders for each arrs service.
 Bazarr differs with the config located in a config sub-directory.
 
 For those wishing to use Postgres, these folders are simply used to hold configs.
+
+([Click for directories common-tasks overview](https://drjoyce.blog/common/#directories-and-files))
+
 
 ```yaml
 
@@ -287,6 +312,8 @@ For those wishing to use Postgres, these folders are simply used to hold configs
 ***
 
 After the directories are created, I then template configs for each arrs service:
+
+([Click for template common-tasks overview](https://drjoyce.blog/common/#templates))
 
 ```yaml
 
@@ -738,7 +765,7 @@ I opt for Postgres databases for all my arrs services.
 
 The first step is to include the postgres common tasks:
 
-([See here for Postgres common-tasks overview](https://drjoyce.blog/common/#postgres))
+([Click for Postgres common-tasks overview](https://drjoyce.blog/common/#postgres))
 
 ```yaml
 
@@ -963,7 +990,7 @@ Lastly, I include tasks to remove any sqlite databases in the arrs appdata direc
 
 To prepare for reverse proxy access, I create DNS records for each service:
 
-([See here for Cloudflare DNS common-tasks overview](https://drjoyce.blog/common/#cloudflare-dns))
+([Click for Cloudflare DNS common-tasks overview](https://drjoyce.blog/common/#cloudflare-dns))
 
 ```yaml
 
@@ -1003,7 +1030,7 @@ To prepare for reverse proxy access, I create DNS records for each service:
 
 Next, I form the Traefik (reverse-proxy) labels for each service:
 
-([See here for Traefik labels common-tasks overview](https://drjoyce.blog/common/#traefik-labels))
+([Click for Traefik common-tasks overview](https://drjoyce.blog/common/#traefik-labels))
 
 ```yaml
 
@@ -1105,6 +1132,8 @@ Next, I form the Traefik (reverse-proxy) labels for each service:
 ***
 
 Lastly, with everything in order, it's time to deploy the stack:
+
+([Click for stacks common-tasks overview](https://drjoyce.blog/common/#stacks))
 
 ```yaml
 
@@ -1500,3 +1529,5 @@ networks:
     external: true
 
 ```
+
+Whether you decide to deploy a compose file is up to you. [See here](https://drjoyce.blog/roles/#to-compose-or-not-to-compose).

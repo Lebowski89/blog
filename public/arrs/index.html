@@ -195,7 +195,7 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
   <h1 class="post-title">
     <a href="http://localhost:1313/arrs/">Deploying an arrs stack using Ansible</a>
   </h1>
-  <div class="post-meta"><span class="post-reading-time">18 min read (3708 words)</span></div>
+  <div class="post-meta"><span class="post-reading-time">18 min read (3776 words)</span></div>
 
   
   
@@ -213,6 +213,7 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
     <li><a href="#group_vars">Group_Vars</a>
       <ul>
         <li><a href="#vault">Vault</a></li>
+        <li><a href="#others">Others</a></li>
       </ul>
     </li>
     <li><a href="#roletasks">Role/Tasks</a>
@@ -412,6 +413,17 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
 </span></span><span style="display:flex;"><span><span style="color:#f92672">sonarr_4k_api</span>: <span style="color:#e6db74">&#39;SomeAPIKey&#39;</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">whisparr_api</span>: <span style="color:#e6db74">&#39;SomeAPIKey&#39;</span>
 </span></span></code></pre></div><hr>
+<h3 id="others">Others<a href="#others" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<hr>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## /ansible/group_vars/all/docker.yml</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">puid</span>: <span style="color:#e6db74">&#39;1000&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">pgid</span>: <span style="color:#e6db74">&#39;1000&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">network_overlay</span>: <span style="color:#e6db74">&#39;overlay&#39;</span>  <span style="color:#75715e">## allows backend docker communication</span>
+</span></span></code></pre></div><p>Define these in group_vars, but you could just as easily define them manually.</p>
+<p>(<code>network_overlay</code> is the variable I use for my docker network name)</p>
+<hr>
 <h2 id="roletasks">Role/Tasks<a href="#roletasks" class="hanchor" ariaLabel="Anchor">#</a> </h2>
 <hr>
 <p>(<a href="https://drjoyce.blog/roles/#roletasks">Background Information</a>)</p>
@@ -419,6 +431,7 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
 <h3 id="cleanup">Cleanup<a href="#cleanup" class="hanchor" ariaLabel="Anchor">#</a> </h3>
 <hr>
 <p>I first down existing running arrs services:</p>
+<p>(<a href="https://drjoyce.blog/common/#stacks">Click for stacks common-tasks overview</a>)</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e">## /ansible/roles/arrs/tasks/main.yml</span>
 </span></span><span style="display:flex;"><span>
@@ -441,6 +454,7 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
 <p>Next is to create appdata folders for each arrs service.</p>
 <p>Bazarr differs with the config located in a config sub-directory.</p>
 <p>For those wishing to use Postgres, these folders are simply used to hold configs.</p>
+<p>(<a href="https://drjoyce.blog/common/#directories-and-files">Click for directories common-tasks overview</a>)</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># DIRECTORIES</span>
@@ -470,6 +484,7 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
 <h3 id="templates">Templates<a href="#templates" class="hanchor" ariaLabel="Anchor">#</a> </h3>
 <hr>
 <p>After the directories are created, I then template configs for each arrs service:</p>
+<p>(<a href="https://drjoyce.blog/common/#templates">Click for template common-tasks overview</a>)</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e">## /ansible/roles/arrs/tasks/main.yml</span>
 </span></span><span style="display:flex;"><span>
@@ -889,7 +904,7 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
 <hr>
 <p>I opt for Postgres databases for all my arrs services.</p>
 <p>The first step is to include the postgres common tasks:</p>
-<p>(<a href="https://drjoyce.blog/common/#postgres">See here for Postgres common-tasks overview</a>)</p>
+<p>(<a href="https://drjoyce.blog/common/#postgres">Click for Postgres common-tasks overview</a>)</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e">## /ansible/roles/arrs/tasks/main.yml</span>
 </span></span><span style="display:flex;"><span>
@@ -1088,7 +1103,7 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
 <h3 id="cloudflare-dns">Cloudflare DNS<a href="#cloudflare-dns" class="hanchor" ariaLabel="Anchor">#</a> </h3>
 <hr>
 <p>To prepare for reverse proxy access, I create DNS records for each service:</p>
-<p>(<a href="https://drjoyce.blog/common/#cloudflare-dns">See here for Cloudflare DNS common-tasks overview</a>)</p>
+<p>(<a href="https://drjoyce.blog/common/#cloudflare-dns">Click for Cloudflare DNS common-tasks overview</a>)</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e">## /ansible/roles/arrs/tasks/main.yml</span>
 </span></span><span style="display:flex;"><span>
@@ -1119,7 +1134,7 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
 <h3 id="traefik-labels">Traefik Labels<a href="#traefik-labels" class="hanchor" ariaLabel="Anchor">#</a> </h3>
 <hr>
 <p>Next, I form the Traefik (reverse-proxy) labels for each service:</p>
-<p>(<a href="https://drjoyce.blog/common/#traefik-labels">See here for Traefik labels common-tasks overview</a>)</p>
+<p>(<a href="https://drjoyce.blog/common/#traefik-labels">Click for Traefik common-tasks overview</a>)</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e">## /ansible/roles/arrs/tasks/main.yml</span>
 </span></span><span style="display:flex;"><span>
@@ -1213,6 +1228,7 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
 <h3 id="stack-deploy">Stack deploy<a href="#stack-deploy" class="hanchor" ariaLabel="Anchor">#</a> </h3>
 <hr>
 <p>Lastly, with everything in order, it&rsquo;s time to deploy the stack:</p>
+<p>(<a href="https://drjoyce.blog/common/#stacks">Click for stacks common-tasks overview</a>)</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e">## /ansible/roles/arrs/tasks/main.yml</span>
 </span></span><span style="display:flex;"><span>
@@ -1600,7 +1616,8 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
 </span></span><span style="display:flex;"><span><span style="color:#f92672">networks</span>:
 </span></span><span style="display:flex;"><span>  {{ <span style="color:#f92672">network_overlay }}</span>:
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">external</span>: <span style="color:#66d9ef">true</span>
-</span></span></code></pre></div>
+</span></span></code></pre></div><p>Whether you decide to deploy a compose file is up to you. <a href="https://drjoyce.blog/roles/#to-compose-or-not-to-compose">See here</a>.</p>
+
       </div></div>
 
   
