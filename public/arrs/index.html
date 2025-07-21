@@ -195,7 +195,7 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
   <h1 class="post-title">
     <a href="http://localhost:1313/arrs/">Deploying an arrs stack using Ansible</a>
   </h1>
-  <div class="post-meta"><span class="post-reading-time">2 min read (332 words)</span></div>
+  <div class="post-meta"><span class="post-reading-time">6 min read (1224 words)</span></div>
 
   
   
@@ -213,6 +213,13 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
     <li><a href="#group_vars">Group_Vars</a>
       <ul>
         <li><a href="#vault">Vault</a></li>
+      </ul>
+    </li>
+    <li><a href="#roletasks">Role/Tasks</a>
+      <ul>
+        <li><a href="#cleanup">Cleanup</a></li>
+        <li><a href="#directories">Directories</a></li>
+        <li><a href="#templates">Templates</a></li>
       </ul>
     </li>
   </ul>
@@ -399,6 +406,381 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
 </span></span><span style="display:flex;"><span><span style="color:#f92672">sonarr_api</span>: <span style="color:#e6db74">&#39;SomeAPIKey&#39;</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">sonarr_4k_api</span>: <span style="color:#e6db74">&#39;SomeAPIKey&#39;</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">whisparr_api</span>: <span style="color:#e6db74">&#39;SomeAPIKey&#39;</span>
+</span></span></code></pre></div><hr>
+<h2 id="roletasks">Role/Tasks<a href="#roletasks" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<hr>
+<p>The majority of tasks occur here.</p>
+<hr>
+<h3 id="cleanup">Cleanup<a href="#cleanup" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<hr>
+<p>To be safe, and to make sure changes apply, I first down existing running arrs services:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># CLEAN UP</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Remove arrs stack</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.docker.docker_stack</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">name</span>: <span style="color:#ae81ff">arrs</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">absent</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Remove arrs-stack file</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.file</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#ae81ff">/opt/arrs-stack.yml</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">absent</span>
+</span></span></code></pre></div><hr>
+<h3 id="directories">Directories<a href="#directories" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<hr>
+<p>Next is to create appdata folders for each arrs service.</p>
+<p>Bazarr differs with the config located in a config sub-directory.</p>
+<p>For those wishing to use Postgres, these folders are simply used to hold configs.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># DIRECTORIES</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Create directories</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.file</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ item }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#e6db74">&#39;directory&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">force</span>: <span style="color:#e6db74">&#39;false&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">owner</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">group</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">mode</span>: <span style="color:#e6db74">&#39;0755&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">loop</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ bazarr_location }}&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ bazarr_location }}/config&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ lidarr_location }}&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ prowlarr_location }}&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ radarr_location }}&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ radarr_4k_location }}&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ sonarr_location }}&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ sonarr_4k_location }}&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ whisparr_location }}&#39;</span>
+</span></span></code></pre></div><hr>
+<h3 id="templates">Templates<a href="#templates" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<hr>
+<p>After the directories are created, I then template configs for each arrs service.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># TEMPLATES</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Conduct template tasks</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.template</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">src</span>: <span style="color:#e6db74">&#39;{{ item.template }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">dest</span>: <span style="color:#e6db74">&#39;{{ item.file }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">force</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">owner</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">group</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">mode</span>: <span style="color:#e6db74">&#39;0664&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">loop</span>:
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">template</span>: <span style="color:#e6db74">&#39;{{ role_path }}/templates/configs/bazarr_config.yaml.j2&#39;</span><span style="color:#f92672">, file</span>: <span style="color:#e6db74">&#39;{{ bazarr_location }}/config/config.yaml&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">template</span>: <span style="color:#e6db74">&#39;{{ role_path }}/templates/configs/arrs_config.xml.j2&#39;</span><span style="color:#f92672">, file</span>: <span style="color:#e6db74">&#39;{{ lidarr_location }}/config.xml&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">template</span>: <span style="color:#e6db74">&#39;{{ role_path }}/templates/configs/arrs_config.xml.j2&#39;</span><span style="color:#f92672">, file</span>: <span style="color:#e6db74">&#39;{{ prowlarr_location }}/config.xml&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">template</span>: <span style="color:#e6db74">&#39;{{ role_path }}/templates/configs/arrs_config.xml.j2&#39;</span><span style="color:#f92672">, file</span>: <span style="color:#e6db74">&#39;{{ radarr_location }}/config.xml&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">template</span>: <span style="color:#e6db74">&#39;{{ role_path }}/templates/configs/arrs_config.xml.j2&#39;</span><span style="color:#f92672">, file</span>: <span style="color:#e6db74">&#39;{{ radarr_4k_location }}/config.xml&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">template</span>: <span style="color:#e6db74">&#39;{{ role_path }}/templates/configs/arrs_config.xml.j2&#39;</span><span style="color:#f92672">, file</span>: <span style="color:#e6db74">&#39;{{ sonarr_location }}/config.xml&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">template</span>: <span style="color:#e6db74">&#39;{{ role_path }}/templates/configs/arrs_config.xml.j2&#39;</span><span style="color:#f92672">, file</span>: <span style="color:#e6db74">&#39;{{ sonarr_4k_location }}/config.xml&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">template</span>: <span style="color:#e6db74">&#39;{{ role_path }}/templates/configs/arrs_config.xml.j2&#39;</span><span style="color:#f92672">, file</span>: <span style="color:#e6db74">&#39;{{ whisparr_location }}/config.xml&#39;</span> }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Wait for files to be created</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.wait_for</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ item }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">present</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">loop</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ bazarr_location }}/config/config.yaml&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ lidarr_location }}/config.xml&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ prowlarr_location }}/config.xml&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ radarr_location }}/config.xml&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ radarr_4k_location }}/config.xml&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ sonarr_location }}/config.xml&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ sonarr_4k_location }}/config.xml&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ whisparr_location }}/config.xml&#39;</span>
+</span></span></code></pre></div><p>All arrs, except Bazarr, use the same config template:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  ## /ansible/roles/arrs/templates/configs/arrs_config.xml.j2
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;Config&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;BindAddress&gt;</span>*<span style="color:#f92672">&lt;/BindAddress&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;Port&gt;&lt;/Port&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;SslPort&gt;</span>9898<span style="color:#f92672">&lt;/SslPort&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;EnableSsl&gt;</span>False<span style="color:#f92672">&lt;/EnableSsl&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;LaunchBrowser&gt;</span>True<span style="color:#f92672">&lt;/LaunchBrowser&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;ApiKey&gt;&lt;/ApiKey&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;AuthenticationMethod&gt;</span>Forms<span style="color:#f92672">&lt;/AuthenticationMethod&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;AuthenticationRequired&gt;</span>Enabled<span style="color:#f92672">&lt;/AuthenticationRequired&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;Branch&gt;</span>nightly<span style="color:#f92672">&lt;/Branch&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;LogLevel&gt;</span>info<span style="color:#f92672">&lt;/LogLevel&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;SslCertPath&gt;&lt;/SslCertPath&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;SslCertPassword&gt;&lt;/SslCertPassword&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;UrlBase&gt;&lt;/UrlBase&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;InstanceName&gt;&lt;/InstanceName&gt;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;UpdateMechanism&gt;</span>Docker<span style="color:#f92672">&lt;/UpdateMechanism&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/Config&gt;</span>
+</span></span></code></pre></div><p>The config is edited in subsequent tasks to adapt to the respective service using it.</p>
+<p>Bazarr has its own config and is templated with desired variables here:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## /ansible/roles/arrs/templates/configs/bazarr_config.yaml.j2</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>---
+</span></span><span style="display:flex;"><span><span style="color:#f92672">addic7ed</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">cookies</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">password</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">user_agent</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">username</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">vip</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">analytics</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">enabled</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">anidb</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">api_client</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">api_client_ver</span>: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">animetosho</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">anidb_api_client</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">anidb_api_client_ver</span>: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">search_threshold</span>: <span style="color:#ae81ff">6</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">anticaptcha</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">anti_captcha_key</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">assrt</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">token</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">auth</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">apikey</span>: {{ <span style="color:#ae81ff">bazarr_api }}</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">password</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">type</span>: <span style="color:#66d9ef">null</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">username</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">avistaz</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">cookies</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">user_agent</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">backup</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">day</span>: <span style="color:#ae81ff">6</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">folder</span>: <span style="color:#ae81ff">/config/backup</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">frequency</span>: <span style="color:#ae81ff">Weekly</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">hour</span>: <span style="color:#ae81ff">3</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">retention</span>: <span style="color:#ae81ff">31</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">betaseries</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">token</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">cinemaz</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">cookies</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">user_agent</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">cors</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">enabled</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">deathbycaptcha</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">password</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">username</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">embeddedsubtitles</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">fallback_lang</span>: <span style="color:#ae81ff">en</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">hi_fallback</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">included_codecs</span>: []
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">timeout</span>: <span style="color:#ae81ff">600</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">unknown_as_fallback</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">general</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">adaptive_searching</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">adaptive_searching_delay</span>: <span style="color:#ae81ff">3w</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">adaptive_searching_delta</span>: <span style="color:#ae81ff">1w</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">anti_captcha_provider</span>: <span style="color:#66d9ef">null</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">auto_update</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">base_url</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">branch</span>: <span style="color:#ae81ff">development</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">chmod</span>: <span style="color:#e6db74">&#39;0640&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">chmod_enabled</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">days_to_upgrade_subs</span>: <span style="color:#ae81ff">30</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">debug</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">default_und_audio_lang</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">default_und_embedded_subtitles_lang</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">dont_notify_manual_actions</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">embedded_subs_show_desired</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">embedded_subtitles_parser</span>: <span style="color:#ae81ff">ffprobe</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">enabled_integrations</span>: []
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">enabled_providers</span>:
+</span></span><span style="display:flex;"><span>  - <span style="color:#ae81ff">opensubtitlescom</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#ae81ff">embeddedsubtitles</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">flask_secret_key</span>: {{ <span style="color:#ae81ff">bazarr_flask_key }}</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">hi_extension</span>: <span style="color:#ae81ff">hi</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ignore_ass_subs</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ignore_pgs_subs</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ignore_vobsub_subs</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ip</span>: <span style="color:#ae81ff">0.0.0.0</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">language_equals</span>: []
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">minimum_score</span>: <span style="color:#ae81ff">90</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">minimum_score_movie</span>: <span style="color:#ae81ff">70</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">movie_default_enabled</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">movie_default_profile</span>: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">multithreading</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">page_size</span>: <span style="color:#ae81ff">25</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">parse_embedded_audio_track</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">path_mappings</span>: []
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">path_mappings_movie</span>: []
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">port</span>: {{ <span style="color:#ae81ff">bazarr_ports_cont }}</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">postprocessing_cmd</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">postprocessing_threshold</span>: <span style="color:#ae81ff">90</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">postprocessing_threshold_movie</span>: <span style="color:#ae81ff">70</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">serie_default_enabled</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">serie_default_profile</span>: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">single_language</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">skip_hashing</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">subfolder</span>: <span style="color:#ae81ff">current</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">subfolder_custom</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">subzero_mods</span>: <span style="color:#ae81ff">OCR_fixes,remove_tags,remove_HI,common,fix_uppercase</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">theme</span>: <span style="color:#ae81ff">auto</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">upgrade_frequency</span>: <span style="color:#ae81ff">12</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">upgrade_manual</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">upgrade_subs</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">use_embedded_subs</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">use_postprocessing</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">use_postprocessing_threshold</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">use_postprocessing_threshold_movie</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">use_radarr</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">use_scenename</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">use_sonarr</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">utf8_encode</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">wanted_search_frequency</span>: <span style="color:#ae81ff">6</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">wanted_search_frequency_movie</span>: <span style="color:#ae81ff">6</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">hdbits</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">passkey</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">username</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">karagarga</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">f_password</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">f_username</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">password</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">username</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">ktuvit</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">email</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">hashed_password</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">legendasdivx</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">password</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">skip_wrong_fps</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">username</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">log</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">exclude_filter</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ignore_case</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">include_filter</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">use_regex</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">movie_scores</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">audio_codec</span>: <span style="color:#ae81ff">3</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">edition</span>: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">hash</span>: <span style="color:#ae81ff">119</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">hearing_impaired</span>: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">release_group</span>: <span style="color:#ae81ff">13</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">resolution</span>: <span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">source</span>: <span style="color:#ae81ff">7</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">streaming_service</span>: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">title</span>: <span style="color:#ae81ff">60</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">video_codec</span>: <span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">year</span>: <span style="color:#ae81ff">30</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">napisy24</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">password</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">username</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">opensubtitles</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">password</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">skip_wrong_fps</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ssl</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">timeout</span>: <span style="color:#ae81ff">15</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">use_tag_search</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">username</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">vip</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">opensubtitlescom</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">include_ai_translated</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">password</span>: {{ <span style="color:#ae81ff">bazarr_opensub_pass }}</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">use_hash</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">username</span>: {{ <span style="color:#ae81ff">bazarr_opensub_user }}</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">podnapisi</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">verify_ssl</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">postgresql</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">database</span>: <span style="color:#ae81ff">bazarr</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">enabled</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">host</span>: {{ <span style="color:#ae81ff">postgres_name }}</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">password</span>: {{ <span style="color:#ae81ff">postgres_password }}</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">port</span>: {{ <span style="color:#ae81ff">postgres_ports_cont }}</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">username</span>: {{ <span style="color:#ae81ff">postgres_username }}</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">proxy</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">exclude</span>:
+</span></span><span style="display:flex;"><span>  - <span style="color:#ae81ff">localhost</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#ae81ff">127.0.0.1</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">password</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">port</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">type</span>: <span style="color:#66d9ef">null</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">url</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">username</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">radarr</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">apikey</span>: {{ <span style="color:#ae81ff">radarr_api }}</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">base_url</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">defer_search_signalr</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">excluded_tags</span>: []
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">full_update</span>: <span style="color:#ae81ff">Daily</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">full_update_day</span>: <span style="color:#ae81ff">6</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">full_update_hour</span>: <span style="color:#ae81ff">4</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">http_timeout</span>: <span style="color:#ae81ff">60</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ip</span>: {{ <span style="color:#ae81ff">radarr_name }}</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">movies_sync</span>: <span style="color:#ae81ff">60</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">only_monitored</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">port</span>: {{ <span style="color:#ae81ff">radarr_ports_cont }}</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ssl</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">sync_only_monitored_movies</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">use_ffprobe_cache</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">series_scores</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">audio_codec</span>: <span style="color:#ae81ff">3</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">episode</span>: <span style="color:#ae81ff">30</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">hash</span>: <span style="color:#ae81ff">359</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">hearing_impaired</span>: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">release_group</span>: <span style="color:#ae81ff">14</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">resolution</span>: <span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">season</span>: <span style="color:#ae81ff">30</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">series</span>: <span style="color:#ae81ff">180</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">source</span>: <span style="color:#ae81ff">7</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">streaming_service</span>: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">video_codec</span>: <span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">year</span>: <span style="color:#ae81ff">90</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">sonarr</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">apikey</span>: {{ <span style="color:#ae81ff">sonarr_api }}</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">base_url</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">defer_search_signalr</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">exclude_season_zero</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">excluded_series_types</span>: []
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">excluded_tags</span>: []
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">full_update</span>: <span style="color:#ae81ff">Daily</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">full_update_day</span>: <span style="color:#ae81ff">6</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">full_update_hour</span>: <span style="color:#ae81ff">4</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">http_timeout</span>: <span style="color:#ae81ff">60</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ip</span>: {{ <span style="color:#ae81ff">sonarr_name }}</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">only_monitored</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">port</span>: {{ <span style="color:#ae81ff">sonarr_ports_cont }}</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">series_sync</span>: <span style="color:#ae81ff">60</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ssl</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">sync_only_monitored_episodes</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">sync_only_monitored_series</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">use_ffprobe_cache</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">subf2m</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">user_agent</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">verify_ssl</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">subsync</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">checker</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">blacklisted_languages</span>: []
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">blacklisted_providers</span>: []
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">debug</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">force_audio</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">gss</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">max_offset_seconds</span>: <span style="color:#ae81ff">60</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">no_fix_framerate</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">subsync_movie_threshold</span>: <span style="color:#ae81ff">70</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">subsync_threshold</span>: <span style="color:#ae81ff">90</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">use_subsync</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">use_subsync_movie_threshold</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">use_subsync_threshold</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">titlovi</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">password</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">username</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">titulky</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">approved_only</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">password</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">username</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">whisperai</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">endpoint</span>: <span style="color:#ae81ff">http://127.0.0.1:9000</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">loglevel</span>: <span style="color:#ae81ff">INFO</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">response</span>: <span style="color:#ae81ff">5</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">timeout</span>: <span style="color:#ae81ff">3600</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">xsubs</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">password</span>: <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">username</span>: <span style="color:#e6db74">&#39;&#39;</span>
 </span></span></code></pre></div>
       </div></div>
 
