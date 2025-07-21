@@ -214,13 +214,24 @@ whisparr_api: 'SomeAPIKey'
 
 puid: '1000'
 pgid: '1000'
+
 network_overlay: 'overlay'  ## allows backend docker communication
+
+themepark_name: 'theme-park'
+themepark_ports_host: '8089'
+themepark_location: '/opt/{{ themepark_name }}'
+themepark_domain: '{{ local_ip + ":" + themepark_ports_host }}'
+themepark_theme: 'hotline'  ## theme to use for local theme-park deployment
+themes_location: '{{ themepark_location }}/docker-mods'
 
 ```
 
-Define these in group_vars, but you could just as easily define them manually.
+I define these in group_vars, but you could just as easily define them manually.
 
-(`network_overlay` is the variable I use for my docker network name)
+**Note:**
+   - `network_overlay` is the variable I use for my docker network name
+   - The theme-park variables are only required for local theme-park themes
+   - These local themes require an existing theme-park deployment (see their docs)
 
 ***
 
@@ -239,7 +250,7 @@ Define these in group_vars, but you could just as easily define them manually.
 
 I first down existing running arrs services:
 
-([Click for stacks common-tasks overview](https://drjoyce.blog/common/#stacks))
+([Click for overview](https://drjoyce.blog/common/#stacks))
 
 ```yaml
 
@@ -273,7 +284,7 @@ Bazarr differs with the config located in a config sub-directory.
 
 For those wishing to use Postgres, these folders are simply used to hold configs.
 
-([Click for directories common-tasks overview](https://drjoyce.blog/common/#directories-and-files))
+([Click for overview](https://drjoyce.blog/common/#directories-and-files))
 
 
 ```yaml
@@ -313,7 +324,7 @@ For those wishing to use Postgres, these folders are simply used to hold configs
 
 After the directories are created, I then template configs for each arrs service:
 
-([Click for template common-tasks overview](https://drjoyce.blog/common/#templates))
+([Click for overview](https://drjoyce.blog/common/#templates))
 
 ```yaml
 
@@ -765,7 +776,7 @@ I opt for Postgres databases for all my arrs services.
 
 The first step is to include the postgres common tasks:
 
-([Click for Postgres common-tasks overview](https://drjoyce.blog/common/#postgres))
+([Click for overview](https://drjoyce.blog/common/#postgres))
 
 ```yaml
 
@@ -990,7 +1001,7 @@ Lastly, I include tasks to remove any sqlite databases in the arrs appdata direc
 
 To prepare for reverse proxy access, I create DNS records for each service:
 
-([Click for Cloudflare DNS common-tasks overview](https://drjoyce.blog/common/#cloudflare-dns))
+([Click for overview](https://drjoyce.blog/common/#cloudflare-dns))
 
 ```yaml
 
@@ -1030,7 +1041,7 @@ To prepare for reverse proxy access, I create DNS records for each service:
 
 Next, I form the Traefik (reverse-proxy) labels for each service:
 
-([Click for Traefik common-tasks overview](https://drjoyce.blog/common/#traefik-labels))
+([Click for overview](https://drjoyce.blog/common/#traefik-labels))
 
 ```yaml
 
@@ -1133,7 +1144,7 @@ Next, I form the Traefik (reverse-proxy) labels for each service:
 
 Lastly, with everything in order, it's time to deploy the stack:
 
-([Click for stacks common-tasks overview](https://drjoyce.blog/common/#stacks))
+([Click for overview](https://drjoyce.blog/common/#stacks))
 
 ```yaml
 
