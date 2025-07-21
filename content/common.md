@@ -116,6 +116,104 @@ Above, variables from the common task are replaced with relevant values required
 
 ***
 
+## Directories and Files
+
+***
+
+I create directories required by roles with the `ansible.builtin.file` module:
+
+```yaml
+
+  ## role/tasks/main.yml
+
+- name: Create directories
+  ansible.builtin.file:
+    path: '{{ item }}'
+    state: 'directory'
+    force: 'false'
+    owner: '{{ puid }}'
+    group: '{{ pgid }}'
+    mode: '0755'
+  loop:
+    - '{{ bazarr_location }}'
+    - '{{ bazarr_location }}/config'
+    - '{{ lidarr_location }}'
+    - '{{ prowlarr_location }}'
+    - '{{ radarr_location }}'
+    - '{{ radarr_4k_location }}'
+    - '{{ sonarr_location }}'
+    - '{{ sonarr_4k_location }}'
+    - '{{ whisparr_location }}'
+
+```
+
+For most roles, only directory names differ, but sometimes I'll need different permissions:
+
+```yaml
+
+  ## role/tasks/main.yml
+
+- name: Create directories
+  ansible.builtin.file:
+    path: '{{ item.path }}'
+    state: 'directory'
+    force: 'false'
+    owner: '{{ item.owner }}'
+    group: '{{ item.group }}'
+    mode: '0755'
+  loop:
+    - { path: '{{ authelia_location }}', owner: '{{ puid }}', group: '{{ pgid }}' }
+    - { path: '{{ authelia_logs_location }}', owner: '{{ puid }}', group: '{{ pgid }}' }
+    - { path: '{{ authelia_redis_location }}', owner: '1001', group: '1001' }
+    - { path: '{{ traefik_location }}', owner: '{{ puid }}', group: '{{ pgid }}' }
+    - { path: '{{ traefik_logs_location }}', owner: '{{ puid }}', group: '{{ pgid }}' }
+
+```
+
+Above, I use the Bitnami Redis container, which requires 1001/1001 permissions.
+
+The `builtin.file` module is also useful in cases where you need to 'touch' a file:
+
+```yaml
+
+  ## role/tasks/main.yml
+
+- name: Touch acme.json
+  ansible.builtin.file:
+    path: '{{ traefik_location }}/acme.json'
+    state: 'touch'
+    force: 'false'
+    owner: '{{ puid }}'
+    group: '{{ pgid }}'
+    mode: '0600'
+
+```
+
+Removing directories and files is as simple as providing the `builtin.file` module a path and `state: absent`:
+
+```yaml
+
+- name: Remove sqlite files
+  ansible.builtin.file:
+    path: '{{ item }}'
+    state: absent
+  loop:
+    - '{{ sqlite_location }}/logs.db'
+    - '{{ sqlite_location }}/logs.db-shm'
+    - '{{ sqlite_location }}/logs.db-wal'
+    - '{{ sqlite_location }}/{{ sqlite_name }}.db'
+    - '{{ sqlite_location }}/{{ sqlite_name }}.db-shm'
+    - '{{ sqlite_location }}/{{ sqlite_name }}.db-wal'
+
+- name: Remove sqlite backups folders
+  ansible.builtin.file:
+    path: '{{ backups_location }}'
+    state: absent
+
+```
+
+***
+
 ## File Copy
 
 ***
@@ -517,7 +615,7 @@ Above, the only the database name changes, since I'm working with one postgres i
 
 ***
 
-For MariaDB, the `mysql_db` module will ping and create databases in a single task:
+The `mysql_db` module will ping and create databases in a single task:
 
 ```yaml
 
@@ -534,7 +632,7 @@ For MariaDB, the `mysql_db` module will ping and create databases in a single ta
 
 ```
 
-Like Postgres, this task requires an existing MariaDB instance to be present and running.
+**Note:** Requires an existing MariaDB instance to be present and running.
 
 
 <script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="lebowski89" data-description="Support me on Buy me a coffee!" data-message="Support Me" data-color="#5F7FFF" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
