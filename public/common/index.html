@@ -189,7 +189,7 @@ Multiple (3&#43;) common tasks defined in a file in a common tasks folder (exter
   <h1 class="post-title">
     <a href="http://localhost:1313/common/">Handling common tasks within Ansible</a>
   </h1>
-  <div class="post-meta"><span class="post-reading-time">13 min read (2591 words)</span></div>
+  <div class="post-meta"><span class="post-reading-time">13 min read (2577 words)</span></div>
 
   
   
@@ -208,8 +208,12 @@ Multiple (3&#43;) common tasks defined in a file in a common tasks folder (exter
     <li><a href="#file-copy">File Copy</a></li>
     <li><a href="#templates">Templates</a></li>
     <li><a href="#traefik-labels">Traefik Labels</a></li>
-    <li><a href="#postgres-database">Postgres Database</a></li>
-    <li><a href="#mariadb-database">MariaDB Database</a></li>
+    <li><a href="#databases">Databases</a>
+      <ul>
+        <li><a href="#postgres">Postgres</a></li>
+        <li><a href="#mariadb">MariaDB</a></li>
+      </ul>
+    </li>
     <li><a href="#docker">Docker</a>
       <ul>
         <li><a href="#docker-containers">Docker Containers</a></li>
@@ -673,9 +677,13 @@ Multiple (3&#43;) common tasks defined in a file in a common tasks folder (exter
 </span></span><span style="display:flex;"><span>        <span style="color:#f92672">tp_app</span>: <span style="color:#e6db74">&#39;lidarr&#39;</span> }
 </span></span></code></pre></div><p>In the above example, both services receive full Traefik labels, including being protected by my SSO provider (Authelia), API labels and Theme-Park. Simply leaving the API and/or Themepark vars empty will remove these labels.</p>
 <hr>
-<h2 id="postgres-database">Postgres Database<a href="#postgres-database" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<h2 id="databases">Databases<a href="#databases" class="hanchor" ariaLabel="Anchor">#</a> </h2>
 <hr>
-<p>I use postgres databases for a variety of docker services, across multiple roles. As such, I use the postgresql ping and db modules to ping for existing databases and to create them if none exists.</p>
+<p>I let Ansible handle the creation of various databases required by my services:</p>
+<hr>
+<h3 id="postgres">Postgres<a href="#postgres" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<hr>
+<p>I use the postgresql ping and db modules to ping for databases and to create them if none exists:</p>
 <p><strong>Note:</strong> Requires an existing running postgres instance.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e">## ansible/common/postgres.yml</span>
@@ -721,11 +729,11 @@ Multiple (3&#43;) common tasks defined in a file in a common tasks folder (exter
 </span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;sonarr-4k-log&#39;</span>
 </span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;whisparr-main&#39;</span>
 </span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;whisparr-log&#39;</span>
-</span></span></code></pre></div><p>Above, the only the database name changes, since I&rsquo;m working with one postgres instance, and that&rsquo;s all I need.</p>
+</span></span></code></pre></div><p>Above, the only the database name changes, since I&rsquo;m working with one postgres instance.</p>
 <hr>
-<h2 id="mariadb-database">MariaDB Database<a href="#mariadb-database" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<h3 id="mariadb">MariaDB<a href="#mariadb" class="hanchor" ariaLabel="Anchor">#</a> </h3>
 <hr>
-<p>The <code>mysql_db</code> module will ping and create databases in a single task:</p>
+<p>I use the <code>mysql_db</code> module to ping and create databases in a single task:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e">## role/tasks/main.yml</span>
 </span></span><span style="display:flex;"><span>
@@ -865,7 +873,7 @@ Multiple (3&#43;) common tasks defined in a file in a common tasks folder (exter
 </span></span></code></pre></div><hr>
 <h3 id="docker-secrets">Docker Secrets<a href="#docker-secrets" class="hanchor" ariaLabel="Anchor">#</a> </h3>
 <hr>
-<p>I let Ansible handle the creation of Docker Secrets:</p>
+<p>Creating Docker Secrets using the <code>docker_secret</code> module:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e">## role/tasks/main.yml</span>
 </span></span><span style="display:flex;"><span>
@@ -878,7 +886,7 @@ Multiple (3&#43;) common tasks defined in a file in a common tasks folder (exter
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">loop</span>:
 </span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">name: &#39;authelia_redis_secret&#39;, secret</span>: <span style="color:#e6db74">&#39;{{ authelia_redis_key }}&#39;</span> }
 </span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">name: &#39;postgres_pass_secret&#39;, secret</span>: <span style="color:#e6db74">&#39;{{ postgres_password }}&#39;</span> }
-</span></span></code></pre></div><p>Then it is as simple as referring to them in your compose file:</p>
+</span></span></code></pre></div><p>Then referring to these in the compose file:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">services</span>:
 </span></span><span style="display:flex;"><span>  {{ <span style="color:#f92672">authelia_name }}</span>:

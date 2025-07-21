@@ -547,11 +547,20 @@ In the above example, both services receive full Traefik labels, including being
 
 ***
 
-## Postgres Database
+## Databases
 
 ***
 
-I use postgres databases for a variety of docker services, across multiple roles. As such, I use the postgresql ping and db modules to ping for existing databases and to create them if none exists. 
+I let Ansible handle the creation of various databases required by my services:
+
+
+***
+
+### Postgres
+
+***
+
+I use the postgresql ping and db modules to ping for databases and to create them if none exists:
 
 **Note:** Requires an existing running postgres instance.
 
@@ -607,15 +616,15 @@ I use postgres databases for a variety of docker services, across multiple roles
 
 ```
 
-Above, the only the database name changes, since I'm working with one postgres instance, and that's all I need.
+Above, the only the database name changes, since I'm working with one postgres instance.
 
 ***
 
-## MariaDB Database
+### MariaDB
 
 ***
 
-The `mysql_db` module will ping and create databases in a single task:
+I use the `mysql_db` module to ping and create databases in a single task:
 
 ```yaml
 
@@ -807,7 +816,7 @@ Stack deploy using the same module:
 
 ***
 
-I let Ansible handle the creation of Docker Secrets:
+Creating Docker Secrets using the `docker_secret` module:
 
 ```yaml
 
@@ -825,7 +834,7 @@ I let Ansible handle the creation of Docker Secrets:
 
 ```
 
-Then it is as simple as referring to them in your compose file:
+Then referring to these in the compose file:
 
 ```yaml
 
