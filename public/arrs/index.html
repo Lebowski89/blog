@@ -195,7 +195,7 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
   <h1 class="post-title">
     <a href="http://localhost:1313/arrs/">Deploying an arrs stack using Ansible</a>
   </h1>
-  <div class="post-meta"><span class="post-reading-time">1 min read (77 words)</span></div>
+  <div class="post-meta"><span class="post-reading-time">2 min read (350 words)</span></div>
 
   
   
@@ -209,7 +209,12 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
       <nav id="TableOfContents">
   <ul>
     <li><a href="#introduction">Introduction</a></li>
-    <li><a href="#group_vars">Group_Vars</a></li>
+    <li><a href="#playbook">Playbook</a></li>
+    <li><a href="#group_vars">Group_Vars</a>
+      <ul>
+        <li><a href="#vault">Vault</a></li>
+      </ul>
+    </li>
   </ul>
 </nav>
     </div>
@@ -259,9 +264,142 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
 <li>Aim to guide those looking to make their own role for their own needs.</li>
 </ul>
 <hr>
+<h2 id="playbook">Playbook<a href="#playbook" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<hr>
+<p>I include my arrs services in a role that gets included in my playbook during the play:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## /ansible/playbook.yml</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># ARRS</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Deploy arrs stack</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">inventory_hostname == &#39;localhost&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">ansible.builtin.include_role</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#ae81ff">arrs</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">apply</span>:
+</span></span><span style="display:flex;"><span>          <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">arrs</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">arrs</span>
+</span></span></code></pre></div><p>See <a href="https://drjoyce.blog/playbook/">here</a> for more information.</p>
+<p><strong>Note:</strong> I make use of the pre-tasks listed <a href="https://drjoyce.blog/playbook/#pre_tasks">here</a>. You may choose to use these, or you can always define things such as timezones manually if you&rsquo;d rather do it that way.</p>
+<hr>
 <h2 id="group_vars">Group_Vars<a href="#group_vars" class="hanchor" ariaLabel="Anchor">#</a> </h2>
 <hr>
-
+<p>In my group_vars I define variables for service name, image repo/tag, ports and location.</p>
+<p>See <a href="https://drjoyce.blog/roles/#group_vars">here</a> for more information.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## /ansible/group_vars/all/roles/arrs.yml</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># BAZARR</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">bazarr_name</span>: <span style="color:#e6db74">&#39;bazarr&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">bazarr_image_repo</span>: <span style="color:#e6db74">&#39;ghcr.io/hotio/bazarr&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">bazarr_image_tag</span>: <span style="color:#e6db74">&#39;latest&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">bazarr_ports_host</span>: <span style="color:#e6db74">&#39;6767&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">bazarr_ports_cont</span>: <span style="color:#e6db74">&#39;6767&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">bazarr_location</span>: <span style="color:#e6db74">&#39;/opt/{{ bazarr_name }}&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># LIDARR</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">lidarr_name</span>: <span style="color:#e6db74">&#39;lidarr&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">lidarr_image_repo</span>: <span style="color:#e6db74">&#39;ghcr.io/hotio/lidarr&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">lidarr_image_tag</span>: <span style="color:#e6db74">&#39;latest&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">lidarr_ports_host</span>: <span style="color:#e6db74">&#39;8686&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">lidarr_ports_cont</span>: <span style="color:#e6db74">&#39;8686&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">lidarr_location</span>: <span style="color:#e6db74">&#39;/opt/{{ lidarr_name }}&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># PROWLARR</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">prowlarr_name</span>: <span style="color:#e6db74">&#39;prowlarr&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">prowlarr_image_repo</span>: <span style="color:#e6db74">&#39;ghcr.io/hotio/prowlarr&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">prowlarr_image_tag</span>: <span style="color:#e6db74">&#39;latest&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">prowlarr_ports_host</span>: <span style="color:#e6db74">&#39;9696&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">prowlarr_ports_cont</span>: <span style="color:#e6db74">&#39;9696&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">prowlarr_location</span>: <span style="color:#e6db74">&#39;/opt/{{ prowlarr_name }}&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># RADARR</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">radarr_name</span>: <span style="color:#e6db74">&#39;radarr&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">radarr_image_repo</span>: <span style="color:#e6db74">&#39;ghcr.io/hotio/radarr&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">radarr_image_tag</span>: <span style="color:#e6db74">&#39;latest&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">radarr_ports_host</span>: <span style="color:#e6db74">&#39;7878&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">radarr_ports_cont</span>: <span style="color:#e6db74">&#39;7878&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">radarr_location</span>: <span style="color:#e6db74">&#39;/opt/{{ radarr_name }}&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># RADARR-4K</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">radarr_4k_name</span>: <span style="color:#e6db74">&#39;radarr4k&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">radarr_4k_image_repo</span>: <span style="color:#e6db74">&#39;ghcr.io/hotio/radarr&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">radarr_4k_image_tag</span>: <span style="color:#e6db74">&#39;latest&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">radarr_4k_ports_host</span>: <span style="color:#e6db74">&#39;7879&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">radarr_4k_ports_cont</span>: <span style="color:#e6db74">&#39;7878&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">radarr_4k_location</span>: <span style="color:#e6db74">&#39;/opt/{{ radarr_4k_name }}&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># SONARR</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">sonarr_name</span>: <span style="color:#e6db74">&#39;sonarr&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">sonarr_image_repo</span>: <span style="color:#e6db74">&#39;ghcr.io/hotio/sonarr&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">sonarr_image_tag</span>: <span style="color:#e6db74">&#39;latest&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">sonarr_ports_host</span>: <span style="color:#e6db74">&#39;8989&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">sonarr_ports_cont</span>: <span style="color:#e6db74">&#39;8989&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">sonarr_location</span>: <span style="color:#e6db74">&#39;/opt/{{ sonarr_name }}&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># SONARR-4K</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">sonarr_4k_name</span>: <span style="color:#e6db74">&#39;sonarr4k&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">sonarr_4k_image_repo</span>: <span style="color:#e6db74">&#39;ghcr.io/hotio/sonarr&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">sonarr_4k_image_tag</span>: <span style="color:#e6db74">&#39;latest&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">sonarr_4k_ports_host</span>: <span style="color:#e6db74">&#39;8990&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">sonarr_4k_ports_cont</span>: <span style="color:#e6db74">&#39;8989&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">sonarr_4k_location</span>: <span style="color:#e6db74">&#39;/opt/{{ sonarr_4k_name }}&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># WHISPARR</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">whisparr_name</span>: <span style="color:#e6db74">&#39;whisparr&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">whisparr_image_repo</span>: <span style="color:#e6db74">&#39;ghcr.io/hotio/whisparr&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">whisparr_image_tag</span>: <span style="color:#e6db74">&#39;v3&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">whisparr_ports_host</span>: <span style="color:#e6db74">&#39;6969&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">whisparr_ports_cont</span>: <span style="color:#e6db74">&#39;6969&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">whisparr_location</span>: <span style="color:#e6db74">&#39;/opt/{{ whisparr_name }}&#39;</span>
+</span></span></code></pre></div><hr>
+<h3 id="vault">Vault<a href="#vault" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<hr>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## /ansible/group_vars/all/vault.yml</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># ARRS VAULT</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">bazarr_api</span>: <span style="color:#e6db74">&#39;SomeAPIKey&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">bazarr_flask_key</span>: <span style="color:#e6db74">&#39;SomeAPIKey&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">bazarr_opensub_user</span>: <span style="color:#e6db74">&#39;SomeUsername&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">bazarr_opensub_pass</span>: <span style="color:#e6db74">&#39;SomePassword&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">lidarr_api</span>: <span style="color:#e6db74">&#39;SomeAPIKey&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">prowlarr_api</span>: <span style="color:#e6db74">&#39;SomeAPIKey&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">radarr_api</span>: <span style="color:#e6db74">&#39;SomeAPIKey&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">radarr_4k_api</span>: <span style="color:#e6db74">&#39;SomeAPIKey&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">sonarr_api</span>: <span style="color:#e6db74">&#39;SomeAPIKey&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">sonarr_4k_api</span>: <span style="color:#e6db74">&#39;SomeAPIKey&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">whisparr_api</span>: <span style="color:#e6db74">&#39;SomeAPIKey&#39;</span>
+</span></span></code></pre></div>
       </div></div>
 
   
