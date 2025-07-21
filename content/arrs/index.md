@@ -763,8 +763,8 @@ These sub-tasks set the API, instance name and port for each arrs config:
 ```
 
 Additionally, I set the auth method to external. Note:
-   - I protect each instance with a SSO (single-sign-on) provider (Authelia), and the built-in login is redundant
-   - Do not do this if you're exposing your services (i.e, via reverse proxy) and you don't have a SSO provider.
+   - I protect each instance with Authelia, making the built-in login redundant
+   - Do not do this if exposing services (i.e, via reverse proxy) without a SSO provider.
 
 ***
 
@@ -809,7 +809,7 @@ The first step is to include the postgres common tasks:
 
 ```
 
-I then include sub-tasks to edit the arrs configs with the relevant Postgres variables:
+I then edit the configs with relevant Postgres variables:
 
 ```yaml
 
@@ -938,7 +938,7 @@ I then include sub-tasks to edit the arrs configs with the relevant Postgres var
 
 ```
 
-Lastly, I include tasks to remove any sqlite databases in the arrs appdata directories:
+Lastly, I include tasks to remove any sqlite databases:
 
 ```yaml
 
@@ -990,8 +990,8 @@ Lastly, I include tasks to remove any sqlite databases in the arrs appdata direc
 ```
 
 **Note:**
-   - I'm okay with deleting any sqlite database found because I've already fully migrated to Postgres
-   - The only time an sqlite database would be found in my arrs directories is if issues occured during an Ansible run.
+   - I'm okay with deleting sqlite databases as I've already migrated to Postgres
+   - The only time qlite databases are found in my arrs directories is if issues have occurred.
 
 ***
 
@@ -1542,3 +1542,10 @@ networks:
 ```
 
 Whether you decide to deploy a compose file is up to you. [See here](https://drjoyce.blog/roles/#to-compose-or-not-to-compose).
+
+
+<div align=center>
+<script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="lebowski89" data-color="#FFDD00" data-emoji=""  data-font="Lato" data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff" ></script>
+</div>
+
+<script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="lebowski89" data-description="Support me on Buy me a coffee!" data-message="Support Me" data-color="#5F7FFF" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
