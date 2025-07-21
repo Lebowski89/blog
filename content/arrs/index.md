@@ -260,7 +260,7 @@ My arrs role consists of 5 directories and 7 files:
 
 ***
 
-## Role/Tasks
+## Role Tasks
 
 ***
 
@@ -789,7 +789,7 @@ These sub-tasks set the API, instance name and port for each arrs config:
 
 Additionally, I set the auth method to external. Note:
    - I protect each instance with Authelia, making the built-in login redundant
-   - Do not do this if exposing services (i.e, via reverse proxy) without a SSO provider.
+   - Do not do this if exposing services (i.e, via reverse proxy) without a SSO provider, or some other means to prevent unwanted access.
 
 ***
 
