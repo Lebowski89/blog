@@ -65,6 +65,10 @@ menu:
     name: Misc
     url: /misc/
     weight: 5
+  - identifier: arrs
+    name: Arrs Role
+    url: /arrs/
+    weight: 6
 
 caches:
   images:

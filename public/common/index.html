@@ -142,6 +142,10 @@ Multiple (3&#43;) common tasks defined in a file in a common tasks folder (exter
           <li><a href="/misc/">Misc</a></li>
         
       
+        
+          <li><a href="/arrs/">Arrs Role</a></li>
+        
+      
       
     </ul>
   </li>
@@ -175,6 +179,10 @@ Multiple (3&#43;) common tasks defined in a file in a common tasks folder (exter
           <li><a href="/misc/" >Misc</a></li>
         
       
+        
+          <li><a href="/arrs/" >Arrs Role</a></li>
+        
+      
     
   </ul>
 </nav>
@@ -189,7 +197,7 @@ Multiple (3&#43;) common tasks defined in a file in a common tasks folder (exter
   <h1 class="post-title">
     <a href="http://localhost:1313/common/">Handling common tasks within Ansible</a>
   </h1>
-  <div class="post-meta"><span class="post-reading-time">13 min read (2691 words)</span></div>
+  <div class="post-meta"><span class="post-reading-time">13 min read (2729 words)</span></div>
 
   
   
@@ -678,7 +686,20 @@ Multiple (3&#43;) common tasks defined in a file in a common tasks folder (exter
 </span></span><span style="display:flex;"><span>        <span style="color:#f92672">tp</span>: <span style="color:#e6db74">&#39;,themepark-lidarr&#39;</span>, 
 </span></span><span style="display:flex;"><span>        <span style="color:#f92672">tp_app</span>: <span style="color:#e6db74">&#39;lidarr&#39;</span> }
 </span></span></code></pre></div><p>In the above example, both services receive full Traefik labels, including being protected by my SSO provider (Authelia), API labels and Theme-Park. Simply leaving the API and/or Themepark vars empty will remove these labels.</p>
-<hr>
+<p>All that remains after this is to point to the labels in your docker service:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">deploy</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">mode</span>: <span style="color:#ae81ff">replicated</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">replicas</span>: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">placement</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">constraints</span>: [<span style="color:#ae81ff">node.labels.ansible_host == localhost]</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">labels</span>: {{ <span style="color:#ae81ff">lidarr_labels }}</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">restart_policy</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">condition</span>: <span style="color:#66d9ef">on</span>-<span style="color:#ae81ff">failure</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">delay</span>: <span style="color:#ae81ff">5s</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">max_attempts</span>: <span style="color:#ae81ff">3</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">window</span>: <span style="color:#ae81ff">120s</span>
+</span></span></code></pre></div><hr>
 <h2 id="databases">Databases<a href="#databases" class="hanchor" ariaLabel="Anchor">#</a> </h2>
 <hr>
 <p>I let Ansible handle the creation of various databases required by my services:</p>

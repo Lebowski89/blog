@@ -1,18 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-	<meta name="generator" content="Hugo 0.148.1"><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
   
-    <title>Le Tour De Blog</title>
+    <title>Deploying an arrs stack using Ansible :: Le Tour De Blog</title>
   
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="A simple, retro theme for Hugo" />
+<meta name="description" content=" Introduction Some of my favourite services to deploy are the servarr / arrs PVR apps, including:
+Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) Radarr-4K (4K Movies) Sonarr (TV) Sonarr-4K (4K TV) Whisparr (Adult) Using Ansible, I create everything required to get these services deployed for my specific needs.
+This guide will:
+Go through my arrs role step-by-step, from clean-up to deployment. Aim to provide guidance for those looking to make their own arrs role for their own needs. " />
 <meta name="keywords" content="" />
 
   <meta name="robots" content="noodp" />
 
-<link rel="canonical" href="http://localhost:1313/" />
+<link rel="canonical" href="http://localhost:1313/arrs/" />
 
 
 
@@ -72,10 +74,13 @@
 
 
 <meta property="og:locale" content="en" />
-<meta property="og:type" content="website" />
-<meta property="og:title" content="Le Tour De Blog">
-<meta property="og:description" content="A simple, retro theme for Hugo" />
-<meta property="og:url" content="http://localhost:1313/" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Deploying an arrs stack using Ansible">
+<meta property="og:description" content=" Introduction Some of my favourite services to deploy are the servarr / arrs PVR apps, including:
+Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) Radarr-4K (4K Movies) Sonarr (TV) Sonarr-4K (4K TV) Whisparr (Adult) Using Ansible, I create everything required to get these services deployed for my specific needs.
+This guide will:
+Go through my arrs role step-by-step, from clean-up to deployment. Aim to provide guidance for those looking to make their own arrs role for their own needs. " />
+<meta property="og:url" content="http://localhost:1313/arrs/" />
 <meta property="og:site_name" content="Le Tour De Blog" />
 
   <meta property="og:image" content="http://localhost:1313/og-image.png">
@@ -86,8 +91,6 @@
 
 
 
-
-  <link href="/index.xml" rel="alternate" type="application/rss+xml" title="Le Tour De Blog" />
 
 
 
@@ -190,60 +193,63 @@
 
   <div class="content">
     
+<article class="post">
+  <h1 class="post-title">
+    <a href="http://localhost:1313/arrs/">Deploying an arrs stack using Ansible</a>
+  </h1>
+  <div class="post-meta"><span class="post-reading-time">1 min read (77 words)</span></div>
+
   
-  <div class="posts">
-    
-    
-
-    
-    
-      
-    
-    
-
-    
-      <article class="post on-list">
-        <h2 class="post-title">
-          <a href="http://localhost:1313/posts/main/">Welcome to my Blog</a>
-        </h2>
-
-        <div class="post-meta"></div>
-
-        
-
-        
+  
 
 
-        <div class="post-content">
-          
-            <p>This blog is dedicated to Ansible, and I will use this to discuss my set-up and provide some useful tips and information from my experiences using it to set-up and deploy Docker containers and Swarm services.</p>
-<p><strong>The Why?</strong></p>
+  
+    <div class="table-of-contents">
+      <h2>
+        Contents
+      </h2>
+      <nav id="TableOfContents">
+  <ul>
+    <li><a href="#introduction">Introduction</a></li>
+  </ul>
+</nav>
+    </div>
+  
+
+  <div class="post-content"><div>
+        <hr>
+<h2 id="introduction">Introduction<a href="#introduction" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<hr>
+<p>Some of my favourite services to deploy are the servarr / arrs PVR apps, including:</p>
 <ul>
-<li>Since I started using Ansible, I have grown to love it, but it can be quite daunting for newcomers</li>
-<li>It is one thing to automate a task and another to do it efficiently and effectively</li>
-<li>It can be easy to fall into a rabbit hole of troubleshooting and frustration.</li>
+<li>Bazarr (Subtitles)</li>
+<li>Lidarr (Music)</li>
+<li>Radarr (Movies)</li>
+<li>Radarr-4K (4K Movies)</li>
+<li>Sonarr (TV)</li>
+<li>Sonarr-4K (4K TV)</li>
+<li>Whisparr (Adult)</li>
 </ul>
-<p>So with that said, see the Ansible topics in the menus above.</p>
-          
-        </div>
+<p>Using Ansible, I create everything required to get these services deployed for my specific needs.</p>
+<p>This guide will:</p>
+<ul>
+<li>Go through my arrs role step-by-step, from clean-up to deployment.</li>
+<li>Aim to provide guidance for those looking to make their own arrs role for their own needs.</li>
+</ul>
 
-        
-          <div>
-            <a class="read-more button inline" href="/posts/main/">[Read More]</a>
-          </div>
-        
-      </article>
+<img src="arrs_1.jpg"  alt="matrix laptop"  class="center"  style="border-radius: 4px; width:560px; height: auto"    />
+
+
+
+      </div></div>
+
+  
+
+  
     
 
-    <div class="pagination">
-  <div class="pagination__buttons">
-    
-    
-    
-  </div>
-</div>
-
-  </div>
+  
+</article>
 
   </div>
 

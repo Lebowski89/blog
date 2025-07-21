@@ -545,6 +545,24 @@ The above task file combines the relevant labels into a single variable that is 
 
 In the above example, both services receive full Traefik labels, including being protected by my SSO provider (Authelia), API labels and Theme-Park. Simply leaving the API and/or Themepark vars empty will remove these labels.
 
+All that remains after this is to point to the labels in your docker service:
+
+```yaml
+
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints: [node.labels.ansible_host == localhost]
+      labels: {{ lidarr_labels }}
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+```
+
 ***
 
 ## Databases

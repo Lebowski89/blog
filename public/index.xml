@@ -9,11 +9,18 @@
     <lastBuildDate>Tue, 24 Jun 2025 00:00:00 +0000</lastBuildDate>
     <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
     <item>
+      <title>Deploying an arrs stack using Ansible</title>
+      <link>http://localhost:1313/arrs/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/arrs/</guid>
+      <description>&lt;hr&gt;&#xA;&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;&#xA;&lt;hr&gt;&#xA;&lt;p&gt;Some of my favourite services to deploy are the servarr / arrs PVR apps, including:&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;Bazarr (Subtitles)&lt;/li&gt;&#xA;&lt;li&gt;Lidarr (Music)&lt;/li&gt;&#xA;&lt;li&gt;Radarr (Movies)&lt;/li&gt;&#xA;&lt;li&gt;Radarr-4K (4K Movies)&lt;/li&gt;&#xA;&lt;li&gt;Sonarr (TV)&lt;/li&gt;&#xA;&lt;li&gt;Sonarr-4K (4K TV)&lt;/li&gt;&#xA;&lt;li&gt;Whisparr (Adult)&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;p&gt;Using Ansible, I create everything required to get these services deployed for my specific needs.&lt;/p&gt;&#xA;&lt;p&gt;This guide will:&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;Go through my arrs role step-by-step, from clean-up to deployment.&lt;/li&gt;&#xA;&lt;li&gt;Aim to provide guidance for those looking to make their own arrs role for their own needs.&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&#xA;&lt;img src=&#34;arrs_1.jpg&#34;  alt=&#34;matrix laptop&#34;  class=&#34;center&#34;  style=&#34;border-radius: 4px; width:560px; height: auto&#34;    /&gt;</description>
+    </item>
+    <item>
       <title>Handling common tasks within Ansible</title>
       <link>http://localhost:1313/common/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       <guid>http://localhost:1313/common/</guid>
-      <description>&lt;hr&gt;&#xA;&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;&#xA;&lt;hr&gt;&#xA;&lt;p&gt;When you begin constructing your Ansible tasks - roles - collections, you quickly realise that there are many tasks that you will use repeatedly with little variance. For example, if you&amp;rsquo;re using Ansible to help set-up and deploy your docker containers, you&amp;rsquo;ll have common tasks that create directories, configs, DNS and Traefik labels, among many others. If you&amp;rsquo;re like me, I would simply copy and paste these tasks. While Ansible will run through and automate these repeated tasks all the same, the more tasks you have to repeat in a play, the more bloated and unreadable your playbook becomes and the more maintenance upkeep is required.&lt;/p&gt;</description>
+      <description>&lt;hr&gt;&#xA;&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;&#xA;&lt;hr&gt;&#xA;&lt;p&gt;When you begin constructing your Ansible tasks - roles - collections, you quickly realise that there are many tasks that you will use repeatedly with little variance. For example, if you&amp;rsquo;re using Ansible to help set-up and deploy your docker containers, you&amp;rsquo;ll have common tasks that create directories, configs, DNS and Traefik labels, among many others.&lt;/p&gt;&#xA;&lt;p&gt;For me, my common tasks consist of two main types:&lt;/p&gt;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;Multiple (3+) common tasks defined in a file in a common tasks folder (external to the role), which are included in the role using the &lt;code&gt;include_tasks&lt;/code&gt; module&lt;/li&gt;&#xA;&lt;li&gt;Smaller (1-3) common tasks defined and confined entirely within roles.&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;p&gt;The rest of this document is dedicated to listing and describing common tasks that I use:&lt;/p&gt;</description>
     </item>
     <item>
       <title>Miscellaneous Ansible topics (rants)</title>
