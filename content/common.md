@@ -653,7 +653,7 @@ I use Ansible to automate important Docker tasks:
 
 ***
 
-### Docker Containers
+### Containers
 
 ***
 
@@ -709,7 +709,7 @@ Creating containers using the same module:
 
 ***
 
-### Docker Compose
+### Compose
 
 ***
 
@@ -764,7 +764,38 @@ Compose up using the same module:
 
 ***
 
-### Docker Stacks
+### Networks
+
+***
+
+I use the `docker_network` module to create bridge and overlay networks:
+
+```yaml
+
+  ## ansible/playbook.yml
+
+- name: Conduct overlay network tasks
+  when: inventory_hostname == 'localhost'
+  block:
+    - name: Register overlay network
+      community.docker.docker_network_info:
+        name: '{{ network_overlay }}'
+      register: network_overlay_result
+
+    - name: Create overlay network
+      when: not network_overlay_result.exists
+      community.docker.docker_network:
+        name: '{{ network_overlay }}'
+        driver: '{{ network_overlay_driver }}'
+        attachable: true 
+        ipam_config:
+          - subnet: '{{ network_overlay_subnet }}'
+
+```
+
+***
+
+### Stacks
 
 ***
 
@@ -812,7 +843,7 @@ Stack deploy using the same module:
 
 ***
 
-### Docker Secrets
+### Secrets
 
 ***
 
@@ -855,5 +886,32 @@ secrets:
     external: true
 
 ```
+
+***
+
+### Volumes
+
+***
+
+I use the `docker_volume` module to create docker volumes:
+
+```yaml
+
+  ## role/tasks/main.yml
+
+- name: Create media volume
+  community.docker.docker_volume:
+    volume_name: '{{ media_volume }}'
+    state: present
+    recreate: options-changed
+    driver: local
+    driver_options:
+      type: nfs
+      o: 'addr={{ media_volume_address }},rw,nfsvers=4.2'
+      device: '{{ media_volume_device }}'
+
+```
+
+Above, I create an NFS volume to attach to my Plex container providing access to media shares.
 
 <script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="lebowski89" data-description="Support me on Buy me a coffee!" data-message="Support Me" data-color="#5F7FFF" data-position="Right" data-x_margin="18" data-y_margin="18"></script>

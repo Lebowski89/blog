@@ -189,7 +189,7 @@ Multiple (3&#43;) common tasks defined in a file in a common tasks folder (exter
   <h1 class="post-title">
     <a href="http://localhost:1313/common/">Handling common tasks within Ansible</a>
   </h1>
-  <div class="post-meta"><span class="post-reading-time">13 min read (2577 words)</span></div>
+  <div class="post-meta"><span class="post-reading-time">13 min read (2691 words)</span></div>
 
   
   
@@ -216,10 +216,12 @@ Multiple (3&#43;) common tasks defined in a file in a common tasks folder (exter
     </li>
     <li><a href="#docker">Docker</a>
       <ul>
-        <li><a href="#docker-containers">Docker Containers</a></li>
-        <li><a href="#docker-compose">Docker Compose</a></li>
-        <li><a href="#docker-stacks">Docker Stacks</a></li>
-        <li><a href="#docker-secrets">Docker Secrets</a></li>
+        <li><a href="#containers">Containers</a></li>
+        <li><a href="#compose">Compose</a></li>
+        <li><a href="#networks">Networks</a></li>
+        <li><a href="#stacks">Stacks</a></li>
+        <li><a href="#secrets">Secrets</a></li>
+        <li><a href="#volumes">Volumes</a></li>
       </ul>
     </li>
   </ul>
@@ -751,7 +753,7 @@ Multiple (3&#43;) common tasks defined in a file in a common tasks folder (exter
 <hr>
 <p>I use Ansible to automate important Docker tasks:</p>
 <hr>
-<h3 id="docker-containers">Docker Containers<a href="#docker-containers" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<h3 id="containers">Containers<a href="#containers" class="hanchor" ariaLabel="Anchor">#</a> </h3>
 <hr>
 <p>Removing individual containers using the <code>docker_container</code> module:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
@@ -794,7 +796,7 @@ Multiple (3&#43;) common tasks defined in a file in a common tasks folder (exter
 </span></span><span style="display:flex;"><span>      - <span style="color:#e6db74">&#39;{{ torrents_volume }}:{{ torrents_volume_mount_path }}&#39;</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">restart_policy</span>: <span style="color:#e6db74">&#39;{{ radarr_restart_policy }}&#39;</span>
 </span></span></code></pre></div><hr>
-<h3 id="docker-compose">Docker Compose<a href="#docker-compose" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<h3 id="compose">Compose<a href="#compose" class="hanchor" ariaLabel="Anchor">#</a> </h3>
 <hr>
 <p>Compose down using the <code>docker_compose_v2</code> module:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
@@ -836,7 +838,30 @@ Multiple (3&#43;) common tasks defined in a file in a common tasks folder (exter
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">files</span>: <span style="color:#ae81ff">vpn-compose.yml</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">present</span>
 </span></span></code></pre></div><hr>
-<h3 id="docker-stacks">Docker Stacks<a href="#docker-stacks" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<h3 id="networks">Networks<a href="#networks" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<hr>
+<p>I use the <code>docker_network</code> module to create bridge and overlay networks:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## ansible/playbook.yml</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Conduct overlay network tasks</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">when</span>: <span style="color:#ae81ff">inventory_hostname == &#39;localhost&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">block</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Register overlay network</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">community.docker.docker_network_info</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#39;{{ network_overlay }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">register</span>: <span style="color:#ae81ff">network_overlay_result</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Create overlay network</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">not network_overlay_result.exists</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">community.docker.docker_network</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#39;{{ network_overlay }}&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">driver</span>: <span style="color:#e6db74">&#39;{{ network_overlay_driver }}&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">attachable</span>: <span style="color:#66d9ef">true</span> 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">ipam_config</span>:
+</span></span><span style="display:flex;"><span>          - <span style="color:#f92672">subnet</span>: <span style="color:#e6db74">&#39;{{ network_overlay_subnet }}&#39;</span>
+</span></span></code></pre></div><hr>
+<h3 id="stacks">Stacks<a href="#stacks" class="hanchor" ariaLabel="Anchor">#</a> </h3>
 <hr>
 <p>Docker stack down using the <code>docker_stack</code> module:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
@@ -871,7 +896,7 @@ Multiple (3&#43;) common tasks defined in a file in a common tasks folder (exter
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">compose</span>:
 </span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">/opt/arrs-stack.yml</span>
 </span></span></code></pre></div><hr>
-<h3 id="docker-secrets">Docker Secrets<a href="#docker-secrets" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<h3 id="secrets">Secrets<a href="#secrets" class="hanchor" ariaLabel="Anchor">#</a> </h3>
 <hr>
 <p>Creating Docker Secrets using the <code>docker_secret</code> module:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
@@ -903,7 +928,25 @@ Multiple (3&#43;) common tasks defined in a file in a common tasks folder (exter
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">postgres_pass_secret</span>:
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">external</span>: <span style="color:#66d9ef">true</span>
-</span></span></code></pre></div><script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="lebowski89" data-description="Support me on Buy me a coffee!" data-message="Support Me" data-color="#5F7FFF" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
+</span></span></code></pre></div><hr>
+<h3 id="volumes">Volumes<a href="#volumes" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<hr>
+<p>I use the <code>docker_volume</code> module to create docker volumes:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## role/tasks/main.yml</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Create media volume</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.docker.docker_volume</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">volume_name</span>: <span style="color:#e6db74">&#39;{{ media_volume }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">present</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">recreate</span>: <span style="color:#ae81ff">options-changed</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">driver</span>: <span style="color:#ae81ff">local</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">driver_options</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">type</span>: <span style="color:#ae81ff">nfs</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">o</span>: <span style="color:#e6db74">&#39;addr={{ media_volume_address }},rw,nfsvers=4.2&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">device</span>: <span style="color:#e6db74">&#39;{{ media_volume_device }}&#39;</span>
+</span></span></code></pre></div><p>Above, I create an NFS volume to attach to my Plex container providing access to media shares.</p>
+<script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="lebowski89" data-description="Support me on Buy me a coffee!" data-message="Support Me" data-color="#5F7FFF" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
       </div></div>
 
   
