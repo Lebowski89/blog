@@ -2,7 +2,7 @@
 <html lang="en">
 <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
   
-    <title>Deploying an arrs stack using Ansible :: Le Tour De Blog</title>
+    <title>Deploying an arrs stack Ansible Role :: Le Tour De Blog</title>
   
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -74,7 +74,7 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
 
 <meta property="og:locale" content="en" />
 <meta property="og:type" content="article" />
-<meta property="og:title" content="Deploying an arrs stack using Ansible">
+<meta property="og:title" content="Deploying an arrs stack Ansible Role">
 <meta property="og:description" content=" Introduction Some of my favourite services to deploy are the servarr / arrs PVR apps:
 Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr (TV) / Sonarr-4K (4K TV) Whisparr (Adult) Prowlarr (Indexers) Using Ansible, I do everything required to deploy these services for my needs.
 " />
@@ -193,9 +193,9 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
     
 <article class="post">
   <h1 class="post-title">
-    <a href="http://localhost:1313/arrs/">Deploying an arrs stack using Ansible</a>
+    <a href="http://localhost:1313/arrs/">Deploying an arrs stack Ansible Role</a>
   </h1>
-  <div class="post-meta"><span class="post-reading-time">18 min read (3786 words)</span></div>
+  <div class="post-meta"><span class="post-reading-time">18 min read (3810 words)</span></div>
 
   
   
@@ -216,6 +216,7 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
         <li><a href="#others">Others</a></li>
       </ul>
     </li>
+    <li><a href="#role-structure">Role Structure</a></li>
     <li><a href="#roletasks">Role/Tasks</a>
       <ul>
         <li><a href="#cleanup">Cleanup</a></li>
@@ -437,6 +438,23 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
 <li>These local themes require an existing theme-park deployment (see their docs)</li>
 </ul>
 <hr>
+<h2 id="role-structure">Role Structure<a href="#role-structure" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<hr>
+<p>My arrs role consists of 5 directories and 7 files:</p>
+<pre tabindex="0"><code class="language-cli" data-lang="cli">
+/ansible/roles/arrs
+├── tasks
+│   ├── main.yml
+│   └── sub_tasks
+│       ├── config.yml
+│       ├── postgres.yml
+│       └── sqlite.yml
+└── templates
+    ├── arrs-stack.yml.j2
+    └── configs
+        ├── arrs_config.xml.j2
+        └── bazarr_config.yaml.j2
+</code></pre><hr>
 <h2 id="roletasks">Role/Tasks<a href="#roletasks" class="hanchor" ariaLabel="Anchor">#</a> </h2>
 <hr>
 <p>(<a href="https://drjoyce.blog/roles/#roletasks">Background Information</a>)</p>
@@ -1107,11 +1125,7 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.file</span>:
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ backups_location }}&#39;</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">absent</span>
-</span></span></code></pre></div><p><strong>Note:</strong></p>
-<ul>
-<li>I&rsquo;m okay with deleting sqlite databases as I&rsquo;ve already migrated to Postgres</li>
-<li>The only time qlite databases are found in my arrs directories is if issues have occurred.</li>
-</ul>
+</span></span></code></pre></div><p><strong>Note:</strong> I&rsquo;m okay with deleting sqlite databases as I&rsquo;ve already migrated to Postgres</p>
 <hr>
 <h3 id="cloudflare-dns">Cloudflare DNS<a href="#cloudflare-dns" class="hanchor" ariaLabel="Anchor">#</a> </h3>
 <hr>

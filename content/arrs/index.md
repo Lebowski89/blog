@@ -4,7 +4,7 @@ genres:
 - ansible
 menus: arrs
 weight: 1
-title: Deploying an arrs stack using Ansible
+title: Deploying an arrs stack Ansible Role
 ---
 
 ***
@@ -232,6 +232,31 @@ I define these in group_vars, but you could just as easily define them manually.
    - `network_overlay` is the variable I use for my docker network name
    - The theme-park variables are only required for local theme-park themes
    - These local themes require an existing theme-park deployment (see their docs)
+
+***
+
+## Role Structure
+
+***
+
+My arrs role consists of 5 directories and 7 files:
+
+```cli
+
+/ansible/roles/arrs
+├── tasks
+│   ├── main.yml
+│   └── sub_tasks
+│       ├── config.yml
+│       ├── postgres.yml
+│       └── sqlite.yml
+└── templates
+    ├── arrs-stack.yml.j2
+    └── configs
+        ├── arrs_config.xml.j2
+        └── bazarr_config.yaml.j2
+
+```
 
 ***
 
@@ -989,9 +1014,7 @@ Lastly, I include tasks to remove any sqlite databases:
 
 ```
 
-**Note:**
-   - I'm okay with deleting sqlite databases as I've already migrated to Postgres
-   - The only time qlite databases are found in my arrs directories is if issues have occurred.
+**Note:** I'm okay with deleting sqlite databases as I've already migrated to Postgres
 
 ***
 
