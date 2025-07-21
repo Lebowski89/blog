@@ -6,8 +6,8 @@
   
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content=" Introduction Some of my favourite services to deploy are the servarr / arrs PVR apps, including:
-Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr (TV) / Sonarr-4K (4K TV) Whisparr (Adult) Prowlarr (Indexers) Using Ansible, I create everything required to get these services deployed for my specific needs.
+<meta name="description" content=" Introduction Some of my favourite services to deploy are the servarr / arrs PVR apps:
+Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr (TV) / Sonarr-4K (4K TV) Whisparr (Adult) Prowlarr (Indexers) Using Ansible, I do everything required to deploy these services for my specific needs.
 " />
 <meta name="keywords" content="" />
 
@@ -75,8 +75,8 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
 <meta property="og:locale" content="en" />
 <meta property="og:type" content="article" />
 <meta property="og:title" content="Deploying an arrs stack using Ansible">
-<meta property="og:description" content=" Introduction Some of my favourite services to deploy are the servarr / arrs PVR apps, including:
-Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr (TV) / Sonarr-4K (4K TV) Whisparr (Adult) Prowlarr (Indexers) Using Ansible, I create everything required to get these services deployed for my specific needs.
+<meta property="og:description" content=" Introduction Some of my favourite services to deploy are the servarr / arrs PVR apps:
+Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr (TV) / Sonarr-4K (4K TV) Whisparr (Adult) Prowlarr (Indexers) Using Ansible, I do everything required to deploy these services for my specific needs.
 " />
 <meta property="og:url" content="http://localhost:1313/arrs/" />
 <meta property="og:site_name" content="Le Tour De Blog" />
@@ -195,7 +195,7 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
   <h1 class="post-title">
     <a href="http://localhost:1313/arrs/">Deploying an arrs stack using Ansible</a>
   </h1>
-  <div class="post-meta"><span class="post-reading-time">1 min read (78 words)</span></div>
+  <div class="post-meta"><span class="post-reading-time">1 min read (77 words)</span></div>
 
   
   
@@ -209,6 +209,7 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
       <nav id="TableOfContents">
   <ul>
     <li><a href="#introduction">Introduction</a></li>
+    <li><a href="#group_vars">Group_Vars</a></li>
   </ul>
 </nav>
     </div>
@@ -218,45 +219,48 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
         <hr>
 <h2 id="introduction">Introduction<a href="#introduction" class="hanchor" ariaLabel="Anchor">#</a> </h2>
 <hr>
-<p>Some of my favourite services to deploy are the servarr / arrs PVR apps, including:</p>
+<p>Some of my favourite services to deploy are the servarr / arrs PVR apps:</p>
 <ul>
 <li>Bazarr (Subtitles)
 
-<img src="bazarr_1.jpg"  alt="matrix laptop"  class="center"  style="border-radius: 2px; width:640px; height: auto"    />
+<img src="bazarr_1.jpg"  alt="bazarr"  class="center"  style="border-radius: 1px; width:auto; height: auto"    />
 
 </li>
 <li>Lidarr (Music)
 
-<img src="lidarr_1.jpg"  alt="matrix laptop"  class="center"  style="border-radius: 2px; width:640px; height: auto"    />
+<img src="lidarr_1.jpg"  alt="lidarr"  class="center"  style="border-radius: 1px; width:auto; height: auto"    />
 
 </li>
 <li>Radarr (Movies) / Radarr-4K (4K Movies)
 
-<img src="radarr_1.jpg"  alt="matrix laptop"  class="center"  style="border-radius: 2px; width:640px; height: auto"    />
+<img src="radarr_1.jpg"  alt="radarr"  class="center"  style="border-radius: 1px; width:auto; height: auto"    />
 
 </li>
 <li>Sonarr (TV) / Sonarr-4K (4K TV)
 
-<img src="sonarr_1.jpg"  alt="matrix laptop"  class="center"  style="border-radius: 2px; width:640px; height: auto"    />
+<img src="sonarr_1.jpg"  alt="sonarr"  class="center"  style="border-radius: 1px; width:auto; height: auto"    />
 
 </li>
 <li>Whisparr (Adult)
 
-<img src="whisparr_1.jpg"  alt="matrix laptop"  class="center"  style="border-radius: 2px; width:640px; height: auto"    />
+<img src="whisparr_1.jpg"  alt="whisparr"  class="center"  style="border-radius: 1px; width:auto; height: auto"    />
 
 </li>
 <li>Prowlarr (Indexers)
 
-<img src="prowlarr_1.jpg"  alt="matrix laptop"  class="center"  style="border-radius: 2px; width:640px; height: auto"    />
+<img src="prowlarr_1.jpg"  alt="prowlarr"  class="center"  style="border-radius: 1px; width:auto; height: auto"    />
 
 </li>
 </ul>
-<p>Using Ansible, I create everything required to get these services deployed for my specific needs.</p>
+<p>Using Ansible, I do everything required to deploy these services for my specific needs.</p>
 <p>This guide will:</p>
 <ul>
 <li>Go through my arrs role step-by-step, from clean-up to deployment.</li>
 <li>Aim to guide those looking to make their own role for their own needs.</li>
 </ul>
+<hr>
+<h2 id="group_vars">Group_Vars<a href="#group_vars" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<hr>
 
       </div></div>
 
