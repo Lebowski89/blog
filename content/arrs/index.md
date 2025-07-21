@@ -184,10 +184,6 @@ whisparr_location: '/opt/{{ whisparr_name }}'
 
   ## /ansible/group_vars/all/vault.yml
 
-################################
-# ARRS VAULT
-################################
-
 bazarr_api: 'SomeAPIKey'
 bazarr_flask_key: 'SomeAPIKey'
 bazarr_opensub_user: 'SomeUsername'
@@ -199,6 +195,15 @@ radarr_4k_api: 'SomeAPIKey'
 sonarr_api: 'SomeAPIKey'
 sonarr_4k_api: 'SomeAPIKey'
 whisparr_api: 'SomeAPIKey'
+
+  ## If wanting Postgres databases:
+
+postgres_username: 'SomeUsername'
+postgres_password: 'SomePassword'
+
+  ## If wanting DNS / Traefik:
+
+local_domain: 'SomeDomain.com'
 
 ```
 
@@ -215,7 +220,9 @@ whisparr_api: 'SomeAPIKey'
 puid: '1000'
 pgid: '1000'
 
-network_overlay: 'overlay'  ## allows backend docker communication
+network_overlay: 'overlay'  ## The variable I use for my docker network name
+
+  ## If wanting to deploy theme-park locally:
 
 themepark_name: 'theme-park'
 themepark_ports_host: '8089'
@@ -227,11 +234,6 @@ themes_location: '{{ themepark_location }}/docker-mods'
 ```
 
 I define these in group_vars, but you could just as easily define them manually.
-
-**Note:**
-   - `network_overlay` is the variable I use for my docker network name
-   - The theme-park variables are only required for local theme-park themes
-   - These local themes require an existing theme-park deployment (see their docs)
 
 ***
 
@@ -1161,7 +1163,7 @@ Next, I form the Traefik (reverse-proxy) labels for each service:
 
 ***
 
-### Stack deploy
+### Stack Deploy
 
 ***
 

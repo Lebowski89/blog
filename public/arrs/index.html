@@ -195,7 +195,7 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
   <h1 class="post-title">
     <a href="http://localhost:1313/arrs/">Deploying an arrs stack Ansible Role</a>
   </h1>
-  <div class="post-meta"><span class="post-reading-time">18 min read (3819 words)</span></div>
+  <div class="post-meta"><span class="post-reading-time">18 min read (3810 words)</span></div>
 
   
   
@@ -226,7 +226,7 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
         <li><a href="#postgres">Postgres</a></li>
         <li><a href="#cloudflare-dns">Cloudflare DNS</a></li>
         <li><a href="#traefik-labels">Traefik Labels</a></li>
-        <li><a href="#stack-deploy">Stack deploy</a></li>
+        <li><a href="#stack-deploy">Stack Deploy</a></li>
       </ul>
     </li>
   </ul>
@@ -398,10 +398,6 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e">## /ansible/group_vars/all/vault.yml</span>
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># ARRS VAULT</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
-</span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">bazarr_api</span>: <span style="color:#e6db74">&#39;SomeAPIKey&#39;</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">bazarr_flask_key</span>: <span style="color:#e6db74">&#39;SomeAPIKey&#39;</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">bazarr_opensub_user</span>: <span style="color:#e6db74">&#39;SomeUsername&#39;</span>
@@ -413,6 +409,15 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
 </span></span><span style="display:flex;"><span><span style="color:#f92672">sonarr_api</span>: <span style="color:#e6db74">&#39;SomeAPIKey&#39;</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">sonarr_4k_api</span>: <span style="color:#e6db74">&#39;SomeAPIKey&#39;</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">whisparr_api</span>: <span style="color:#e6db74">&#39;SomeAPIKey&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## If wanting Postgres databases:</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">postgres_username</span>: <span style="color:#e6db74">&#39;SomeUsername&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">postgres_password</span>: <span style="color:#e6db74">&#39;SomePassword&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## If wanting DNS / Traefik:</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">local_domain</span>: <span style="color:#e6db74">&#39;SomeDomain.com&#39;</span>
 </span></span></code></pre></div><hr>
 <h3 id="others">Others<a href="#others" class="hanchor" ariaLabel="Anchor">#</a> </h3>
 <hr>
@@ -422,7 +427,9 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
 </span></span><span style="display:flex;"><span><span style="color:#f92672">puid</span>: <span style="color:#e6db74">&#39;1000&#39;</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">pgid</span>: <span style="color:#e6db74">&#39;1000&#39;</span>
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">network_overlay</span>: <span style="color:#e6db74">&#39;overlay&#39;</span>  <span style="color:#75715e">## allows backend docker communication</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">network_overlay</span>: <span style="color:#e6db74">&#39;overlay&#39;</span>  <span style="color:#75715e">## The variable I use for my docker network name</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## If wanting to deploy theme-park locally:</span>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">themepark_name</span>: <span style="color:#e6db74">&#39;theme-park&#39;</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">themepark_ports_host</span>: <span style="color:#e6db74">&#39;8089&#39;</span>
@@ -431,12 +438,6 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
 </span></span><span style="display:flex;"><span><span style="color:#f92672">themepark_theme</span>: <span style="color:#e6db74">&#39;hotline&#39;</span>  <span style="color:#75715e">## theme to use for local theme-park deployment</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">themes_location</span>: <span style="color:#e6db74">&#39;{{ themepark_location }}/docker-mods&#39;</span>
 </span></span></code></pre></div><p>I define these in group_vars, but you could just as easily define them manually.</p>
-<p><strong>Note:</strong></p>
-<ul>
-<li><code>network_overlay</code> is the variable I use for my docker network name</li>
-<li>The theme-park variables are only required for local theme-park themes</li>
-<li>These local themes require an existing theme-park deployment (see their docs)</li>
-</ul>
 <hr>
 <h2 id="role-structure">Role Structure<a href="#role-structure" class="hanchor" ariaLabel="Anchor">#</a> </h2>
 <hr>
@@ -1252,7 +1253,7 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
 </span></span><span style="display:flex;"><span>        <span style="color:#f92672">tp</span>: <span style="color:#e6db74">&#39;,themepark-whisparr&#39;</span>, 
 </span></span><span style="display:flex;"><span>        <span style="color:#f92672">tp_app</span>: <span style="color:#e6db74">&#39;whisparr&#39;</span> }
 </span></span></code></pre></div><hr>
-<h3 id="stack-deploy">Stack deploy<a href="#stack-deploy" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<h3 id="stack-deploy">Stack Deploy<a href="#stack-deploy" class="hanchor" ariaLabel="Anchor">#</a> </h3>
 <hr>
 <p>Lastly, with everything in order, it&rsquo;s time to deploy the stack:</p>
 <p>(<a href="https://drjoyce.blog/common/#stacks">Click for overview</a>)</p>
