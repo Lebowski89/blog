@@ -7,7 +7,7 @@
   <meta http-equiv="content-type" content="text/html; charset=utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content=" Introduction Some of my favourite services to deploy are the servarr / arrs PVR apps:
-Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr (TV) / Sonarr-4K (4K TV) Whisparr (Adult) Prowlarr (Indexers) Using Ansible, I do everything required to deploy these services for my specific needs.
+Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr (TV) / Sonarr-4K (4K TV) Whisparr (Adult) Prowlarr (Indexers) Using Ansible, I do everything required to deploy these services for my needs.
 " />
 <meta name="keywords" content="" />
 
@@ -76,7 +76,7 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
 <meta property="og:type" content="article" />
 <meta property="og:title" content="Deploying an arrs stack using Ansible">
 <meta property="og:description" content=" Introduction Some of my favourite services to deploy are the servarr / arrs PVR apps:
-Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr (TV) / Sonarr-4K (4K TV) Whisparr (Adult) Prowlarr (Indexers) Using Ansible, I do everything required to deploy these services for my specific needs.
+Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr (TV) / Sonarr-4K (4K TV) Whisparr (Adult) Prowlarr (Indexers) Using Ansible, I do everything required to deploy these services for my needs.
 " />
 <meta property="og:url" content="http://localhost:1313/arrs/" />
 <meta property="og:site_name" content="Le Tour De Blog" />
@@ -195,7 +195,7 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
   <h1 class="post-title">
     <a href="http://localhost:1313/arrs/">Deploying an arrs stack using Ansible</a>
   </h1>
-  <div class="post-meta"><span class="post-reading-time">2 min read (350 words)</span></div>
+  <div class="post-meta"><span class="post-reading-time">2 min read (332 words)</span></div>
 
   
   
@@ -257,7 +257,7 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
 
 </li>
 </ul>
-<p>Using Ansible, I do everything required to deploy these services for my specific needs.</p>
+<p>Using Ansible, I do everything required to deploy these services for my needs.</p>
 <p>This guide will:</p>
 <ul>
 <li>Go through my arrs role step-by-step, from clean-up to deployment.</li>
@@ -266,7 +266,8 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
 <hr>
 <h2 id="playbook">Playbook<a href="#playbook" class="hanchor" ariaLabel="Anchor">#</a> </h2>
 <hr>
-<p>I include my arrs services in a role that gets included in my playbook during the play:</p>
+<p>(<a href="https://drjoyce.blog/playbook/">Background Information</a>)</p>
+<p>I include my arrs services in a role that gets included during the play:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e">## /ansible/playbook.yml</span>
 </span></span><span style="display:flex;"><span>
@@ -281,13 +282,12 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
 </span></span><span style="display:flex;"><span>        <span style="color:#f92672">apply</span>:
 </span></span><span style="display:flex;"><span>          <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">arrs</span>
 </span></span><span style="display:flex;"><span>      <span style="color:#f92672">tags</span>: <span style="color:#ae81ff">arrs</span>
-</span></span></code></pre></div><p>See <a href="https://drjoyce.blog/playbook/">here</a> for more information.</p>
-<p><strong>Note:</strong> I make use of the pre-tasks listed <a href="https://drjoyce.blog/playbook/#pre_tasks">here</a>. You may choose to use these, or you can always define things such as timezones manually if you&rsquo;d rather do it that way.</p>
+</span></span></code></pre></div><p><strong>Note:</strong> I make use of the pre-tasks listed <a href="https://drjoyce.blog/playbook/#pre_tasks">here</a>. You may use these, or you can always define things, such as timezones, manually if you&rsquo;d prefer.</p>
 <hr>
 <h2 id="group_vars">Group_Vars<a href="#group_vars" class="hanchor" ariaLabel="Anchor">#</a> </h2>
 <hr>
-<p>In my group_vars I define variables for service name, image repo/tag, ports and location.</p>
-<p>See <a href="https://drjoyce.blog/roles/#group_vars">here</a> for more information.</p>
+<p>(<a href="https://drjoyce.blog/roles/#group_vars">Background Information</a>)</p>
+<p>Here I define variables for service name, image repo/tag, ports and location.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e">## /ansible/group_vars/all/roles/arrs.yml</span>
 </span></span><span style="display:flex;"><span>

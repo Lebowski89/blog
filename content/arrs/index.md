@@ -34,7 +34,7 @@ Some of my favourite services to deploy are the servarr / arrs PVR apps:
 {{< image src="prowlarr_1.jpg" alt="prowlarr" position="center"
     style="border-radius: 1px; width:auto; height: auto" >}}
 
-Using Ansible, I do everything required to deploy these services for my specific needs.
+Using Ansible, I do everything required to deploy these services for my needs.
 
 This guide will: 
    - Go through my arrs role step-by-step, from clean-up to deployment.
@@ -46,7 +46,9 @@ This guide will:
 
 ***
 
-I include my arrs services in a role that gets included in my playbook during the play:
+([Background Information](https://drjoyce.blog/playbook/))
+
+I include my arrs services in a role that gets included during the play:
 
 ```yaml
 
@@ -66,9 +68,7 @@ I include my arrs services in a role that gets included in my playbook during th
 
 ```
 
-See [here](https://drjoyce.blog/playbook/) for more information.
-
-**Note:** I make use of the pre-tasks listed [here](https://drjoyce.blog/playbook/#pre_tasks). You may choose to use these, or you can always define things such as timezones manually if you'd rather do it that way.
+**Note:** I make use of the pre-tasks listed [here](https://drjoyce.blog/playbook/#pre_tasks). You may use these, or you can always define things, such as timezones, manually if you'd prefer.
 
 ***
 
@@ -76,9 +76,9 @@ See [here](https://drjoyce.blog/playbook/) for more information.
 
 ***
 
-In my group_vars I define variables for service name, image repo/tag, ports and location.
+([Background Information](https://drjoyce.blog/roles/#group_vars))
 
-See [here](https://drjoyce.blog/roles/#group_vars) for more information.
+Here I define variables for service name, image repo/tag, ports and location.
 
 ```yaml
 
