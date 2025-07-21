@@ -81,9 +81,9 @@ One time-saving task when spinning up docker services is to automate the creatio
     cloudflare_record: '{{ obsidian_name }}'
     cloudflare_type: 'A'
     cloudflare_value: '{{ ipify_public_ip }}'
-    cloudflare_proxy: 'false'
-    cloudflare_solo: 'true'
-    cloudflare_remove_existing: 'true'
+    cloudflare_proxy: false
+    cloudflare_solo: true
+    cloudflare_remove_existing: true
 ```
 
 Above, variables from the common task are replaced with relevant values required to create a DNS record for my Obsidian container running on my local server. However, you can create loops to handle as many services as you require:
@@ -99,9 +99,9 @@ Above, variables from the common task are replaced with relevant values required
     cloudflare_record: '@'
     cloudflare_type: '{{ item.type }}'
     cloudflare_value: '{{ item.value }}'
-    cloudflare_proxy: 'false'
-    cloudflare_solo: 'false'
-    cloudflare_remove_existing: 'false'
+    cloudflare_proxy: false
+    cloudflare_solo: false
+    cloudflare_remove_existing: false
   loop:
     - { type: 'A', value: '185.199.108.153' }
     - { type: 'A', value: '185.199.109.153' }
@@ -129,8 +129,8 @@ I create directories required by roles with the `ansible.builtin.file` module:
 - name: Create directories
   ansible.builtin.file:
     path: '{{ item }}'
-    state: 'directory'
-    force: 'false'
+    state: directory
+    force: false
     owner: '{{ puid }}'
     group: '{{ pgid }}'
     mode: '0755'
@@ -147,7 +147,7 @@ I create directories required by roles with the `ansible.builtin.file` module:
 
 ```
 
-For most roles, only directory names differ, but sometimes I'll need different permissions:
+Sometimes I'll need different permissions for directories in the loop:
 
 ```yaml
 
@@ -156,8 +156,8 @@ For most roles, only directory names differ, but sometimes I'll need different p
 - name: Create directories
   ansible.builtin.file:
     path: '{{ item.path }}'
-    state: 'directory'
-    force: 'false'
+    state: directory
+    force: false
     owner: '{{ item.owner }}'
     group: '{{ item.group }}'
     mode: '0755'
@@ -172,7 +172,7 @@ For most roles, only directory names differ, but sometimes I'll need different p
 
 Above, I use the Bitnami Redis container, which requires 1001/1001 permissions.
 
-The `builtin.file` module is also useful in cases where you need to 'touch' a file:
+The `builtin.file` module is also useful when you need to 'touch' a file:
 
 ```yaml
 
@@ -181,8 +181,8 @@ The `builtin.file` module is also useful in cases where you need to 'touch' a fi
 - name: Touch acme.json
   ansible.builtin.file:
     path: '{{ traefik_location }}/acme.json'
-    state: 'touch'
-    force: 'false'
+    state: touch
+    force: false
     owner: '{{ puid }}'
     group: '{{ pgid }}'
     mode: '0600'
@@ -254,7 +254,7 @@ A simple task to copy files from one directory to another. I typically use this 
   vars:
     copy_source: '{{ item.source }}'
     copy_destination: '{{ item.destination }}'
-    copy_force: 'true'
+    copy_force: true
     copy_owner: '{{ puid }}'
     copy_group: '{{ pgid }}'
     copy_mode: '0644'
@@ -627,12 +627,224 @@ The `mysql_db` module will ping and create databases in a single task:
     login_user: 'root'
     login_password: '{{ mariadb_password }}'
     login_port: '{{ mariadb_ports_host }}'
-    name: 'wordpress'
+    name: wordpress
     state: present
 
 ```
 
 **Note:** Requires an existing MariaDB instance to be present and running.
 
+***
+
+## Docker
+
+***
+
+I use Ansible to automate important Docker tasks:
+
+***
+
+### Docker Containers
+
+***
+
+Removing individual containers using the `docker_container` module:
+
+```yaml
+
+  ## role/tasks/main.yml
+
+- name: remove existing container
+  community.docker.docker_container:
+    container_default_behavior: compatibility
+    name: '{{ radarr_name }}'
+    state: absent
+    stop_timeout: 10
+  register: remove_radarr_docker
+  retries: 5
+  delay: 10
+  until: remove_radarr_docker is succeeded
+
+```
+
+Creating containers using the same module:
+
+```yaml
+
+  ## role/tasks/main.yml
+
+- name: Create radarr container
+  community.docker.docker_container:
+    name: '{{ radarr_name }}'
+    image: '{{ radarr_image_repo }}:{{ radarr_image_tag }}'
+    networks: '{{ network_overlay }}'
+    env:
+      PUID: '{{ puid }}'
+      PGID: '{{ pgid }}'
+      TZ: '{{ timezone }}'
+      TP_SCHEME: 'http'
+      TP_DOMAIN: '{{ themepark_domain }}'
+      TP_HOTIO: 'true'
+      TP_THEME: '{{ themepark_theme }}'
+    labels: '{{ radarr_labels }}'
+    ports:
+      - '{{ radarr_ports_host }}:{{ radarr_ports_cont }}'
+    volumes:
+      - '{{ radarr_location }}:/config'
+      - '{{ themes_location }}/98-themepark-radarr:/etc/cont-init.d/98-themepark'
+      - '/mnt:/mnt'
+      - '{{ torrents_volume }}:{{ torrents_volume_mount_path }}'
+    restart_policy: '{{ radarr_restart_policy }}'
+
+```
+
+***
+
+### Docker Compose
+
+***
+
+Compose down using the `docker_compose_v2` module:
+
+```yaml
+
+  ## role/tasks/main.yml
+
+- name: Check if VPN compose exists
+  ansible.builtin.stat:
+    path: /opt/vpn-compose.yml
+  register: vpn_compose_yaml
+
+- name: VPN compose down
+  when: vpn_compose_yaml.stat.exists
+  community.docker.docker_compose_v2:
+    project_src: /opt
+    files: vpn-compose.yml
+    state: absent
+
+- name: Remove vpn-compose file
+  when: vpn_compose_yaml.stat.exists
+  ansible.builtin.file:
+    path: /opt/vpn-compose.yml
+    state: absent
+
+```
+
+Compose up using the same module:
+
+```yaml
+
+  ## role/tasks/main.yml
+
+- name: Import VPN compose file
+  ansible.builtin.template:
+    src: '{{ role_path }}/templates/vpn-compose.yml.j2'
+    dest: /opt/vpn-compose.yml
+    force: true
+    owner: '{{ puid }}'
+    group: '{{ pgid }}'
+    mode: '0664'
+
+- name: VPN compose up
+  community.docker.docker_compose_v2:
+    project_src: /opt
+    files: vpn-compose.yml
+    state: present
+
+```
+
+***
+
+### Docker Stacks
+
+***
+
+Docker stack down using the `docker_stack` module:
+
+```yaml
+
+  ## role/tasks/main.yml
+
+- name: Remove arrs stack
+  community.docker.docker_stack:
+    name: arrs
+    state: absent
+
+- name: Remove arrs-stack file
+  ansible.builtin.file:
+    path: /opt/arrs-stack.yml
+    state: absent
+
+```
+
+Stack deploy using the same module:
+
+```yaml
+
+  ## role/tasks/main.yml
+
+- name: Import arrs-stack file
+  ansible.builtin.template:
+    src: '{{ role_path }}/templates/arrs-stack.yml.j2'
+    dest: /opt/arrs-stack.yml
+    force: true
+    owner: '{{ puid }}'
+    group: '{{ pgid }}'
+    mode: '0664'
+
+- name: Deploy arrs stack
+  community.docker.docker_stack:
+    state: present
+    name: arrs
+    compose:
+      - /opt/arrs-stack.yml
+
+```
+
+***
+
+### Docker Secrets
+
+***
+
+I let Ansible handle the creation of Docker Secrets:
+
+```yaml
+
+  ## role/tasks/main.yml
+
+- name: Prepare docker secrets
+  community.docker.docker_secret:
+    name: '{{ item.name }}'
+    data: '{{ item.secret }}'
+    state: present
+    force: false
+  loop:
+    - { name: 'authelia_redis_secret', secret: '{{ authelia_redis_key }}' }
+    - { name: 'postgres_pass_secret', secret: '{{ postgres_password }}' }
+
+```
+
+Then it is as simple as referring to them in your compose file:
+
+```yaml
+
+services:
+  {{ authelia_name }}:
+    environment:
+      AUTHELIA_SESSION_REDIS_PASSWORD_FILE: /run/secrets/authelia_redis_secret
+      AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE: /run/secrets/postgres_pass_secret
+    secrets:
+      - authelia_redis_secret
+      - postgres_pass_secret
+
+secrets:
+  authelia_redis_secret:
+    external: true
+
+  postgres_pass_secret:
+    external: true
+
+```
 
 <script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="lebowski89" data-description="Support me on Buy me a coffee!" data-message="Support Me" data-color="#5F7FFF" data-position="Right" data-x_margin="18" data-y_margin="18"></script>

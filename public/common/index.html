@@ -189,7 +189,7 @@ Multiple (3&#43;) common tasks defined in a file in a common tasks folder (exter
   <h1 class="post-title">
     <a href="http://localhost:1313/common/">Handling common tasks within Ansible</a>
   </h1>
-  <div class="post-meta"><span class="post-reading-time">11 min read (2212 words)</span></div>
+  <div class="post-meta"><span class="post-reading-time">13 min read (2591 words)</span></div>
 
   
   
@@ -210,6 +210,14 @@ Multiple (3&#43;) common tasks defined in a file in a common tasks folder (exter
     <li><a href="#traefik-labels">Traefik Labels</a></li>
     <li><a href="#postgres-database">Postgres Database</a></li>
     <li><a href="#mariadb-database">MariaDB Database</a></li>
+    <li><a href="#docker">Docker</a>
+      <ul>
+        <li><a href="#docker-containers">Docker Containers</a></li>
+        <li><a href="#docker-compose">Docker Compose</a></li>
+        <li><a href="#docker-stacks">Docker Stacks</a></li>
+        <li><a href="#docker-secrets">Docker Secrets</a></li>
+      </ul>
+    </li>
   </ul>
 </nav>
     </div>
@@ -276,9 +284,9 @@ Multiple (3&#43;) common tasks defined in a file in a common tasks folder (exter
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_record</span>: <span style="color:#e6db74">&#39;{{ obsidian_name }}&#39;</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_type</span>: <span style="color:#e6db74">&#39;A&#39;</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_value</span>: <span style="color:#e6db74">&#39;{{ ipify_public_ip }}&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_proxy</span>: <span style="color:#e6db74">&#39;false&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_solo</span>: <span style="color:#e6db74">&#39;true&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_remove_existing</span>: <span style="color:#e6db74">&#39;true&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_proxy</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_solo</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_remove_existing</span>: <span style="color:#66d9ef">true</span>
 </span></span></code></pre></div><p>Above, variables from the common task are replaced with relevant values required to create a DNS record for my Obsidian container running on my local server. However, you can create loops to handle as many services as you require:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e">## role/tasks/main.yml</span>
@@ -290,9 +298,9 @@ Multiple (3&#43;) common tasks defined in a file in a common tasks folder (exter
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_record</span>: <span style="color:#e6db74">&#39;@&#39;</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_type</span>: <span style="color:#e6db74">&#39;{{ item.type }}&#39;</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_value</span>: <span style="color:#e6db74">&#39;{{ item.value }}&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_proxy</span>: <span style="color:#e6db74">&#39;false&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_solo</span>: <span style="color:#e6db74">&#39;false&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_remove_existing</span>: <span style="color:#e6db74">&#39;false&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_proxy</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_solo</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_remove_existing</span>: <span style="color:#66d9ef">false</span>
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">loop</span>:
 </span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">type: &#39;A&#39;, value</span>: <span style="color:#e6db74">&#39;185.199.108.153&#39;</span> }
 </span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">type: &#39;A&#39;, value</span>: <span style="color:#e6db74">&#39;185.199.109.153&#39;</span> }
@@ -312,8 +320,8 @@ Multiple (3&#43;) common tasks defined in a file in a common tasks folder (exter
 </span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Create directories</span>
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.file</span>:
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ item }}&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#e6db74">&#39;directory&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">force</span>: <span style="color:#e6db74">&#39;false&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">directory</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">force</span>: <span style="color:#66d9ef">false</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">owner</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">group</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">mode</span>: <span style="color:#e6db74">&#39;0755&#39;</span>
@@ -327,15 +335,15 @@ Multiple (3&#43;) common tasks defined in a file in a common tasks folder (exter
 </span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ sonarr_location }}&#39;</span>
 </span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ sonarr_4k_location }}&#39;</span>
 </span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ whisparr_location }}&#39;</span>
-</span></span></code></pre></div><p>For most roles, only directory names differ, but sometimes I&rsquo;ll need different permissions:</p>
+</span></span></code></pre></div><p>Sometimes I&rsquo;ll need different permissions for directories in the loop:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e">## role/tasks/main.yml</span>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Create directories</span>
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.file</span>:
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ item.path }}&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#e6db74">&#39;directory&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">force</span>: <span style="color:#e6db74">&#39;false&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">directory</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">force</span>: <span style="color:#66d9ef">false</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">owner</span>: <span style="color:#e6db74">&#39;{{ item.owner }}&#39;</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">group</span>: <span style="color:#e6db74">&#39;{{ item.group }}&#39;</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">mode</span>: <span style="color:#e6db74">&#39;0755&#39;</span>
@@ -346,15 +354,15 @@ Multiple (3&#43;) common tasks defined in a file in a common tasks folder (exter
 </span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ traefik_location }}&#39;</span><span style="color:#f92672">, owner</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span><span style="color:#f92672">, group</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span> }
 </span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ traefik_logs_location }}&#39;</span><span style="color:#f92672">, owner</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span><span style="color:#f92672">, group</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span> }
 </span></span></code></pre></div><p>Above, I use the Bitnami Redis container, which requires 1001/1001 permissions.</p>
-<p>The <code>builtin.file</code> module is also useful in cases where you need to &rsquo;touch&rsquo; a file:</p>
+<p>The <code>builtin.file</code> module is also useful when you need to &rsquo;touch&rsquo; a file:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e">## role/tasks/main.yml</span>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Touch acme.json</span>
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.file</span>:
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ traefik_location }}/acme.json&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#e6db74">&#39;touch&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">force</span>: <span style="color:#e6db74">&#39;false&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">touch</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">force</span>: <span style="color:#66d9ef">false</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">owner</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">group</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">mode</span>: <span style="color:#e6db74">&#39;0600&#39;</span>
@@ -410,7 +418,7 @@ Multiple (3&#43;) common tasks defined in a file in a common tasks folder (exter
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">vars</span>:
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">copy_source</span>: <span style="color:#e6db74">&#39;{{ item.source }}&#39;</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">copy_destination</span>: <span style="color:#e6db74">&#39;{{ item.destination }}&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">copy_force</span>: <span style="color:#e6db74">&#39;true&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">copy_force</span>: <span style="color:#66d9ef">true</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">copy_owner</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">copy_group</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">copy_mode</span>: <span style="color:#e6db74">&#39;0644&#39;</span>
@@ -727,10 +735,167 @@ Multiple (3&#43;) common tasks defined in a file in a common tasks folder (exter
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">login_user</span>: <span style="color:#e6db74">&#39;root&#39;</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">login_password</span>: <span style="color:#e6db74">&#39;{{ mariadb_password }}&#39;</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">login_port</span>: <span style="color:#e6db74">&#39;{{ mariadb_ports_host }}&#39;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#39;wordpress&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">name</span>: <span style="color:#ae81ff">wordpress</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">present</span>
 </span></span></code></pre></div><p><strong>Note:</strong> Requires an existing MariaDB instance to be present and running.</p>
-<script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="lebowski89" data-description="Support me on Buy me a coffee!" data-message="Support Me" data-color="#5F7FFF" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
+<hr>
+<h2 id="docker">Docker<a href="#docker" class="hanchor" ariaLabel="Anchor">#</a> </h2>
+<hr>
+<p>I use Ansible to automate important Docker tasks:</p>
+<hr>
+<h3 id="docker-containers">Docker Containers<a href="#docker-containers" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<hr>
+<p>Removing individual containers using the <code>docker_container</code> module:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## role/tasks/main.yml</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">remove existing container</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.docker.docker_container</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">container_default_behavior</span>: <span style="color:#ae81ff">compatibility</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#39;{{ radarr_name }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">absent</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">stop_timeout</span>: <span style="color:#ae81ff">10</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">register</span>: <span style="color:#ae81ff">remove_radarr_docker</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">retries</span>: <span style="color:#ae81ff">5</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">delay</span>: <span style="color:#ae81ff">10</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">until</span>: <span style="color:#ae81ff">remove_radarr_docker is succeeded</span>
+</span></span></code></pre></div><p>Creating containers using the same module:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## role/tasks/main.yml</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Create radarr container</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.docker.docker_container</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#39;{{ radarr_name }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">image</span>: <span style="color:#e6db74">&#39;{{ radarr_image_repo }}:{{ radarr_image_tag }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">networks</span>: <span style="color:#e6db74">&#39;{{ network_overlay }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">env</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">PUID</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">PGID</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TZ</span>: <span style="color:#e6db74">&#39;{{ timezone }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TP_SCHEME</span>: <span style="color:#e6db74">&#39;http&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TP_DOMAIN</span>: <span style="color:#e6db74">&#39;{{ themepark_domain }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TP_HOTIO</span>: <span style="color:#e6db74">&#39;true&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TP_THEME</span>: <span style="color:#e6db74">&#39;{{ themepark_theme }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">labels</span>: <span style="color:#e6db74">&#39;{{ radarr_labels }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">ports</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#e6db74">&#39;{{ radarr_ports_host }}:{{ radarr_ports_cont }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">volumes</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#e6db74">&#39;{{ radarr_location }}:/config&#39;</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#e6db74">&#39;{{ themes_location }}/98-themepark-radarr:/etc/cont-init.d/98-themepark&#39;</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#e6db74">&#39;/mnt:/mnt&#39;</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#e6db74">&#39;{{ torrents_volume }}:{{ torrents_volume_mount_path }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">restart_policy</span>: <span style="color:#e6db74">&#39;{{ radarr_restart_policy }}&#39;</span>
+</span></span></code></pre></div><hr>
+<h3 id="docker-compose">Docker Compose<a href="#docker-compose" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<hr>
+<p>Compose down using the <code>docker_compose_v2</code> module:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## role/tasks/main.yml</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Check if VPN compose exists</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.stat</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#ae81ff">/opt/vpn-compose.yml</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">register</span>: <span style="color:#ae81ff">vpn_compose_yaml</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">VPN compose down</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">when</span>: <span style="color:#ae81ff">vpn_compose_yaml.stat.exists</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.docker.docker_compose_v2</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">project_src</span>: <span style="color:#ae81ff">/opt</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">files</span>: <span style="color:#ae81ff">vpn-compose.yml</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">absent</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Remove vpn-compose file</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">when</span>: <span style="color:#ae81ff">vpn_compose_yaml.stat.exists</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.file</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#ae81ff">/opt/vpn-compose.yml</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">absent</span>
+</span></span></code></pre></div><p>Compose up using the same module:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## role/tasks/main.yml</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Import VPN compose file</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.template</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">src</span>: <span style="color:#e6db74">&#39;{{ role_path }}/templates/vpn-compose.yml.j2&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">dest</span>: <span style="color:#ae81ff">/opt/vpn-compose.yml</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">force</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">owner</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">group</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">mode</span>: <span style="color:#e6db74">&#39;0664&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">VPN compose up</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.docker.docker_compose_v2</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">project_src</span>: <span style="color:#ae81ff">/opt</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">files</span>: <span style="color:#ae81ff">vpn-compose.yml</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">present</span>
+</span></span></code></pre></div><hr>
+<h3 id="docker-stacks">Docker Stacks<a href="#docker-stacks" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<hr>
+<p>Docker stack down using the <code>docker_stack</code> module:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## role/tasks/main.yml</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Remove arrs stack</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.docker.docker_stack</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">name</span>: <span style="color:#ae81ff">arrs</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">absent</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Remove arrs-stack file</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.file</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#ae81ff">/opt/arrs-stack.yml</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">absent</span>
+</span></span></code></pre></div><p>Stack deploy using the same module:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## role/tasks/main.yml</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Import arrs-stack file</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.template</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">src</span>: <span style="color:#e6db74">&#39;{{ role_path }}/templates/arrs-stack.yml.j2&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">dest</span>: <span style="color:#ae81ff">/opt/arrs-stack.yml</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">force</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">owner</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">group</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">mode</span>: <span style="color:#e6db74">&#39;0664&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Deploy arrs stack</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.docker.docker_stack</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">present</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">name</span>: <span style="color:#ae81ff">arrs</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">compose</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">/opt/arrs-stack.yml</span>
+</span></span></code></pre></div><hr>
+<h3 id="docker-secrets">Docker Secrets<a href="#docker-secrets" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<hr>
+<p>I let Ansible handle the creation of Docker Secrets:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## role/tasks/main.yml</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Prepare docker secrets</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.docker.docker_secret</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#39;{{ item.name }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">data</span>: <span style="color:#e6db74">&#39;{{ item.secret }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">present</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">force</span>: <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">loop</span>:
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">name: &#39;authelia_redis_secret&#39;, secret</span>: <span style="color:#e6db74">&#39;{{ authelia_redis_key }}&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">name: &#39;postgres_pass_secret&#39;, secret</span>: <span style="color:#e6db74">&#39;{{ postgres_password }}&#39;</span> }
+</span></span></code></pre></div><p>Then it is as simple as referring to them in your compose file:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">services</span>:
+</span></span><span style="display:flex;"><span>  {{ <span style="color:#f92672">authelia_name }}</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">environment</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">AUTHELIA_SESSION_REDIS_PASSWORD_FILE</span>: <span style="color:#ae81ff">/run/secrets/authelia_redis_secret</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE</span>: <span style="color:#ae81ff">/run/secrets/postgres_pass_secret</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">secrets</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">authelia_redis_secret</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">postgres_pass_secret</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">secrets</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">authelia_redis_secret</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">external</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">postgres_pass_secret</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">external</span>: <span style="color:#66d9ef">true</span>
+</span></span></code></pre></div><script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="lebowski89" data-description="Support me on Buy me a coffee!" data-message="Support Me" data-color="#5F7FFF" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
       </div></div>
 
   
