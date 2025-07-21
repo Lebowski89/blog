@@ -78,7 +78,7 @@ I include my arrs services in a role that gets included during the play:
 
 ([Background Information](https://drjoyce.blog/roles/#group_vars))
 
-Here I define variables for service name, image repo/tag, ports and location.
+Here I define variables for service name, image repo/tag, ports and location:
 
 ```yaml
 
@@ -208,7 +208,8 @@ whisparr_api: 'SomeAPIKey'
 
 ***
 
-The majority of tasks occur here.
+([Background Information](https://drjoyce.blog/roles/#roletasks))
+
 
 ***
 
@@ -216,9 +217,11 @@ The majority of tasks occur here.
 
 ***
 
-To be safe, and to make sure changes apply, I first down existing running arrs services:
+I first down existing running arrs services:
 
 ```yaml
+
+  ## /ansible/roles/arrs/tasks/main.yml
 
 ################################
 # CLEAN UP
@@ -254,6 +257,8 @@ For those wishing to use Postgres, these folders are simply used to hold configs
 # DIRECTORIES
 ################################
 
+  ## /ansible/roles/arrs/tasks/main.yml
+
 - name: Create directories
   ansible.builtin.file:
     path: '{{ item }}'
@@ -281,9 +286,11 @@ For those wishing to use Postgres, these folders are simply used to hold configs
 
 ***
 
-After the directories are created, I then template configs for each arrs service.
+After the directories are created, I then template configs for each arrs service:
 
 ```yaml
+
+  ## /ansible/roles/arrs/tasks/main.yml
 
 ################################
 # TEMPLATES
@@ -328,6 +335,7 @@ All arrs, except Bazarr, use the same config template:
 ```xml
 
   ## /ansible/roles/arrs/templates/configs/arrs_config.xml.j2
+  ## The config is edited in later tasks
 
 <Config>
   <BindAddress>*</BindAddress>
@@ -348,8 +356,6 @@ All arrs, except Bazarr, use the same config template:
 </Config>
 
 ```
-
-The config is edited in subsequent tasks to adapt to the respective service using it.
 
 Bazarr has its own config and is templated with desired variables here:
 
@@ -618,4 +624,879 @@ xsubs:
 
 ```
 
-Deploy
+***
+
+### Configs
+
+***
+
+Next, I include config sub-tasks to edit the arrs config for each service:
+
+```yaml
+
+  ## /ansible/roles/arrs/tasks/main.yml
+
+################################
+# CONFIGS
+################################
+
+- name: Conduct config tasks
+  ansible.builtin.include_tasks: sub_tasks/config.yml
+  vars:
+    config_api: '{{ item.api }}'
+    config_location: '{{ item.location }}'
+    config_name: '{{ item.name }}'
+    config_port: '{{ item.port }}'
+  loop:
+    - { api: '{{ lidarr_api }}', location: '{{ lidarr_location }}', name: '{{ lidarr_name }}', port: '{{ lidarr_ports_cont }}' }
+    - { api: '{{ prowlarr_api }}', location: '{{ prowlarr_location }}', name: '{{ prowlarr_name }}', port: '{{ prowlarr_ports_cont }}' }
+    - { api: '{{ radarr_api }}', location: '{{ radarr_location }}', name: '{{ radarr_name }}', port: '{{ radarr_ports_cont }}' }
+    - { api: '{{ radarr_4k_api }}', location: '{{ radarr_4k_location }}', name: '{{ radarr_4k_name }}', port: '{{ radarr_4k_ports_cont }}' }
+    - { api: '{{ sonarr_api }}', location: '{{ sonarr_location }}', name: '{{ sonarr_name }}', port: '{{ sonarr_ports_cont }}' }
+    - { api: '{{ sonarr_4k_api }}', location: '{{ sonarr_4k_location }}', name: '{{ sonarr_4k_name }}', port: '{{ sonarr_4k_ports_cont }}' }
+    - { api: '{{ whisparr_api }}', location: '{{ whisparr_location }}', name: '{{ whisparr_name }}', port: '{{ whisparr_ports_cont }}' }
+
+```
+
+These sub-tasks set the API, instance name and port for each arrs config:
+
+```yaml
+
+  ## /ansible/roles/arrs/tasks/sub_tasks/config.yml
+
+- name: Conduct config tasks
+  block:
+    - name: Lookup Apikey value
+      community.general.xml:
+        path: '{{ config_location }}/config.xml'
+        xpath: /Config/ApiKey
+        content: text
+      register: arrs_xml_api
+
+    - name: Insert existing api key
+      when: (arrs_xml_api.matches[0].ApiKey is defined) and (arrs_xml_api.matches[0].ApiKey != config_api)
+      community.general.xml:
+        path: '{{ config_location }}/config.xml'
+        xpath: /Config/ApiKey
+        value: '{{ config_api }}'
+
+    - name: Lookup Port value
+      community.general.xml:
+        path: '{{ config_location }}/config.xml'
+        xpath: /Config/Port
+        content: text
+      register: arrs_xml_port
+
+    - name: Insert Port
+      when: (arrs_xml_port.matches[0].Port is defined) and (arrs_xml_port.matches[0].Port != config_port)
+      community.general.xml:
+        path: '{{ config_location }}/config.xml'
+        xpath: /Config/Port
+        value: '{{ config_port }}'
+
+    - name: Lookup InstanceName value
+      community.general.xml:
+        path: '{{ config_location }}/config.xml'
+        xpath: /Config/InstanceName
+        content: text
+      register: arrs_xml_instance
+
+    - name: Insert InstanceName
+      when: (arrs_xml_instance.matches[0].InstanceName is defined) and (arrs_xml_instance.matches[0].InstanceName != config_name)
+      community.general.xml:
+        path: '{{ config_location }}/config.xml'
+        xpath: /Config/InstanceName
+        value: '{{ config_name }}'
+
+    - name: Lookup AuthenticationMethod value
+      community.general.xml:
+        path: '{{ config_location }}/config.xml'
+        xpath: /Config/AuthenticationMethod
+        content: text
+      register: arrs_xml_external
+
+    - name: Change auth method to external
+      when: ((arrs_xml_external.matches[0].AuthenticationMethod is defined) and (arrs_xml_external.matches[0].AuthenticationMethod != 'External'))
+      community.general.xml:
+        path: '{{ config_location }}/config.xml'
+        xpath: /Config/AuthenticationMethod
+        value: External
+
+```
+
+Additionally, I set the auth method to external. Note:
+   - I protect each instance with a SSO (single-sign-on) provider (Authelia), and the built-in login is redundant
+   - Do not do this if you're exposing your services (i.e, via reverse proxy) and you don't have a SSO provider.
+
+***
+
+### Postgres
+
+***
+
+I opt for Postgres databases for all my arrs services.
+
+The first step is to include the postgres common tasks:
+
+([See here for Postgres common-tasks overview](https://drjoyce.blog/common/#postgres))
+
+```yaml
+
+  ## /ansible/roles/arrs/tasks/main.yml
+
+################################
+# POSTGRES (DATABASE)
+################################
+
+- name: Conduct Postgres DB tasks
+  ansible.builtin.include_tasks: /ansible/common/postgres.yml
+  vars:
+    postgres_database: '{{ item }}'
+  loop:
+    - 'bazarr'
+    - 'lidarr-main'
+    - 'lidarr-log'
+    - 'prowlarr-main'
+    - 'prowlarr-log'
+    - 'radarr-main'
+    - 'radarr-log'
+    - 'radarr-4k-main'
+    - 'radarr-4k-log'
+    - 'sonarr-main'
+    - 'sonarr-log'
+    - 'sonarr-4k-main'
+    - 'sonarr-4k-log'
+    - 'whisparr-main-v3'
+    - 'whisparr-log-v3'
+
+```
+
+I then include sub-tasks to edit the arrs configs with the relevant Postgres variables:
+
+```yaml
+
+  ## /ansible/roles/arrs/tasks/main.yml
+
+################################
+# POSTGRES (CONFIG)
+################################
+
+- name: Conduct Postgres config tasks
+  ansible.builtin.include_tasks: sub_tasks/postgres.yml
+  vars:
+    arrs_config_location: '{{ item.location }}'
+    arrs_log_db: '{{ item.logdb }}'
+    arrs_main_db: '{{ item.maindb }}'
+  loop:
+    - { location: '{{ lidarr_location }}', logdb: 'lidarr-log', maindb: 'lidarr-main' }
+    - { location: '{{ prowlarr_location }}', logdb: 'prowlarr-log', maindb: 'prowlarr-main' }
+    - { location: '{{ radarr_location }}', logdb: 'radarr-log', maindb: 'radarr-main' }
+    - { location: '{{ radarr_4k_location }}', logdb: 'radarr-4k-log', maindb: 'radarr-4k-main' }
+    - { location: '{{ sonarr_location }}', logdb: 'sonarr-log', maindb: 'sonarr-main', cachedb: '' }
+    - { location: '{{ sonarr_4k_location }}', logdb: 'sonarr-4k-log', maindb: 'sonarr-4k-main' }
+    - { location: '{{ whisparr_location }}', logdb: 'whisparr-log-v3', maindb: 'whisparr-main-v3' }
+
+```
+
+```yaml
+
+  ## /ansible/roles/arrs/tasks/sub_tasks/postgres.yml
+
+- name: Lookup PostgresUser value
+  community.general.xml:
+    path: '{{ arrs_config_location }}/config.xml'
+    xpath: /Config/PostgresUser
+    print_match: true
+  register: arrs_xml_postgresuser
+
+- name: Lookup PostgresPassword value
+  community.general.xml:
+    path: '{{ arrs_config_location }}/config.xml'
+    xpath: /Config/PostgresPassword
+    print_match: true
+  register: arrs_xml_postgrespassword
+
+- name: Lookup PostgresPort value
+  community.general.xml:
+    path: '{{ arrs_config_location }}/config.xml'
+    xpath: /Config/PostgresPort
+    print_match: true
+  register: arrs_xml_postgresport
+
+- name: Lookup PostgresHost value
+  community.general.xml:
+    path: '{{ arrs_config_location }}/config.xml'
+    xpath: /Config/PostgresHost
+    print_match: true
+  register: arrs_xml_postgreshost
+
+- name: Lookup PostgresMainDb value
+  community.general.xml:
+    path: '{{ arrs_config_location }}/config.xml'
+    xpath: /Config/PostgresMainDb
+    print_match: true
+  register: arrs_xml_postgresmaindb
+
+- name: Lookup PostgresLogDb value
+  community.general.xml:
+    path: '{{ arrs_config_location }}/config.xml'
+    xpath: /Config/PostgresLogDb
+    print_match: true
+  register: arrs_xml_postgreslogdb
+
+- name: Add PostgresUser
+  when: ((arrs_xml_postgresuser.matches[0].PostgresUser is not defined) or
+         (arrs_xml_postgresuser.matches[0].PostgresUser != postgres_username))
+  community.general.xml:
+    path: '{{ arrs_config_location }}/config.xml'
+    pretty_print: true
+    xpath: /Config/PostgresUser
+    value: '{{ postgres_username }}'
+
+- name: Add PostgresPassword
+  when: ((arrs_xml_postgrespassword.matches[0].PostgresPassword is not defined) or
+         (arrs_xml_postgrespassword.matches[0].PostgresPassword != postgres_password))
+  community.general.xml:
+    path: '{{ arrs_config_location }}/config.xml'
+    pretty_print: true
+    xpath: /Config/PostgresPassword
+    value: '{{ postgres_password }}'
+
+- name: Add PostgresPort
+  when: ((arrs_xml_postgresport.matches[0].PostgresPort is not defined) or
+         (arrs_xml_postgresport.matches[0].PostgresPort != postgres_ports_cont))
+  community.general.xml:
+    path: '{{ arrs_config_location }}/config.xml'
+    pretty_print: true
+    xpath: /Config/PostgresPort
+    value: '{{ postgres_ports_cont }}'
+
+- name: Add PostgresHost
+  when: ((arrs_xml_postgreshost.matches[0].PostgresHost is not defined) or
+         (arrs_xml_postgreshost.matches[0].PostgresHost != postgres_name))
+  community.general.xml:
+    path: '{{ arrs_config_location }}/config.xml'
+    pretty_print: true
+    xpath: /Config/PostgresHost
+    value: '{{ postgres_name }}'
+
+- name: Add PostgresMainDb
+  when: ((arrs_xml_postgresmaindb.matches[0].PostgresMainDb is not defined) or
+         (arrs_xml_postgresmaindb.matches[0].PostgresMainDb != arrs_main_db))
+  community.general.xml:
+    path: '{{ arrs_config_location }}/config.xml'
+    pretty_print: true
+    xpath: /Config/PostgresMainDb
+    value: '{{ arrs_main_db }}'
+
+- name: Add PostgresLogDb
+  when: ((arrs_xml_postgreslogdb.matches[0].PostgresLogDb is not defined) or
+         (arrs_xml_postgreslogdb.matches[0].PostgresLogDb != arrs_log_db))
+  community.general.xml:
+    path: '{{ arrs_config_location }}/config.xml'
+    pretty_print: true
+    xpath: /Config/PostgresLogDb
+    value: '{{ arrs_log_db }}'
+
+```
+
+Lastly, I include tasks to remove any sqlite databases in the arrs appdata directories:
+
+```yaml
+
+  ## /ansible/roles/arrs/tasks/main.yml
+
+################################
+# POSTGRES (CLEAN UP)
+################################
+
+- name: Remove sqlite files
+  ansible.builtin.include_tasks: sub_tasks/sqlite.yml
+  vars:
+    sqlite_location: '{{ item.location }}'
+    sqlite_name: '{{ item.name }}'
+    backups_location: '{{ item.backups }}'
+  loop:
+    - { location: '{{ bazarr_location }}/db', name: 'bazarr', backups: '{{ bazarr_location }}/backup' }
+    - { location: '{{ lidarr_location }}', name: 'lidarr', backups: '{{ lidarr_location }}/Backups' }
+    - { location: '{{ prowlarr_location }}', name: 'prowlarr', backups: '{{ prowlarr_location }}/Backups' }
+    - { location: '{{ radarr_location }}', name: 'radarr', backups: '{{ radarr_location }}/Backups' }
+    - { location: '{{ radarr_4k_location }}', name: 'radarr', backups: '{{ radarr_4k_location }}/Backups' }
+    - { location: '{{ sonarr_location }}', name: 'sonarr', backups: '{{ sonarr_location }}/Backups' }
+    - { location: '{{ sonarr_4k_location }}', name: 'sonarr', backups: '{{ sonarr_4k_location }}/Backups' }
+    - { location: '{{ whisparr_location }}', name: 'whisparr', backups: '{{ whisparr_location }}/Backups' }
+
+```
+
+```yaml
+
+  ## /ansible/roles/arrs/tasks/sub_tasks/sqlite.yml
+
+- name: Remove sqlite files
+  ansible.builtin.file:
+    path: '{{ item }}'
+    state: absent
+  loop:
+    - '{{ sqlite_location }}/logs.db'
+    - '{{ sqlite_location }}/logs.db-shm'
+    - '{{ sqlite_location }}/logs.db-wal'
+    - '{{ sqlite_location }}/{{ sqlite_name }}.db'
+    - '{{ sqlite_location }}/{{ sqlite_name }}.db-shm'
+    - '{{ sqlite_location }}/{{ sqlite_name }}.db-wal'
+
+- name: Remove sqlite backups folders
+  ansible.builtin.file:
+    path: '{{ backups_location }}'
+    state: absent
+
+```
+
+**Note:**
+   - I'm okay with deleting any sqlite database found because I've already fully migrated to Postgres
+   - The only time an sqlite database would be found in my arrs directories is if issues occured during an Ansible run.
+
+***
+
+### Cloudflare DNS
+
+***
+
+To prepare for reverse proxy access, I create DNS records for each service:
+
+([See here for Cloudflare DNS common-tasks overview](https://drjoyce.blog/common/#cloudflare-dns))
+
+```yaml
+
+  ## /ansible/roles/arrs/tasks/main.yml
+
+################################
+# CLOUDFLARE
+################################
+
+- name: Add DNS records
+  ansible.builtin.include_tasks: /ansible/common/cloudflare.yml
+  vars:
+    cloudflare_domain: '{{ local_domain }}'
+    cloudflare_record: '{{ item }}'
+    cloudflare_type: 'A'
+    cloudflare_value: '{{ ipify_public_ip }}'
+    cloudflare_proxy: 'false'
+    cloudflare_solo: 'true'
+    cloudflare_remove_existing: 'true'
+  loop:
+    - '{{ bazarr_name }}'
+    - '{{ lidarr_name }}'
+    - '{{ prowlarr_name }}'
+    - '{{ radarr_name }}'
+    - '{{ radarr_4k_name }}'
+    - '{{ sonarr_name }}'
+    - '{{ sonarr_4k_name }}'
+    - '{{ whisparr_name }}'
+
+```
+
+***
+
+### Traefik Labels
+
+***
+
+Next, I form the Traefik (reverse-proxy) labels for each service:
+
+([See here for Traefik labels common-tasks overview](https://drjoyce.blog/common/#traefik-labels))
+
+```yaml
+
+  ## /ansible/roles/arrs/tasks/main.yml
+
+################################
+# TRAEFIK
+################################
+
+- name: Set traefik Labels
+  ansible.builtin.include_tasks: /ansible/common/labels.yml
+  vars:
+    router_variable: '{{ item.var }}'
+    router_network: '{{ network_overlay }}'
+    router_name: '{{ item.name }}'
+    router_port: '{{ item.port }}'
+    router_api: '{{ item.api }}'
+    router_domain: '{{ local_domain }}'
+    router_entrypoint: 'http'
+    router_secure_entrypoint: 'https'
+    router_tls_certresolver: 'dns-cloudflare'
+    router_tls_options: 'securetls@file'
+    router_themepark_app: '{{ item.tp_app }}'
+    router_themepark_theme: 'hotpink'
+    router_http_middlewares: '{{ traefik_http_middlewares + item.sso + item.tp }}'
+    router_https_middlewares: '{{ traefik_https_middlewares + item.sso + item.tp }}'
+  loop:
+    ## bazarr
+    - { var: 'bazarr_labels', 
+        name: '{{ bazarr_name }}', 
+        port: '{{ bazarr_ports_cont }}', 
+        api: 'PathPrefix(`/api`)', 
+        sso: ',authelia@swarm', 
+        tp: ',themepark-bazarr', 
+        tp_app: 'bazarr' }
+    ## lidarr
+    - { var: 'lidarr_labels', 
+        name: '{{ lidarr_name }}', 
+        port: '{{ lidarr_ports_cont }}', 
+        api: 'PathPrefix(`/api`) || PathPrefix(`/feed`) || PathPrefix(`/ping`)', 
+        sso: ',authelia@swarm', 
+        tp: ',themepark-lidarr', 
+        tp_app: 'lidarr' }
+    ## prowlarr
+    - { var: 'prowlarr_labels', 
+        name: '{{ prowlarr_name }}', 
+        port: '{{ prowlarr_ports_cont }}', 
+        api: 'PathRegexp(`/[0-9]+/api`) || PathRegexp(`/[0-9]+/download`) || PathPrefix(`/api`) || PathPrefix(`/ping`)', 
+        sso: ',authelia@swarm', 
+        tp: ',themepark-prowlarr', 
+        tp_app: 'prowlarr' }
+    ## radarr
+    - { var: 'radarr_labels', 
+        name: '{{ radarr_name }}', 
+        port: '{{ radarr_ports_cont }}', 
+        api: 'PathPrefix(`/api`) || PathPrefix(`/feed`) || PathPrefix(`/ping`)', 
+        sso: ',authelia@swarm', 
+        tp: ',themepark-radarr', 
+        tp_app: 'radarr' }
+    ## radarr-4k
+    - { var: 'radarr_4k_labels', 
+        name: '{{ radarr_4k_name }}', 
+        port: '{{ radarr_4k_ports_cont }}', 
+        api: 'PathPrefix(`/api`) || PathPrefix(`/feed`) || PathPrefix(`/ping`)', 
+        sso: ',authelia@swarm', 
+        tp: ',themepark-radarr4k', 
+        tp_app: 'radarr' }
+    ## sonarr
+    - { var: 'sonarr_labels', 
+        name: '{{ sonarr_name }}', 
+        port: '{{ sonarr_ports_cont }}', 
+        api: 'PathPrefix(`/api`) || PathPrefix(`/feed`) || PathPrefix(`/ping`)', 
+        sso: ',authelia@swarm', 
+        tp: ',themepark-sonarr', 
+        tp_app: 'sonarr' }
+    ## sonarr-4k
+    - { var: 'sonarr_4k_labels', 
+        name: '{{ sonarr_4k_name }}', 
+        port: '{{ sonarr_4k_ports_cont }}', 
+        api: 'PathPrefix(`/api`) || PathPrefix(`/feed`) || PathPrefix(`/ping`)', 
+        sso: ',authelia@swarm', 
+        tp: ',themepark-sonarr4k', 
+        tp_app: 'sonarr' }
+    ## whisparr
+    - { var: 'whisparr_labels', 
+        name: '{{ whisparr_name }}', 
+        port: '{{ whisparr_ports_cont }}', 
+        api: 'PathPrefix(`/api`) || PathPrefix(`/feed`) || PathPrefix(`/ping`)', 
+        sso: ',authelia@swarm', 
+        tp: ',themepark-whisparr', 
+        tp_app: 'whisparr' }
+
+```
+
+***
+
+### Stack deploy
+
+***
+
+Lastly, with everything in order, it's time to deploy the stack:
+
+```yaml
+
+  ## /ansible/roles/arrs/tasks/main.yml
+
+################################
+# DEPLOY
+################################
+
+- name: Import arrs-stack file
+  ansible.builtin.template:
+    src: '{{ role_path }}/templates/arrs-stack.yml.j2'
+    dest: /opt/arrs-stack.yml
+    force: true
+    owner: '{{ puid }}'
+    group: '{{ pgid }}'
+    mode: '0664'
+
+- name: Deploy arrs stack
+  community.docker.docker_stack:
+    state: present
+    name: arrs
+    compose:
+      - /opt/arrs-stack.yml
+
+```
+
+```yaml
+
+  ## /ansible/roles/arrs/templates/arrs-stack.yml.j2
+
+services:
+  {{ bazarr_name }}:
+    image: {{ bazarr_image_repo }}:{{ bazarr_image_tag }}
+    networks:
+      - {{ network_overlay }}
+    environment:
+      PUID: '{{ puid }}'
+      PGID: '{{ pgid }}'
+      TZ: '{{ timezone }}'
+      WEBUI_PORTS: '{{ bazarr_ports_cont }}/tcp,{{ bazarr_ports_cont }}/udp'
+      TP_SCHEME: 'http'
+      TP_DOMAIN: '{{ themepark_domain }}'
+      TP_HOTIO: 'true'
+      TP_THEME: '{{ themepark_theme }}'
+    ports:
+      - target: {{ bazarr_ports_cont }}
+        published: {{ bazarr_ports_host }}
+        protocol: tcp
+        mode: ingress
+    volumes:
+      - type: bind
+        source: {{ bazarr_location }}
+        target: /config
+      - type: bind
+        source: {{ themes_location }}/98-themepark-bazarr
+        target: /etc/cont-init.d/98-themepark
+      - type: bind
+        source: /mnt
+        target: /mnt
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:{{ bazarr_ports_cont }}/login"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints: [node.labels.ansible_host == localhost]
+      labels: {{ bazarr_labels }}
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+  {{ lidarr_name }}:
+    image: {{ lidarr_image_repo }}:{{ lidarr_image_tag }}
+    networks:
+      - {{ network_overlay }}
+    environment:
+      PUID: '{{ puid }}'
+      PGID: '{{ pgid }}'
+      TZ: '{{ timezone }}'
+      TP_SCHEME: 'http'
+      TP_DOMAIN: '{{ themepark_domain }}'
+      TP_HOTIO: 'true'
+      TP_THEME: '{{ themepark_theme }}'
+    ports:
+      - target: {{ lidarr_ports_cont }}
+        published: {{ lidarr_ports_host }}
+        protocol: tcp
+        mode: ingress
+    volumes:
+      - type: bind
+        source: {{ lidarr_location }}
+        target: /config
+      - type: bind
+        source: {{ themes_location }}/98-themepark-lidarr
+        target: /etc/cont-init.d/98-themepark
+      - type: bind
+        source: /mnt
+        target: /mnt
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:{{ lidarr_ports_cont }}/login"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints: [node.labels.ansible_host == localhost]
+      labels: {{ lidarr_labels }}
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+  {{ prowlarr_name }}:
+    image: {{ prowlarr_image_repo }}:{{ prowlarr_image_tag }}
+    networks:
+      - {{ network_overlay }}
+    environment:
+      PUID: '{{ puid }}'
+      PGID: '{{ pgid }}'
+      TZ: '{{ timezone }}'
+      TP_SCHEME: 'http'
+      TP_DOMAIN: '{{ themepark_domain }}'
+      TP_HOTIO: 'true'
+      TP_THEME: '{{ themepark_theme }}'
+    ports:
+      - target: {{ prowlarr_ports_cont }}
+        published: {{ prowlarr_ports_host }}
+        protocol: tcp
+        mode: ingress
+    volumes:
+      - type: bind
+        source: {{ prowlarr_location }}
+        target: /config
+      - type: bind
+        source: {{ themes_location }}/98-themepark-prowlarr
+        target: /etc/cont-init.d/98-themepark
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:{{ prowlarr_ports_cont }}/login"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints: [node.labels.ansible_host == localhost]
+      labels: {{ prowlarr_labels }}
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+  {{ radarr_name }}:
+    image: {{ radarr_image_repo }}:{{ radarr_image_tag }}
+    networks:
+      - {{ network_overlay }}
+    environment:
+      PUID: '{{ puid }}'
+      PGID: '{{ pgid }}'
+      TZ: '{{ timezone }}'
+      TP_SCHEME: 'http'
+      TP_DOMAIN: '{{ themepark_domain }}'
+      TP_HOTIO: 'true'
+      TP_THEME: '{{ themepark_theme }}'
+    ports:
+      - target: {{ radarr_ports_cont }}
+        published: {{ radarr_ports_host }}
+        protocol: tcp
+        mode: ingress
+    volumes:
+      - type: bind
+        source: {{ radarr_location }}
+        target: /config
+      - type: bind
+        source: {{ themes_location }}/98-themepark-radarr
+        target: /etc/cont-init.d/98-themepark
+      - type: bind
+        source: /mnt
+        target: /mnt
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:{{ radarr_ports_cont }}/login"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints: [node.labels.ansible_host == localhost]
+      labels: {{ radarr_labels }}
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+  {{ radarr_4k_name }}:
+    image: {{ radarr_4k_image_repo }}:{{ radarr_4k_image_tag }}
+    networks:
+      - {{ network_overlay }}
+    environment:
+      PUID: '{{ puid }}'
+      PGID: '{{ pgid }}'
+      TZ: '{{ timezone }}'
+      TP_SCHEME: 'http'
+      TP_DOMAIN: '{{ themepark_domain }}'
+      TP_HOTIO: 'true'
+      TP_THEME: '{{ themepark_theme }}'
+    ports:
+      - target: {{ radarr_4k_ports_cont }}
+        published: {{ radarr_4k_ports_host }}
+        protocol: tcp
+        mode: ingress
+    volumes:
+      - type: bind
+        source: {{ radarr_4k_location }}
+        target: /config
+      - type: bind
+        source: {{ themes_location }}/98-themepark-radarr
+        target: /etc/cont-init.d/98-themepark
+      - type: bind
+        source: /mnt
+        target: /mnt
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:{{ radarr_4k_ports_cont }}/login"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints: [node.labels.ansible_host == localhost]
+      labels: {{ radarr_4k_labels }}
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+  {{ sonarr_name }}:
+    image: {{ sonarr_image_repo }}:{{ sonarr_image_tag }}
+    networks:
+      - {{ network_overlay }}
+    environment:
+      PUID: '{{ puid }}'
+      PGID: '{{ pgid }}'
+      TZ: '{{ timezone }}'
+      TP_SCHEME: 'http'
+      TP_DOMAIN: '{{ themepark_domain }}'
+      TP_HOTIO: 'true'
+      TP_THEME: '{{ themepark_theme }}'
+    ports:
+      - target: {{ sonarr_ports_cont }}
+        published: {{ sonarr_ports_host }}
+        protocol: tcp
+        mode: ingress
+    volumes:
+      - type: bind
+        source: {{ sonarr_location }}
+        target: /config
+      - type: bind
+        source: {{ themes_location }}/98-themepark-sonarr
+        target: /etc/cont-init.d/98-themepark
+      - type: bind
+        source: /mnt
+        target: /mnt
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:{{ sonarr_ports_cont }}/login"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints: [node.labels.ansible_host == localhost]
+      labels: {{ sonarr_labels }}
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+  {{ sonarr_4k_name }}:
+    image: {{ sonarr_4k_image_repo }}:{{ sonarr_4k_image_tag }}
+    networks:
+      - {{ network_overlay }}
+    environment:
+      PUID: '{{ puid }}'
+      PGID: '{{ pgid }}'
+      TZ: '{{ timezone }}'
+      TP_SCHEME: 'http'
+      TP_DOMAIN: '{{ themepark_domain }}'
+      TP_HOTIO: 'true'
+      TP_THEME: '{{ themepark_theme }}'
+    ports:
+      - target: {{ sonarr_4k_ports_cont }}
+        published: {{ sonarr_4k_ports_host }}
+        protocol: tcp
+        mode: ingress
+    volumes:
+      - type: bind
+        source: {{ sonarr_4k_location }}
+        target: /config
+      - type: bind
+        source: {{ themes_location }}/98-themepark-sonarr
+        target: /etc/cont-init.d/98-themepark
+      - type: bind
+        source: /mnt
+        target: /mnt
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:{{ sonarr_4k_ports_cont }}/login"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints: [node.labels.ansible_host == localhost]
+      labels: {{ sonarr_4k_labels }}
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+  {{ whisparr_name }}:
+    image: {{ whisparr_image_repo }}:{{ whisparr_image_tag }}
+    networks:
+      - {{ network_overlay }}
+    environment:
+      PUID: '{{ puid }}'
+      PGID: '{{ pgid }}'
+      TZ: '{{ timezone }}'
+      TP_SCHEME: 'http'
+      TP_DOMAIN: '{{ themepark_domain }}'
+      TP_HOTIO: 'true'
+      TP_THEME: '{{ themepark_theme }}'
+    ports:
+      - target: {{ whisparr_ports_cont }}
+        published: {{ whisparr_ports_host }}
+        protocol: tcp
+        mode: ingress
+    volumes:
+      - type: bind
+        source: {{ whisparr_location }}
+        target: /config
+      - type: bind
+        source: {{ themes_location }}/98-themepark-whisparr
+        target: /etc/cont-init.d/98-themepark
+      - type: bind
+        source: /mnt
+        target: /mnt
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:{{ whisparr_ports_cont }}/login"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints: [node.labels.ansible_host == localhost]
+      labels: {{ whisparr_labels }}
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+networks:
+  {{ network_overlay }}:
+    external: true
+
+```

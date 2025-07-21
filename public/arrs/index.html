@@ -195,7 +195,7 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
   <h1 class="post-title">
     <a href="http://localhost:1313/arrs/">Deploying an arrs stack using Ansible</a>
   </h1>
-  <div class="post-meta"><span class="post-reading-time">6 min read (1225 words)</span></div>
+  <div class="post-meta"><span class="post-reading-time">18 min read (3708 words)</span></div>
 
   
   
@@ -220,6 +220,11 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
         <li><a href="#cleanup">Cleanup</a></li>
         <li><a href="#directories">Directories</a></li>
         <li><a href="#templates">Templates</a></li>
+        <li><a href="#configs">Configs</a></li>
+        <li><a href="#postgres">Postgres</a></li>
+        <li><a href="#cloudflare-dns">Cloudflare DNS</a></li>
+        <li><a href="#traefik-labels">Traefik Labels</a></li>
+        <li><a href="#stack-deploy">Stack deploy</a></li>
       </ul>
     </li>
   </ul>
@@ -294,7 +299,7 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
 <h2 id="group_vars">Group_Vars<a href="#group_vars" class="hanchor" ariaLabel="Anchor">#</a> </h2>
 <hr>
 <p>(<a href="https://drjoyce.blog/roles/#group_vars">Background Information</a>)</p>
-<p>Here I define variables for service name, image repo/tag, ports and location.</p>
+<p>Here I define variables for service name, image repo/tag, ports and location:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e">## /ansible/group_vars/all/roles/arrs.yml</span>
 </span></span><span style="display:flex;"><span>
@@ -409,12 +414,14 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
 </span></span></code></pre></div><hr>
 <h2 id="roletasks">Role/Tasks<a href="#roletasks" class="hanchor" ariaLabel="Anchor">#</a> </h2>
 <hr>
-<p>The majority of tasks occur here.</p>
+<p>(<a href="https://drjoyce.blog/roles/#roletasks">Background Information</a>)</p>
 <hr>
 <h3 id="cleanup">Cleanup<a href="#cleanup" class="hanchor" ariaLabel="Anchor">#</a> </h3>
 <hr>
-<p>To be safe, and to make sure changes apply, I first down existing running arrs services:</p>
+<p>I first down existing running arrs services:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## /ansible/roles/arrs/tasks/main.yml</span>
+</span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># CLEAN UP</span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
@@ -439,6 +446,8 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># DIRECTORIES</span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
 </span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## /ansible/roles/arrs/tasks/main.yml</span>
+</span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Create directories</span>
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.file</span>:
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ item }}&#39;</span>
@@ -460,8 +469,10 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
 </span></span></code></pre></div><hr>
 <h3 id="templates">Templates<a href="#templates" class="hanchor" ariaLabel="Anchor">#</a> </h3>
 <hr>
-<p>After the directories are created, I then template configs for each arrs service.</p>
+<p>After the directories are created, I then template configs for each arrs service:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## /ansible/roles/arrs/tasks/main.yml</span>
+</span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># TEMPLATES</span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
@@ -500,6 +511,7 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
 </span></span></code></pre></div><p>All arrs, except Bazarr, use the same config template:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  ## /ansible/roles/arrs/templates/configs/arrs_config.xml.j2
+</span></span><span style="display:flex;"><span>  ## The config is edited in later tasks
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;Config&gt;</span>
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;BindAddress&gt;</span>*<span style="color:#f92672">&lt;/BindAddress&gt;</span>
@@ -518,8 +530,7 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;InstanceName&gt;&lt;/InstanceName&gt;</span>
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">&lt;UpdateMechanism&gt;</span>Docker<span style="color:#f92672">&lt;/UpdateMechanism&gt;</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/Config&gt;</span>
-</span></span></code></pre></div><p>The config is edited in subsequent tasks to adapt to the respective service using it.</p>
-<p>Bazarr has its own config and is templated with desired variables here:</p>
+</span></span></code></pre></div><p>Bazarr has its own config and is templated with desired variables here:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e">## /ansible/roles/arrs/templates/configs/bazarr_config.yaml.j2</span>
 </span></span><span style="display:flex;"><span>
@@ -781,8 +792,815 @@ Bazarr (Subtitles) Lidarr (Music) Radarr (Movies) / Radarr-4K (4K Movies) Sonarr
 </span></span><span style="display:flex;"><span><span style="color:#f92672">xsubs</span>:
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">password</span>: <span style="color:#e6db74">&#39;&#39;</span>
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">username</span>: <span style="color:#e6db74">&#39;&#39;</span>
-</span></span></code></pre></div><p>Deploy</p>
-
+</span></span></code></pre></div><hr>
+<h3 id="configs">Configs<a href="#configs" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<hr>
+<p>Next, I include config sub-tasks to edit the arrs config for each service:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## /ansible/roles/arrs/tasks/main.yml</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># CONFIGS</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Conduct config tasks</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.include_tasks</span>: <span style="color:#ae81ff">sub_tasks/config.yml</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">vars</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">config_api</span>: <span style="color:#e6db74">&#39;{{ item.api }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">config_location</span>: <span style="color:#e6db74">&#39;{{ item.location }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">config_name</span>: <span style="color:#e6db74">&#39;{{ item.name }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">config_port</span>: <span style="color:#e6db74">&#39;{{ item.port }}&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">loop</span>:
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">api</span>: <span style="color:#e6db74">&#39;{{ lidarr_api }}&#39;</span><span style="color:#f92672">, location</span>: <span style="color:#e6db74">&#39;{{ lidarr_location }}&#39;</span><span style="color:#f92672">, name</span>: <span style="color:#e6db74">&#39;{{ lidarr_name }}&#39;</span><span style="color:#f92672">, port</span>: <span style="color:#e6db74">&#39;{{ lidarr_ports_cont }}&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">api</span>: <span style="color:#e6db74">&#39;{{ prowlarr_api }}&#39;</span><span style="color:#f92672">, location</span>: <span style="color:#e6db74">&#39;{{ prowlarr_location }}&#39;</span><span style="color:#f92672">, name</span>: <span style="color:#e6db74">&#39;{{ prowlarr_name }}&#39;</span><span style="color:#f92672">, port</span>: <span style="color:#e6db74">&#39;{{ prowlarr_ports_cont }}&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">api</span>: <span style="color:#e6db74">&#39;{{ radarr_api }}&#39;</span><span style="color:#f92672">, location</span>: <span style="color:#e6db74">&#39;{{ radarr_location }}&#39;</span><span style="color:#f92672">, name</span>: <span style="color:#e6db74">&#39;{{ radarr_name }}&#39;</span><span style="color:#f92672">, port</span>: <span style="color:#e6db74">&#39;{{ radarr_ports_cont }}&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">api</span>: <span style="color:#e6db74">&#39;{{ radarr_4k_api }}&#39;</span><span style="color:#f92672">, location</span>: <span style="color:#e6db74">&#39;{{ radarr_4k_location }}&#39;</span><span style="color:#f92672">, name</span>: <span style="color:#e6db74">&#39;{{ radarr_4k_name }}&#39;</span><span style="color:#f92672">, port</span>: <span style="color:#e6db74">&#39;{{ radarr_4k_ports_cont }}&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">api</span>: <span style="color:#e6db74">&#39;{{ sonarr_api }}&#39;</span><span style="color:#f92672">, location</span>: <span style="color:#e6db74">&#39;{{ sonarr_location }}&#39;</span><span style="color:#f92672">, name</span>: <span style="color:#e6db74">&#39;{{ sonarr_name }}&#39;</span><span style="color:#f92672">, port</span>: <span style="color:#e6db74">&#39;{{ sonarr_ports_cont }}&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">api</span>: <span style="color:#e6db74">&#39;{{ sonarr_4k_api }}&#39;</span><span style="color:#f92672">, location</span>: <span style="color:#e6db74">&#39;{{ sonarr_4k_location }}&#39;</span><span style="color:#f92672">, name</span>: <span style="color:#e6db74">&#39;{{ sonarr_4k_name }}&#39;</span><span style="color:#f92672">, port</span>: <span style="color:#e6db74">&#39;{{ sonarr_4k_ports_cont }}&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">api</span>: <span style="color:#e6db74">&#39;{{ whisparr_api }}&#39;</span><span style="color:#f92672">, location</span>: <span style="color:#e6db74">&#39;{{ whisparr_location }}&#39;</span><span style="color:#f92672">, name</span>: <span style="color:#e6db74">&#39;{{ whisparr_name }}&#39;</span><span style="color:#f92672">, port</span>: <span style="color:#e6db74">&#39;{{ whisparr_ports_cont }}&#39;</span> }
+</span></span></code></pre></div><p>These sub-tasks set the API, instance name and port for each arrs config:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## /ansible/roles/arrs/tasks/sub_tasks/config.yml</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Conduct config tasks</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">block</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Lookup Apikey value</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">community.general.xml</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ config_location }}/config.xml&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">xpath</span>: <span style="color:#ae81ff">/Config/ApiKey</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">content</span>: <span style="color:#ae81ff">text</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">register</span>: <span style="color:#ae81ff">arrs_xml_api</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Insert existing api key</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">(arrs_xml_api.matches[0].ApiKey is defined) and (arrs_xml_api.matches[0].ApiKey != config_api)</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">community.general.xml</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ config_location }}/config.xml&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">xpath</span>: <span style="color:#ae81ff">/Config/ApiKey</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">value</span>: <span style="color:#e6db74">&#39;{{ config_api }}&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Lookup Port value</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">community.general.xml</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ config_location }}/config.xml&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">xpath</span>: <span style="color:#ae81ff">/Config/Port</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">content</span>: <span style="color:#ae81ff">text</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">register</span>: <span style="color:#ae81ff">arrs_xml_port</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Insert Port</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">(arrs_xml_port.matches[0].Port is defined) and (arrs_xml_port.matches[0].Port != config_port)</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">community.general.xml</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ config_location }}/config.xml&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">xpath</span>: <span style="color:#ae81ff">/Config/Port</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">value</span>: <span style="color:#e6db74">&#39;{{ config_port }}&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Lookup InstanceName value</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">community.general.xml</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ config_location }}/config.xml&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">xpath</span>: <span style="color:#ae81ff">/Config/InstanceName</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">content</span>: <span style="color:#ae81ff">text</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">register</span>: <span style="color:#ae81ff">arrs_xml_instance</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Insert InstanceName</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">(arrs_xml_instance.matches[0].InstanceName is defined) and (arrs_xml_instance.matches[0].InstanceName != config_name)</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">community.general.xml</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ config_location }}/config.xml&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">xpath</span>: <span style="color:#ae81ff">/Config/InstanceName</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">value</span>: <span style="color:#e6db74">&#39;{{ config_name }}&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Lookup AuthenticationMethod value</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">community.general.xml</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ config_location }}/config.xml&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">xpath</span>: <span style="color:#ae81ff">/Config/AuthenticationMethod</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">content</span>: <span style="color:#ae81ff">text</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">register</span>: <span style="color:#ae81ff">arrs_xml_external</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Change auth method to external</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">when</span>: <span style="color:#ae81ff">((arrs_xml_external.matches[0].AuthenticationMethod is defined) and (arrs_xml_external.matches[0].AuthenticationMethod != &#39;External&#39;))</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">community.general.xml</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ config_location }}/config.xml&#39;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">xpath</span>: <span style="color:#ae81ff">/Config/AuthenticationMethod</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">value</span>: <span style="color:#ae81ff">External</span>
+</span></span></code></pre></div><p>Additionally, I set the auth method to external. Note:</p>
+<ul>
+<li>I protect each instance with a SSO (single-sign-on) provider (Authelia), and the built-in login is redundant</li>
+<li>Do not do this if you&rsquo;re exposing your services (i.e, via reverse proxy) and you don&rsquo;t have a SSO provider.</li>
+</ul>
+<hr>
+<h3 id="postgres">Postgres<a href="#postgres" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<hr>
+<p>I opt for Postgres databases for all my arrs services.</p>
+<p>The first step is to include the postgres common tasks:</p>
+<p>(<a href="https://drjoyce.blog/common/#postgres">See here for Postgres common-tasks overview</a>)</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## /ansible/roles/arrs/tasks/main.yml</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># POSTGRES (DATABASE)</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Conduct Postgres DB tasks</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.include_tasks</span>: <span style="color:#ae81ff">/ansible/common/postgres.yml</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">vars</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">postgres_database</span>: <span style="color:#e6db74">&#39;{{ item }}&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">loop</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;bazarr&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;lidarr-main&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;lidarr-log&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;prowlarr-main&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;prowlarr-log&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;radarr-main&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;radarr-log&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;radarr-4k-main&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;radarr-4k-log&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;sonarr-main&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;sonarr-log&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;sonarr-4k-main&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;sonarr-4k-log&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;whisparr-main-v3&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;whisparr-log-v3&#39;</span>
+</span></span></code></pre></div><p>I then include sub-tasks to edit the arrs configs with the relevant Postgres variables:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## /ansible/roles/arrs/tasks/main.yml</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># POSTGRES (CONFIG)</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Conduct Postgres config tasks</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.include_tasks</span>: <span style="color:#ae81ff">sub_tasks/postgres.yml</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">vars</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">arrs_config_location</span>: <span style="color:#e6db74">&#39;{{ item.location }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">arrs_log_db</span>: <span style="color:#e6db74">&#39;{{ item.logdb }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">arrs_main_db</span>: <span style="color:#e6db74">&#39;{{ item.maindb }}&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">loop</span>:
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">location</span>: <span style="color:#e6db74">&#39;{{ lidarr_location }}&#39;</span><span style="color:#f92672">, logdb: &#39;lidarr-log&#39;, maindb</span>: <span style="color:#e6db74">&#39;lidarr-main&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">location</span>: <span style="color:#e6db74">&#39;{{ prowlarr_location }}&#39;</span><span style="color:#f92672">, logdb: &#39;prowlarr-log&#39;, maindb</span>: <span style="color:#e6db74">&#39;prowlarr-main&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">location</span>: <span style="color:#e6db74">&#39;{{ radarr_location }}&#39;</span><span style="color:#f92672">, logdb: &#39;radarr-log&#39;, maindb</span>: <span style="color:#e6db74">&#39;radarr-main&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">location</span>: <span style="color:#e6db74">&#39;{{ radarr_4k_location }}&#39;</span><span style="color:#f92672">, logdb: &#39;radarr-4k-log&#39;, maindb</span>: <span style="color:#e6db74">&#39;radarr-4k-main&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">location</span>: <span style="color:#e6db74">&#39;{{ sonarr_location }}&#39;</span><span style="color:#f92672">, logdb: &#39;sonarr-log&#39;, maindb: &#39;sonarr-main&#39;, cachedb</span>: <span style="color:#e6db74">&#39;&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">location</span>: <span style="color:#e6db74">&#39;{{ sonarr_4k_location }}&#39;</span><span style="color:#f92672">, logdb: &#39;sonarr-4k-log&#39;, maindb</span>: <span style="color:#e6db74">&#39;sonarr-4k-main&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">location</span>: <span style="color:#e6db74">&#39;{{ whisparr_location }}&#39;</span><span style="color:#f92672">, logdb: &#39;whisparr-log-v3&#39;, maindb</span>: <span style="color:#e6db74">&#39;whisparr-main-v3&#39;</span> }
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## /ansible/roles/arrs/tasks/sub_tasks/postgres.yml</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Lookup PostgresUser value</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.general.xml</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ arrs_config_location }}/config.xml&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">xpath</span>: <span style="color:#ae81ff">/Config/PostgresUser</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">print_match</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">register</span>: <span style="color:#ae81ff">arrs_xml_postgresuser</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Lookup PostgresPassword value</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.general.xml</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ arrs_config_location }}/config.xml&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">xpath</span>: <span style="color:#ae81ff">/Config/PostgresPassword</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">print_match</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">register</span>: <span style="color:#ae81ff">arrs_xml_postgrespassword</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Lookup PostgresPort value</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.general.xml</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ arrs_config_location }}/config.xml&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">xpath</span>: <span style="color:#ae81ff">/Config/PostgresPort</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">print_match</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">register</span>: <span style="color:#ae81ff">arrs_xml_postgresport</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Lookup PostgresHost value</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.general.xml</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ arrs_config_location }}/config.xml&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">xpath</span>: <span style="color:#ae81ff">/Config/PostgresHost</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">print_match</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">register</span>: <span style="color:#ae81ff">arrs_xml_postgreshost</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Lookup PostgresMainDb value</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.general.xml</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ arrs_config_location }}/config.xml&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">xpath</span>: <span style="color:#ae81ff">/Config/PostgresMainDb</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">print_match</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">register</span>: <span style="color:#ae81ff">arrs_xml_postgresmaindb</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Lookup PostgresLogDb value</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.general.xml</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ arrs_config_location }}/config.xml&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">xpath</span>: <span style="color:#ae81ff">/Config/PostgresLogDb</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">print_match</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">register</span>: <span style="color:#ae81ff">arrs_xml_postgreslogdb</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Add PostgresUser</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">when</span>: <span style="color:#ae81ff">((arrs_xml_postgresuser.matches[0].PostgresUser is not defined) or</span>
+</span></span><span style="display:flex;"><span>         <span style="color:#ae81ff">(arrs_xml_postgresuser.matches[0].PostgresUser != postgres_username))</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.general.xml</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ arrs_config_location }}/config.xml&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">pretty_print</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">xpath</span>: <span style="color:#ae81ff">/Config/PostgresUser</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">value</span>: <span style="color:#e6db74">&#39;{{ postgres_username }}&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Add PostgresPassword</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">when</span>: <span style="color:#ae81ff">((arrs_xml_postgrespassword.matches[0].PostgresPassword is not defined) or</span>
+</span></span><span style="display:flex;"><span>         <span style="color:#ae81ff">(arrs_xml_postgrespassword.matches[0].PostgresPassword != postgres_password))</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.general.xml</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ arrs_config_location }}/config.xml&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">pretty_print</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">xpath</span>: <span style="color:#ae81ff">/Config/PostgresPassword</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">value</span>: <span style="color:#e6db74">&#39;{{ postgres_password }}&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Add PostgresPort</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">when</span>: <span style="color:#ae81ff">((arrs_xml_postgresport.matches[0].PostgresPort is not defined) or</span>
+</span></span><span style="display:flex;"><span>         <span style="color:#ae81ff">(arrs_xml_postgresport.matches[0].PostgresPort != postgres_ports_cont))</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.general.xml</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ arrs_config_location }}/config.xml&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">pretty_print</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">xpath</span>: <span style="color:#ae81ff">/Config/PostgresPort</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">value</span>: <span style="color:#e6db74">&#39;{{ postgres_ports_cont }}&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Add PostgresHost</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">when</span>: <span style="color:#ae81ff">((arrs_xml_postgreshost.matches[0].PostgresHost is not defined) or</span>
+</span></span><span style="display:flex;"><span>         <span style="color:#ae81ff">(arrs_xml_postgreshost.matches[0].PostgresHost != postgres_name))</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.general.xml</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ arrs_config_location }}/config.xml&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">pretty_print</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">xpath</span>: <span style="color:#ae81ff">/Config/PostgresHost</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">value</span>: <span style="color:#e6db74">&#39;{{ postgres_name }}&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Add PostgresMainDb</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">when</span>: <span style="color:#ae81ff">((arrs_xml_postgresmaindb.matches[0].PostgresMainDb is not defined) or</span>
+</span></span><span style="display:flex;"><span>         <span style="color:#ae81ff">(arrs_xml_postgresmaindb.matches[0].PostgresMainDb != arrs_main_db))</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.general.xml</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ arrs_config_location }}/config.xml&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">pretty_print</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">xpath</span>: <span style="color:#ae81ff">/Config/PostgresMainDb</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">value</span>: <span style="color:#e6db74">&#39;{{ arrs_main_db }}&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Add PostgresLogDb</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">when</span>: <span style="color:#ae81ff">((arrs_xml_postgreslogdb.matches[0].PostgresLogDb is not defined) or</span>
+</span></span><span style="display:flex;"><span>         <span style="color:#ae81ff">(arrs_xml_postgreslogdb.matches[0].PostgresLogDb != arrs_log_db))</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.general.xml</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ arrs_config_location }}/config.xml&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">pretty_print</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">xpath</span>: <span style="color:#ae81ff">/Config/PostgresLogDb</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">value</span>: <span style="color:#e6db74">&#39;{{ arrs_log_db }}&#39;</span>
+</span></span></code></pre></div><p>Lastly, I include tasks to remove any sqlite databases in the arrs appdata directories:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## /ansible/roles/arrs/tasks/main.yml</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># POSTGRES (CLEAN UP)</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Remove sqlite files</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.include_tasks</span>: <span style="color:#ae81ff">sub_tasks/sqlite.yml</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">vars</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">sqlite_location</span>: <span style="color:#e6db74">&#39;{{ item.location }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">sqlite_name</span>: <span style="color:#e6db74">&#39;{{ item.name }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">backups_location</span>: <span style="color:#e6db74">&#39;{{ item.backups }}&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">loop</span>:
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">location</span>: <span style="color:#e6db74">&#39;{{ bazarr_location }}/db&#39;</span><span style="color:#f92672">, name: &#39;bazarr&#39;, backups</span>: <span style="color:#e6db74">&#39;{{ bazarr_location }}/backup&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">location</span>: <span style="color:#e6db74">&#39;{{ lidarr_location }}&#39;</span><span style="color:#f92672">, name: &#39;lidarr&#39;, backups</span>: <span style="color:#e6db74">&#39;{{ lidarr_location }}/Backups&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">location</span>: <span style="color:#e6db74">&#39;{{ prowlarr_location }}&#39;</span><span style="color:#f92672">, name: &#39;prowlarr&#39;, backups</span>: <span style="color:#e6db74">&#39;{{ prowlarr_location }}/Backups&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">location</span>: <span style="color:#e6db74">&#39;{{ radarr_location }}&#39;</span><span style="color:#f92672">, name: &#39;radarr&#39;, backups</span>: <span style="color:#e6db74">&#39;{{ radarr_location }}/Backups&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">location</span>: <span style="color:#e6db74">&#39;{{ radarr_4k_location }}&#39;</span><span style="color:#f92672">, name: &#39;radarr&#39;, backups</span>: <span style="color:#e6db74">&#39;{{ radarr_4k_location }}/Backups&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">location</span>: <span style="color:#e6db74">&#39;{{ sonarr_location }}&#39;</span><span style="color:#f92672">, name: &#39;sonarr&#39;, backups</span>: <span style="color:#e6db74">&#39;{{ sonarr_location }}/Backups&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">location</span>: <span style="color:#e6db74">&#39;{{ sonarr_4k_location }}&#39;</span><span style="color:#f92672">, name: &#39;sonarr&#39;, backups</span>: <span style="color:#e6db74">&#39;{{ sonarr_4k_location }}/Backups&#39;</span> }
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">location</span>: <span style="color:#e6db74">&#39;{{ whisparr_location }}&#39;</span><span style="color:#f92672">, name: &#39;whisparr&#39;, backups</span>: <span style="color:#e6db74">&#39;{{ whisparr_location }}/Backups&#39;</span> }
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## /ansible/roles/arrs/tasks/sub_tasks/sqlite.yml</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Remove sqlite files</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.file</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ item }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">absent</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">loop</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ sqlite_location }}/logs.db&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ sqlite_location }}/logs.db-shm&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ sqlite_location }}/logs.db-wal&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ sqlite_location }}/{{ sqlite_name }}.db&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ sqlite_location }}/{{ sqlite_name }}.db-shm&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ sqlite_location }}/{{ sqlite_name }}.db-wal&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Remove sqlite backups folders</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.file</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">path</span>: <span style="color:#e6db74">&#39;{{ backups_location }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">absent</span>
+</span></span></code></pre></div><p><strong>Note:</strong></p>
+<ul>
+<li>I&rsquo;m okay with deleting any sqlite database found because I&rsquo;ve already fully migrated to Postgres</li>
+<li>The only time an sqlite database would be found in my arrs directories is if issues occured during an Ansible run.</li>
+</ul>
+<hr>
+<h3 id="cloudflare-dns">Cloudflare DNS<a href="#cloudflare-dns" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<hr>
+<p>To prepare for reverse proxy access, I create DNS records for each service:</p>
+<p>(<a href="https://drjoyce.blog/common/#cloudflare-dns">See here for Cloudflare DNS common-tasks overview</a>)</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## /ansible/roles/arrs/tasks/main.yml</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># CLOUDFLARE</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Add DNS records</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.include_tasks</span>: <span style="color:#ae81ff">/ansible/common/cloudflare.yml</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">vars</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_domain</span>: <span style="color:#e6db74">&#39;{{ local_domain }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_record</span>: <span style="color:#e6db74">&#39;{{ item }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_type</span>: <span style="color:#e6db74">&#39;A&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_value</span>: <span style="color:#e6db74">&#39;{{ ipify_public_ip }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_proxy</span>: <span style="color:#e6db74">&#39;false&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_solo</span>: <span style="color:#e6db74">&#39;true&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">cloudflare_remove_existing</span>: <span style="color:#e6db74">&#39;true&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">loop</span>:
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ bazarr_name }}&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ lidarr_name }}&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ prowlarr_name }}&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ radarr_name }}&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ radarr_4k_name }}&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ sonarr_name }}&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ sonarr_4k_name }}&#39;</span>
+</span></span><span style="display:flex;"><span>    - <span style="color:#e6db74">&#39;{{ whisparr_name }}&#39;</span>
+</span></span></code></pre></div><hr>
+<h3 id="traefik-labels">Traefik Labels<a href="#traefik-labels" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<hr>
+<p>Next, I form the Traefik (reverse-proxy) labels for each service:</p>
+<p>(<a href="https://drjoyce.blog/common/#traefik-labels">See here for Traefik labels common-tasks overview</a>)</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## /ansible/roles/arrs/tasks/main.yml</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># TRAEFIK</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Set traefik Labels</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.include_tasks</span>: <span style="color:#ae81ff">/ansible/common/labels.yml</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">vars</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_variable</span>: <span style="color:#e6db74">&#39;{{ item.var }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_network</span>: <span style="color:#e6db74">&#39;{{ network_overlay }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_name</span>: <span style="color:#e6db74">&#39;{{ item.name }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_port</span>: <span style="color:#e6db74">&#39;{{ item.port }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_api</span>: <span style="color:#e6db74">&#39;{{ item.api }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_domain</span>: <span style="color:#e6db74">&#39;{{ local_domain }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_entrypoint</span>: <span style="color:#e6db74">&#39;http&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_secure_entrypoint</span>: <span style="color:#e6db74">&#39;https&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_tls_certresolver</span>: <span style="color:#e6db74">&#39;dns-cloudflare&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_tls_options</span>: <span style="color:#e6db74">&#39;securetls@file&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_themepark_app</span>: <span style="color:#e6db74">&#39;{{ item.tp_app }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_themepark_theme</span>: <span style="color:#e6db74">&#39;hotpink&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_http_middlewares</span>: <span style="color:#e6db74">&#39;{{ traefik_http_middlewares + item.sso + item.tp }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">router_https_middlewares</span>: <span style="color:#e6db74">&#39;{{ traefik_https_middlewares + item.sso + item.tp }}&#39;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">loop</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">## bazarr</span>
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">var</span>: <span style="color:#e6db74">&#39;bazarr_labels&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#39;{{ bazarr_name }}&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">port</span>: <span style="color:#e6db74">&#39;{{ bazarr_ports_cont }}&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">api</span>: <span style="color:#e6db74">&#39;PathPrefix(`/api`)&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">sso</span>: <span style="color:#e6db74">&#39;,authelia@swarm&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">tp</span>: <span style="color:#e6db74">&#39;,themepark-bazarr&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">tp_app</span>: <span style="color:#e6db74">&#39;bazarr&#39;</span> }
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">## lidarr</span>
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">var</span>: <span style="color:#e6db74">&#39;lidarr_labels&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#39;{{ lidarr_name }}&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">port</span>: <span style="color:#e6db74">&#39;{{ lidarr_ports_cont }}&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">api</span>: <span style="color:#e6db74">&#39;PathPrefix(`/api`) || PathPrefix(`/feed`) || PathPrefix(`/ping`)&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">sso</span>: <span style="color:#e6db74">&#39;,authelia@swarm&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">tp</span>: <span style="color:#e6db74">&#39;,themepark-lidarr&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">tp_app</span>: <span style="color:#e6db74">&#39;lidarr&#39;</span> }
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">## prowlarr</span>
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">var</span>: <span style="color:#e6db74">&#39;prowlarr_labels&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#39;{{ prowlarr_name }}&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">port</span>: <span style="color:#e6db74">&#39;{{ prowlarr_ports_cont }}&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">api</span>: <span style="color:#e6db74">&#39;PathRegexp(`/[0-9]+/api`) || PathRegexp(`/[0-9]+/download`) || PathPrefix(`/api`) || PathPrefix(`/ping`)&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">sso</span>: <span style="color:#e6db74">&#39;,authelia@swarm&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">tp</span>: <span style="color:#e6db74">&#39;,themepark-prowlarr&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">tp_app</span>: <span style="color:#e6db74">&#39;prowlarr&#39;</span> }
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">## radarr</span>
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">var</span>: <span style="color:#e6db74">&#39;radarr_labels&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#39;{{ radarr_name }}&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">port</span>: <span style="color:#e6db74">&#39;{{ radarr_ports_cont }}&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">api</span>: <span style="color:#e6db74">&#39;PathPrefix(`/api`) || PathPrefix(`/feed`) || PathPrefix(`/ping`)&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">sso</span>: <span style="color:#e6db74">&#39;,authelia@swarm&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">tp</span>: <span style="color:#e6db74">&#39;,themepark-radarr&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">tp_app</span>: <span style="color:#e6db74">&#39;radarr&#39;</span> }
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">## radarr-4k</span>
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">var</span>: <span style="color:#e6db74">&#39;radarr_4k_labels&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#39;{{ radarr_4k_name }}&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">port</span>: <span style="color:#e6db74">&#39;{{ radarr_4k_ports_cont }}&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">api</span>: <span style="color:#e6db74">&#39;PathPrefix(`/api`) || PathPrefix(`/feed`) || PathPrefix(`/ping`)&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">sso</span>: <span style="color:#e6db74">&#39;,authelia@swarm&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">tp</span>: <span style="color:#e6db74">&#39;,themepark-radarr4k&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">tp_app</span>: <span style="color:#e6db74">&#39;radarr&#39;</span> }
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">## sonarr</span>
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">var</span>: <span style="color:#e6db74">&#39;sonarr_labels&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#39;{{ sonarr_name }}&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">port</span>: <span style="color:#e6db74">&#39;{{ sonarr_ports_cont }}&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">api</span>: <span style="color:#e6db74">&#39;PathPrefix(`/api`) || PathPrefix(`/feed`) || PathPrefix(`/ping`)&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">sso</span>: <span style="color:#e6db74">&#39;,authelia@swarm&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">tp</span>: <span style="color:#e6db74">&#39;,themepark-sonarr&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">tp_app</span>: <span style="color:#e6db74">&#39;sonarr&#39;</span> }
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">## sonarr-4k</span>
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">var</span>: <span style="color:#e6db74">&#39;sonarr_4k_labels&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#39;{{ sonarr_4k_name }}&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">port</span>: <span style="color:#e6db74">&#39;{{ sonarr_4k_ports_cont }}&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">api</span>: <span style="color:#e6db74">&#39;PathPrefix(`/api`) || PathPrefix(`/feed`) || PathPrefix(`/ping`)&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">sso</span>: <span style="color:#e6db74">&#39;,authelia@swarm&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">tp</span>: <span style="color:#e6db74">&#39;,themepark-sonarr4k&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">tp_app</span>: <span style="color:#e6db74">&#39;sonarr&#39;</span> }
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">## whisparr</span>
+</span></span><span style="display:flex;"><span>    - { <span style="color:#f92672">var</span>: <span style="color:#e6db74">&#39;whisparr_labels&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#39;{{ whisparr_name }}&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">port</span>: <span style="color:#e6db74">&#39;{{ whisparr_ports_cont }}&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">api</span>: <span style="color:#e6db74">&#39;PathPrefix(`/api`) || PathPrefix(`/feed`) || PathPrefix(`/ping`)&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">sso</span>: <span style="color:#e6db74">&#39;,authelia@swarm&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">tp</span>: <span style="color:#e6db74">&#39;,themepark-whisparr&#39;</span>, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">tp_app</span>: <span style="color:#e6db74">&#39;whisparr&#39;</span> }
+</span></span></code></pre></div><hr>
+<h3 id="stack-deploy">Stack deploy<a href="#stack-deploy" class="hanchor" ariaLabel="Anchor">#</a> </h3>
+<hr>
+<p>Lastly, with everything in order, it&rsquo;s time to deploy the stack:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## /ansible/roles/arrs/tasks/main.yml</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># DEPLOY</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">################################</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Import arrs-stack file</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">ansible.builtin.template</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">src</span>: <span style="color:#e6db74">&#39;{{ role_path }}/templates/arrs-stack.yml.j2&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">dest</span>: <span style="color:#ae81ff">/opt/arrs-stack.yml</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">force</span>: <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">owner</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">group</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">mode</span>: <span style="color:#e6db74">&#39;0664&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Deploy arrs stack</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">community.docker.docker_stack</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">state</span>: <span style="color:#ae81ff">present</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">name</span>: <span style="color:#ae81ff">arrs</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">compose</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">/opt/arrs-stack.yml</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">## /ansible/roles/arrs/templates/arrs-stack.yml.j2</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">services</span>:
+</span></span><span style="display:flex;"><span>  {{ <span style="color:#f92672">bazarr_name }}</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">image</span>: {{ <span style="color:#ae81ff">bazarr_image_repo }}:{{ bazarr_image_tag }}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">networks</span>:
+</span></span><span style="display:flex;"><span>      - {{ <span style="color:#ae81ff">network_overlay }}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">environment</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">PUID</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">PGID</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TZ</span>: <span style="color:#e6db74">&#39;{{ timezone }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">WEBUI_PORTS</span>: <span style="color:#e6db74">&#39;{{ bazarr_ports_cont }}/tcp,{{ bazarr_ports_cont }}/udp&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TP_SCHEME</span>: <span style="color:#e6db74">&#39;http&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TP_DOMAIN</span>: <span style="color:#e6db74">&#39;{{ themepark_domain }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TP_HOTIO</span>: <span style="color:#e6db74">&#39;true&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TP_THEME</span>: <span style="color:#e6db74">&#39;{{ themepark_theme }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">ports</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">target</span>: {{ <span style="color:#ae81ff">bazarr_ports_cont }}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">published</span>: {{ <span style="color:#ae81ff">bazarr_ports_host }}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">protocol</span>: <span style="color:#ae81ff">tcp</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">mode</span>: <span style="color:#ae81ff">ingress</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">volumes</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">type</span>: <span style="color:#ae81ff">bind</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">source</span>: {{ <span style="color:#ae81ff">bazarr_location }}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">target</span>: <span style="color:#ae81ff">/config</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">type</span>: <span style="color:#ae81ff">bind</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">source</span>: {{ <span style="color:#ae81ff">themes_location }}/98-themepark-bazarr</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">target</span>: <span style="color:#ae81ff">/etc/cont-init.d/98-themepark</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">type</span>: <span style="color:#ae81ff">bind</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">source</span>: <span style="color:#ae81ff">/mnt</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">target</span>: <span style="color:#ae81ff">/mnt</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">healthcheck</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">test</span>: [<span style="color:#e6db74">&#34;CMD&#34;</span>, <span style="color:#e6db74">&#34;curl&#34;</span>, <span style="color:#e6db74">&#34;--fail&#34;</span>, <span style="color:#e6db74">&#34;http://localhost:{{ bazarr_ports_cont }}/login&#34;</span>]
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">interval</span>: <span style="color:#ae81ff">10s</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">timeout</span>: <span style="color:#ae81ff">5s</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">retries</span>: <span style="color:#ae81ff">10</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">start_period</span>: <span style="color:#ae81ff">10s</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">deploy</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">mode</span>: <span style="color:#ae81ff">replicated</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">replicas</span>: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">placement</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">constraints</span>: [<span style="color:#ae81ff">node.labels.ansible_host == localhost]</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">labels</span>: {{ <span style="color:#ae81ff">bazarr_labels }}</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">restart_policy</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">condition</span>: <span style="color:#66d9ef">on</span>-<span style="color:#ae81ff">failure</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">delay</span>: <span style="color:#ae81ff">5s</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">max_attempts</span>: <span style="color:#ae81ff">3</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">window</span>: <span style="color:#ae81ff">120s</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  {{ <span style="color:#f92672">lidarr_name }}</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">image</span>: {{ <span style="color:#ae81ff">lidarr_image_repo }}:{{ lidarr_image_tag }}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">networks</span>:
+</span></span><span style="display:flex;"><span>      - {{ <span style="color:#ae81ff">network_overlay }}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">environment</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">PUID</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">PGID</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TZ</span>: <span style="color:#e6db74">&#39;{{ timezone }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TP_SCHEME</span>: <span style="color:#e6db74">&#39;http&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TP_DOMAIN</span>: <span style="color:#e6db74">&#39;{{ themepark_domain }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TP_HOTIO</span>: <span style="color:#e6db74">&#39;true&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TP_THEME</span>: <span style="color:#e6db74">&#39;{{ themepark_theme }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">ports</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">target</span>: {{ <span style="color:#ae81ff">lidarr_ports_cont }}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">published</span>: {{ <span style="color:#ae81ff">lidarr_ports_host }}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">protocol</span>: <span style="color:#ae81ff">tcp</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">mode</span>: <span style="color:#ae81ff">ingress</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">volumes</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">type</span>: <span style="color:#ae81ff">bind</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">source</span>: {{ <span style="color:#ae81ff">lidarr_location }}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">target</span>: <span style="color:#ae81ff">/config</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">type</span>: <span style="color:#ae81ff">bind</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">source</span>: {{ <span style="color:#ae81ff">themes_location }}/98-themepark-lidarr</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">target</span>: <span style="color:#ae81ff">/etc/cont-init.d/98-themepark</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">type</span>: <span style="color:#ae81ff">bind</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">source</span>: <span style="color:#ae81ff">/mnt</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">target</span>: <span style="color:#ae81ff">/mnt</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">healthcheck</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">test</span>: [<span style="color:#e6db74">&#34;CMD&#34;</span>, <span style="color:#e6db74">&#34;curl&#34;</span>, <span style="color:#e6db74">&#34;--fail&#34;</span>, <span style="color:#e6db74">&#34;http://localhost:{{ lidarr_ports_cont }}/login&#34;</span>]
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">interval</span>: <span style="color:#ae81ff">10s</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">timeout</span>: <span style="color:#ae81ff">5s</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">retries</span>: <span style="color:#ae81ff">10</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">start_period</span>: <span style="color:#ae81ff">10s</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">deploy</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">mode</span>: <span style="color:#ae81ff">replicated</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">replicas</span>: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">placement</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">constraints</span>: [<span style="color:#ae81ff">node.labels.ansible_host == localhost]</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">labels</span>: {{ <span style="color:#ae81ff">lidarr_labels }}</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">restart_policy</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">condition</span>: <span style="color:#66d9ef">on</span>-<span style="color:#ae81ff">failure</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">delay</span>: <span style="color:#ae81ff">5s</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">max_attempts</span>: <span style="color:#ae81ff">3</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">window</span>: <span style="color:#ae81ff">120s</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  {{ <span style="color:#f92672">prowlarr_name }}</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">image</span>: {{ <span style="color:#ae81ff">prowlarr_image_repo }}:{{ prowlarr_image_tag }}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">networks</span>:
+</span></span><span style="display:flex;"><span>      - {{ <span style="color:#ae81ff">network_overlay }}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">environment</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">PUID</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">PGID</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TZ</span>: <span style="color:#e6db74">&#39;{{ timezone }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TP_SCHEME</span>: <span style="color:#e6db74">&#39;http&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TP_DOMAIN</span>: <span style="color:#e6db74">&#39;{{ themepark_domain }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TP_HOTIO</span>: <span style="color:#e6db74">&#39;true&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TP_THEME</span>: <span style="color:#e6db74">&#39;{{ themepark_theme }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">ports</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">target</span>: {{ <span style="color:#ae81ff">prowlarr_ports_cont }}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">published</span>: {{ <span style="color:#ae81ff">prowlarr_ports_host }}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">protocol</span>: <span style="color:#ae81ff">tcp</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">mode</span>: <span style="color:#ae81ff">ingress</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">volumes</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">type</span>: <span style="color:#ae81ff">bind</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">source</span>: {{ <span style="color:#ae81ff">prowlarr_location }}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">target</span>: <span style="color:#ae81ff">/config</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">type</span>: <span style="color:#ae81ff">bind</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">source</span>: {{ <span style="color:#ae81ff">themes_location }}/98-themepark-prowlarr</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">target</span>: <span style="color:#ae81ff">/etc/cont-init.d/98-themepark</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">healthcheck</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">test</span>: [<span style="color:#e6db74">&#34;CMD&#34;</span>, <span style="color:#e6db74">&#34;curl&#34;</span>, <span style="color:#e6db74">&#34;--fail&#34;</span>, <span style="color:#e6db74">&#34;http://localhost:{{ prowlarr_ports_cont }}/login&#34;</span>]
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">interval</span>: <span style="color:#ae81ff">10s</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">timeout</span>: <span style="color:#ae81ff">5s</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">retries</span>: <span style="color:#ae81ff">10</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">start_period</span>: <span style="color:#ae81ff">10s</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">deploy</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">mode</span>: <span style="color:#ae81ff">replicated</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">replicas</span>: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">placement</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">constraints</span>: [<span style="color:#ae81ff">node.labels.ansible_host == localhost]</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">labels</span>: {{ <span style="color:#ae81ff">prowlarr_labels }}</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">restart_policy</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">condition</span>: <span style="color:#66d9ef">on</span>-<span style="color:#ae81ff">failure</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">delay</span>: <span style="color:#ae81ff">5s</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">max_attempts</span>: <span style="color:#ae81ff">3</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">window</span>: <span style="color:#ae81ff">120s</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  {{ <span style="color:#f92672">radarr_name }}</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">image</span>: {{ <span style="color:#ae81ff">radarr_image_repo }}:{{ radarr_image_tag }}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">networks</span>:
+</span></span><span style="display:flex;"><span>      - {{ <span style="color:#ae81ff">network_overlay }}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">environment</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">PUID</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">PGID</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TZ</span>: <span style="color:#e6db74">&#39;{{ timezone }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TP_SCHEME</span>: <span style="color:#e6db74">&#39;http&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TP_DOMAIN</span>: <span style="color:#e6db74">&#39;{{ themepark_domain }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TP_HOTIO</span>: <span style="color:#e6db74">&#39;true&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TP_THEME</span>: <span style="color:#e6db74">&#39;{{ themepark_theme }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">ports</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">target</span>: {{ <span style="color:#ae81ff">radarr_ports_cont }}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">published</span>: {{ <span style="color:#ae81ff">radarr_ports_host }}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">protocol</span>: <span style="color:#ae81ff">tcp</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">mode</span>: <span style="color:#ae81ff">ingress</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">volumes</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">type</span>: <span style="color:#ae81ff">bind</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">source</span>: {{ <span style="color:#ae81ff">radarr_location }}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">target</span>: <span style="color:#ae81ff">/config</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">type</span>: <span style="color:#ae81ff">bind</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">source</span>: {{ <span style="color:#ae81ff">themes_location }}/98-themepark-radarr</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">target</span>: <span style="color:#ae81ff">/etc/cont-init.d/98-themepark</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">type</span>: <span style="color:#ae81ff">bind</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">source</span>: <span style="color:#ae81ff">/mnt</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">target</span>: <span style="color:#ae81ff">/mnt</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">healthcheck</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">test</span>: [<span style="color:#e6db74">&#34;CMD&#34;</span>, <span style="color:#e6db74">&#34;curl&#34;</span>, <span style="color:#e6db74">&#34;--fail&#34;</span>, <span style="color:#e6db74">&#34;http://localhost:{{ radarr_ports_cont }}/login&#34;</span>]
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">interval</span>: <span style="color:#ae81ff">10s</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">timeout</span>: <span style="color:#ae81ff">5s</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">retries</span>: <span style="color:#ae81ff">10</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">start_period</span>: <span style="color:#ae81ff">10s</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">deploy</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">mode</span>: <span style="color:#ae81ff">replicated</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">replicas</span>: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">placement</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">constraints</span>: [<span style="color:#ae81ff">node.labels.ansible_host == localhost]</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">labels</span>: {{ <span style="color:#ae81ff">radarr_labels }}</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">restart_policy</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">condition</span>: <span style="color:#66d9ef">on</span>-<span style="color:#ae81ff">failure</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">delay</span>: <span style="color:#ae81ff">5s</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">max_attempts</span>: <span style="color:#ae81ff">3</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">window</span>: <span style="color:#ae81ff">120s</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  {{ <span style="color:#f92672">radarr_4k_name }}</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">image</span>: {{ <span style="color:#ae81ff">radarr_4k_image_repo }}:{{ radarr_4k_image_tag }}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">networks</span>:
+</span></span><span style="display:flex;"><span>      - {{ <span style="color:#ae81ff">network_overlay }}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">environment</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">PUID</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">PGID</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TZ</span>: <span style="color:#e6db74">&#39;{{ timezone }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TP_SCHEME</span>: <span style="color:#e6db74">&#39;http&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TP_DOMAIN</span>: <span style="color:#e6db74">&#39;{{ themepark_domain }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TP_HOTIO</span>: <span style="color:#e6db74">&#39;true&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TP_THEME</span>: <span style="color:#e6db74">&#39;{{ themepark_theme }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">ports</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">target</span>: {{ <span style="color:#ae81ff">radarr_4k_ports_cont }}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">published</span>: {{ <span style="color:#ae81ff">radarr_4k_ports_host }}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">protocol</span>: <span style="color:#ae81ff">tcp</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">mode</span>: <span style="color:#ae81ff">ingress</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">volumes</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">type</span>: <span style="color:#ae81ff">bind</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">source</span>: {{ <span style="color:#ae81ff">radarr_4k_location }}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">target</span>: <span style="color:#ae81ff">/config</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">type</span>: <span style="color:#ae81ff">bind</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">source</span>: {{ <span style="color:#ae81ff">themes_location }}/98-themepark-radarr</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">target</span>: <span style="color:#ae81ff">/etc/cont-init.d/98-themepark</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">type</span>: <span style="color:#ae81ff">bind</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">source</span>: <span style="color:#ae81ff">/mnt</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">target</span>: <span style="color:#ae81ff">/mnt</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">healthcheck</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">test</span>: [<span style="color:#e6db74">&#34;CMD&#34;</span>, <span style="color:#e6db74">&#34;curl&#34;</span>, <span style="color:#e6db74">&#34;--fail&#34;</span>, <span style="color:#e6db74">&#34;http://localhost:{{ radarr_4k_ports_cont }}/login&#34;</span>]
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">interval</span>: <span style="color:#ae81ff">10s</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">timeout</span>: <span style="color:#ae81ff">5s</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">retries</span>: <span style="color:#ae81ff">10</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">start_period</span>: <span style="color:#ae81ff">10s</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">deploy</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">mode</span>: <span style="color:#ae81ff">replicated</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">replicas</span>: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">placement</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">constraints</span>: [<span style="color:#ae81ff">node.labels.ansible_host == localhost]</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">labels</span>: {{ <span style="color:#ae81ff">radarr_4k_labels }}</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">restart_policy</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">condition</span>: <span style="color:#66d9ef">on</span>-<span style="color:#ae81ff">failure</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">delay</span>: <span style="color:#ae81ff">5s</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">max_attempts</span>: <span style="color:#ae81ff">3</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">window</span>: <span style="color:#ae81ff">120s</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  {{ <span style="color:#f92672">sonarr_name }}</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">image</span>: {{ <span style="color:#ae81ff">sonarr_image_repo }}:{{ sonarr_image_tag }}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">networks</span>:
+</span></span><span style="display:flex;"><span>      - {{ <span style="color:#ae81ff">network_overlay }}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">environment</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">PUID</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">PGID</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TZ</span>: <span style="color:#e6db74">&#39;{{ timezone }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TP_SCHEME</span>: <span style="color:#e6db74">&#39;http&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TP_DOMAIN</span>: <span style="color:#e6db74">&#39;{{ themepark_domain }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TP_HOTIO</span>: <span style="color:#e6db74">&#39;true&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TP_THEME</span>: <span style="color:#e6db74">&#39;{{ themepark_theme }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">ports</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">target</span>: {{ <span style="color:#ae81ff">sonarr_ports_cont }}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">published</span>: {{ <span style="color:#ae81ff">sonarr_ports_host }}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">protocol</span>: <span style="color:#ae81ff">tcp</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">mode</span>: <span style="color:#ae81ff">ingress</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">volumes</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">type</span>: <span style="color:#ae81ff">bind</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">source</span>: {{ <span style="color:#ae81ff">sonarr_location }}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">target</span>: <span style="color:#ae81ff">/config</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">type</span>: <span style="color:#ae81ff">bind</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">source</span>: {{ <span style="color:#ae81ff">themes_location }}/98-themepark-sonarr</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">target</span>: <span style="color:#ae81ff">/etc/cont-init.d/98-themepark</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">type</span>: <span style="color:#ae81ff">bind</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">source</span>: <span style="color:#ae81ff">/mnt</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">target</span>: <span style="color:#ae81ff">/mnt</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">healthcheck</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">test</span>: [<span style="color:#e6db74">&#34;CMD&#34;</span>, <span style="color:#e6db74">&#34;curl&#34;</span>, <span style="color:#e6db74">&#34;--fail&#34;</span>, <span style="color:#e6db74">&#34;http://localhost:{{ sonarr_ports_cont }}/login&#34;</span>]
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">interval</span>: <span style="color:#ae81ff">10s</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">timeout</span>: <span style="color:#ae81ff">5s</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">retries</span>: <span style="color:#ae81ff">10</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">start_period</span>: <span style="color:#ae81ff">10s</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">deploy</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">mode</span>: <span style="color:#ae81ff">replicated</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">replicas</span>: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">placement</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">constraints</span>: [<span style="color:#ae81ff">node.labels.ansible_host == localhost]</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">labels</span>: {{ <span style="color:#ae81ff">sonarr_labels }}</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">restart_policy</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">condition</span>: <span style="color:#66d9ef">on</span>-<span style="color:#ae81ff">failure</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">delay</span>: <span style="color:#ae81ff">5s</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">max_attempts</span>: <span style="color:#ae81ff">3</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">window</span>: <span style="color:#ae81ff">120s</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  {{ <span style="color:#f92672">sonarr_4k_name }}</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">image</span>: {{ <span style="color:#ae81ff">sonarr_4k_image_repo }}:{{ sonarr_4k_image_tag }}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">networks</span>:
+</span></span><span style="display:flex;"><span>      - {{ <span style="color:#ae81ff">network_overlay }}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">environment</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">PUID</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">PGID</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TZ</span>: <span style="color:#e6db74">&#39;{{ timezone }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TP_SCHEME</span>: <span style="color:#e6db74">&#39;http&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TP_DOMAIN</span>: <span style="color:#e6db74">&#39;{{ themepark_domain }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TP_HOTIO</span>: <span style="color:#e6db74">&#39;true&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TP_THEME</span>: <span style="color:#e6db74">&#39;{{ themepark_theme }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">ports</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">target</span>: {{ <span style="color:#ae81ff">sonarr_4k_ports_cont }}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">published</span>: {{ <span style="color:#ae81ff">sonarr_4k_ports_host }}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">protocol</span>: <span style="color:#ae81ff">tcp</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">mode</span>: <span style="color:#ae81ff">ingress</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">volumes</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">type</span>: <span style="color:#ae81ff">bind</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">source</span>: {{ <span style="color:#ae81ff">sonarr_4k_location }}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">target</span>: <span style="color:#ae81ff">/config</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">type</span>: <span style="color:#ae81ff">bind</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">source</span>: {{ <span style="color:#ae81ff">themes_location }}/98-themepark-sonarr</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">target</span>: <span style="color:#ae81ff">/etc/cont-init.d/98-themepark</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">type</span>: <span style="color:#ae81ff">bind</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">source</span>: <span style="color:#ae81ff">/mnt</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">target</span>: <span style="color:#ae81ff">/mnt</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">healthcheck</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">test</span>: [<span style="color:#e6db74">&#34;CMD&#34;</span>, <span style="color:#e6db74">&#34;curl&#34;</span>, <span style="color:#e6db74">&#34;--fail&#34;</span>, <span style="color:#e6db74">&#34;http://localhost:{{ sonarr_4k_ports_cont }}/login&#34;</span>]
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">interval</span>: <span style="color:#ae81ff">10s</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">timeout</span>: <span style="color:#ae81ff">5s</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">retries</span>: <span style="color:#ae81ff">10</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">start_period</span>: <span style="color:#ae81ff">10s</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">deploy</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">mode</span>: <span style="color:#ae81ff">replicated</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">replicas</span>: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">placement</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">constraints</span>: [<span style="color:#ae81ff">node.labels.ansible_host == localhost]</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">labels</span>: {{ <span style="color:#ae81ff">sonarr_4k_labels }}</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">restart_policy</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">condition</span>: <span style="color:#66d9ef">on</span>-<span style="color:#ae81ff">failure</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">delay</span>: <span style="color:#ae81ff">5s</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">max_attempts</span>: <span style="color:#ae81ff">3</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">window</span>: <span style="color:#ae81ff">120s</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  {{ <span style="color:#f92672">whisparr_name }}</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">image</span>: {{ <span style="color:#ae81ff">whisparr_image_repo }}:{{ whisparr_image_tag }}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">networks</span>:
+</span></span><span style="display:flex;"><span>      - {{ <span style="color:#ae81ff">network_overlay }}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">environment</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">PUID</span>: <span style="color:#e6db74">&#39;{{ puid }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">PGID</span>: <span style="color:#e6db74">&#39;{{ pgid }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TZ</span>: <span style="color:#e6db74">&#39;{{ timezone }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TP_SCHEME</span>: <span style="color:#e6db74">&#39;http&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TP_DOMAIN</span>: <span style="color:#e6db74">&#39;{{ themepark_domain }}&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TP_HOTIO</span>: <span style="color:#e6db74">&#39;true&#39;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">TP_THEME</span>: <span style="color:#e6db74">&#39;{{ themepark_theme }}&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">ports</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">target</span>: {{ <span style="color:#ae81ff">whisparr_ports_cont }}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">published</span>: {{ <span style="color:#ae81ff">whisparr_ports_host }}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">protocol</span>: <span style="color:#ae81ff">tcp</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">mode</span>: <span style="color:#ae81ff">ingress</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">volumes</span>:
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">type</span>: <span style="color:#ae81ff">bind</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">source</span>: {{ <span style="color:#ae81ff">whisparr_location }}</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">target</span>: <span style="color:#ae81ff">/config</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">type</span>: <span style="color:#ae81ff">bind</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">source</span>: {{ <span style="color:#ae81ff">themes_location }}/98-themepark-whisparr</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">target</span>: <span style="color:#ae81ff">/etc/cont-init.d/98-themepark</span>
+</span></span><span style="display:flex;"><span>      - <span style="color:#f92672">type</span>: <span style="color:#ae81ff">bind</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">source</span>: <span style="color:#ae81ff">/mnt</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">target</span>: <span style="color:#ae81ff">/mnt</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">healthcheck</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">test</span>: [<span style="color:#e6db74">&#34;CMD&#34;</span>, <span style="color:#e6db74">&#34;curl&#34;</span>, <span style="color:#e6db74">&#34;--fail&#34;</span>, <span style="color:#e6db74">&#34;http://localhost:{{ whisparr_ports_cont }}/login&#34;</span>]
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">interval</span>: <span style="color:#ae81ff">10s</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">timeout</span>: <span style="color:#ae81ff">5s</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">retries</span>: <span style="color:#ae81ff">10</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">start_period</span>: <span style="color:#ae81ff">10s</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">deploy</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">mode</span>: <span style="color:#ae81ff">replicated</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">replicas</span>: <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">placement</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">constraints</span>: [<span style="color:#ae81ff">node.labels.ansible_host == localhost]</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">labels</span>: {{ <span style="color:#ae81ff">whisparr_labels }}</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">restart_policy</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">condition</span>: <span style="color:#66d9ef">on</span>-<span style="color:#ae81ff">failure</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">delay</span>: <span style="color:#ae81ff">5s</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">max_attempts</span>: <span style="color:#ae81ff">3</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">window</span>: <span style="color:#ae81ff">120s</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">networks</span>:
+</span></span><span style="display:flex;"><span>  {{ <span style="color:#f92672">network_overlay }}</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">external</span>: <span style="color:#66d9ef">true</span>
+</span></span></code></pre></div>
       </div></div>
 
   
